@@ -1,0 +1,104 @@
+.border_redbg_light_thin {
+	background-color: #FFF5F5;
+	border: thin solid #F2CECE;
+}
+.border_redbg_norm_thin {
+	background-color: #F2CECE;
+	border: thin solid #BFA3A3;
+}
+.border_redbg_light_thick {
+	background-color: #FFF5F5;
+	border: thick solid #F2CECE;
+}
+.border_redbg_norm_thick {
+	background-color: #F2CECE;
+	border: thick solid #BFA3A3;
+}
+.border_orangebg_light_thin {
+	background-color: #FFFAF5;
+	border: thin solid #F2E0CE;
+}
+.border_orangebg_norm_thin {
+	background-color: #F2E0CE;
+	border: thin solid #BFB1A3;
+}
+.border_orangebg_light_thick {
+	background-color: #FFFAF5;
+	border: thick solid #F2E0CE;
+}
+.border_orangebg_norm_thick {
+	background-color: #F2E0CE;
+	border: thick solid #BFB1A3;
+}
+.border_yellowbg_light_thin {
+	background-color: #FFFFF5;
+	border: thin solid #F2F2CE;
+}
+.border_yellowbg_norm_thin {
+	background-color: #F2F2CE;
+	border: thin solid #BFBFA3;
+}
+.border_yellowbg_light_thick {
+	background-color: #FFFFF5;
+	border: thick solid #F2F2CE;
+}
+.border_yellowbg_norm_thick {
+	background-color: #F2F2CE;
+	border: thick solid #BFBFA3;
+}
+.border_greenbg_light_thin {
+	background-color: #F5FFFA;
+	border: thin solid #CEF2E0;
+}
+.border_greenbg_norm_thin {
+	background-color: #CEF2E0;
+	border: thin solid #A3BFB1;
+}
+.border_greenbg_light_thick {
+	background-color: #F5FFFA;
+	border: thick solid #CEF2E0;
+}
+.border_greenbg_norm_thick {
+	background-color: #CEF2E0;
+	border: thick solid #A3BFB1;
+}
+.border_bluebg_light_thin {
+	background-color: #F5FAFF;
+	border: thin solid #CEE0F2;
+}
+.border_bluebg_norm_thin {
+	background-color: #CEE0F2;
+	border: thin solid #A3B1BF;
+}
+.border_bluebg_light_thick {
+	background-color: #F5FAFF;
+	border: thick solid #CEE0F2;
+}
+.border_bluebg_norm_thick {
+	background-color: #CEE0F2;
+	border: thick solid #A3B1BF;
+}
+.border_purplebg_light_thin {
+	background-color: #FAF5FF;
+	border: thin solid #E0CEF2;
+}
+.border_purplebg_norm_thin {
+	background-color: #E0CEF2;
+	border: thin solid #B1A3BF;
+}
+.border_purplebg_light_thick {
+	background-color: #FAF5FF;
+	border: thick solid #E0CEF2;
+}
+.border_purplebg_norm_thick {
+	background-color: #E0CEF2;
+	border: thick solid #B1A3BF;
+}
+.error {
+	color:#FF0000;
+	font-weight:bold;
+}
+.success {
+	color:#009900;
+	font-weight:bold;
+}

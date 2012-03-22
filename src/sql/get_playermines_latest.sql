@@ -1,0 +1,1 @@
+SELECT * FROM minecraft.`x-mines` ORDER BY `last_break_date` ASC LIMIT 1
