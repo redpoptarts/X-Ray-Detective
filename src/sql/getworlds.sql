@@ -1,1 +1,0 @@
-SELECT * FROM minecraft.`x-worlds`;

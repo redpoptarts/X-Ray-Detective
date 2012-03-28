@@ -1,24 +1,97 @@
-<?php include_once('config/config_settings.php'); ?>
-<?php include_once('config/config_database.php'); ?>
-<?php require_once('src/core_xdetector.php'); ?>
-<?php include_once('src/auth_xray.php'); ?>
+<?php require_once('inc/core_xdetector.php'); ?>
+<?php include_once('inc/auth_xray.php'); ?>
 <?php
+
+Global_Init();
+$auth = Do_Auth();
+
+$command = $_GET['command'];
 
 //echo "Begin script...<br>";
 if($_SESSION["auth_is_valid"])
 {
 //	echo "Continuing...<br>";
-	@mysql_connect($db_host, $db_user, $db_pass) or die($_SERVER["REQUEST_URI"] . "Could not connect to DB host.");
-	@mysql_selectdb($db_name) or die($_SERVER["REQUEST_URI"] . "Could not select DB");
+	@mysql_connect($db['x_host'], $db['x_user'], $db['x_pass']) or die($_SERVER["REQUEST_URI"] . "Could not connect to XRAY DB host [".$db['x_host']."].");
+	@mysql_selectdb($db['x_base']) or die($_SERVER["REQUEST_URI"] . "Could not select XRAY DB [".$db['x_base']."]");
+
+
+	$command = $_GET["command"];
+	$block_type = $_GET["block_type"]; if($block_type==""){ $block_type = 56; }
+	$stone_threshold = $_GET["stone_threshold"]; if($stone_threshold==""){ $stone_threshold = 500; }
+	$limit_results = $_GET["limit_results"]; if($limit_results==""){ $limit_results = 100; }
+
+
+
+	
+	$player_name = $_GET["player"];	$player_id = GetPlayerID_ByName($player_name);
+	
+	switch($block_type){
+		case 56: $limit_block = "diamond"; break;
+		case 25: $limit_block = "lapis"; break;
+		case 14: $limit_block = "gold"; break;
+		case 48: $limit_block = "mossy"; break;
+		case 15: $limit_block = "iron"; break;
+		default: $limit_block = "invalid"; break;
+	}
+	//echo "LIMIT BLOCK: $limit_block<BR>";
+	//echo "WORLD ID: $world_id<BR>";
+	//echo "WORLD NAME: $world_name<BR>";
+	//echo "WORLD ALIAS: $world_alias<BR>";
+	
+	/*
+	echo "ARGUMENTS [GET] : ----<br>";
+	print_r($_GET); echo "<br>";
+	echo "---------------<br>";
+	echo "ARGUMENTS [POST] : ----<br>";
+	print_r($_POST); echo "<br>";
+	echo "---------------<br>";
+	*/
+	
+
+
+	$limits["diamond"] = array_fill(0, 10, 0); $limits["lapis"] = array_fill(0, 10, 0); $limits["gold"] = array_fill(0, 10, 0); $limits["mossy"] = array_fill(0, 10, 0); $limits["iron"] = array_fill(0, 10, 0);
+	
+	// Here are the sensitivity limits for each block type.
+	// 3 is the LOW value (GREEN)
+	// 6 is the MID value (YELLOW)
+	// 9 is the HIGH value (RED)
+	//
+	// All other color values will be created for you automatically.
+	//
+	/////////////////////////////////////////[   ]///////////[    ]//////////[   ]/////
+	$limits["diamond"] = array(0 => 0,	3 => "0.5", 	6 => "1.25",	9 => "2");
+	$limits["lapis"] =   array(0 => 0,	3 => "1",		6 => "2",   	9 => "3");
+	$limits["gold"] =    array(0 => 0, 	3 => "2.5",		6 => "4", 	9 => "6");
+	$limits["mossy"] =   array(0 => 0,	3 => "5",   	6 => "10",		9 => "15");
+	$limits["iron"] =    array(0 => 0,	3 => "15",  	6 => "20",		9 => "30");
+	/////////////////////////////////////////[   ]///////////[    ]//////////[   ]/////
+	
+	//echo "LIMITS::<br>"; print_r($limits); echo "<br><br>";
+	
+	foreach($limits as $limit_type => $limit_array)
+	{
+		//echo "BLOCK TYPE: $limit_block <br>";
+		$limits[$limit_type][1] = $limits[$limit_type][3] * 0.33;
+		$limits[$limit_type][2] = $limits[$limit_type][3] * 0.66;
+		$limits[$limit_type][4] = $limits[$limit_type][3] + ($limits[$limit_type][6] - $limits[$limit_type][3]) * 0.33;
+		$limits[$limit_type][5] = $limits[$limit_type][3] + ($limits[$limit_type][6] - $limits[$limit_type][3]) * 0.66;
+		$limits[$limit_type][7] = $limits[$limit_type][6] + ($limits[$limit_type][9] - $limits[$limit_type][6]) * 0.33;
+		$limits[$limit_type][8] = $limits[$limit_type][6] + ($limits[$limit_type][9] - $limits[$limit_type][6]) * 0.66;
+		$limits[$limit_type][10] = $limits[$limit_type][9] + ($limits[$limit_type][9] - $limits[$limit_type][6]) * 1.33;
+		asort($limits[$limit_type]);
+		//echo "[" . $limit_type . "]<br>"; print_r($limits[$limit_type]); echo "<br>";
+	}
 
 	if ($command == 'xsingle')
 	{
+		
 //		echo "XCHECK";
 		if($_GET['xr_submit']=="Check" || $_GET['xr_submit']=="")
 		{
 			// Check user's totals from stats table
 			$player_world_stats = GetSingleStats($player_id);
-	
+			
+
 			foreach($player_world_stats as $pw_index => $pw_item)
 			{
 				
@@ -73,6 +146,12 @@ if($_SESSION["auth_is_valid"])
 		}
 	} elseif ($command == 'xtoplist')
 	{
+		$world_id = $_GET["worldid"]; if($world_id==""){ $world_name = $GLOBALS['worlds'][0]["worldid"]; }
+		foreach($GLOBALS['worlds'] as $world_key => $world_item )
+		{
+			if($world_id==$world_item["worldid"]){ $world_name = $world_item["worldname"]; $world_alias = $world_item["worldalias"];}
+		}
+		
 		if($world_id==""){$world_id=1;}
 		if($block_type==""){$block_type=56;}
 		if($limit_results==""){$limit_results=50;}
@@ -107,8 +186,10 @@ if($_SESSION["auth_is_valid"])
 		$show_process = true;
 		$require_confirmation = true;
 		$msg_confirmation = "You are about to delete all collected x-ray statistics (block counts) for all users!";
+	} elseif ($command == 'xworlds')
+	{
+		
 	}
-
 }
 
 $datetime_now = new DateTime;
@@ -143,6 +224,41 @@ body {
 }
 body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 </style>
+<link type="text/css" href="styles/css/xray-default/jquery-ui-1.8.18.custom.css" rel="stylesheet">
+<link type="text/css" href="styles/css/xray-dark/jquery-ui-1.8.18.custom.css" rel="stylesheet">	
+<link type="text/css" href="styles/css/xray-light/jquery-ui-1.8.18.custom.css" rel="stylesheet">	
+<link type="text/css" href="styles/css/xray-whiteborder/jquery-ui-1.8.18.custom.css" rel="stylesheet">
+<script type="text/javascript" src="styles/jquery-1.7.1.js"></script>
+<script type="text/javascript" src="styles/external/jquery.bgiframe-2.1.2.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.core.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.widget.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.accordion.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.tabs.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.mouse.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.button.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.draggable.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.position.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.resizable.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.dialog.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.autocomplete.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.effects.core.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.effects.blind.js"></script>
+<script type="text/javascript" src="inc/jquery.form.js"></script>
+	<style type="text/css">
+
+	</style>
+
+	<script type="text/javascript">
+		$(function(){
+			$('.ui-state-default').hover(
+				function(){ $(this).addClass('ui-state-hover'); }, 
+				function(){ $(this).removeClass('ui-state-hover'); }
+			);
+			$('.ui-state-default').click(function(){ $(this).toggleClass('ui-state-active'); });
+			$('.icons').append(' <a href="#">Toggle text</a>').find('a').click(function(){ $('.icon-collection li span.text').toggle(); return false; }).trigger('click');
+			$( "#tabs" ).tabs();
+		});
+	</script>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -155,61 +271,78 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 </head>
 
 <body>
-<?php //echo "AUTHMODE: $auth_mode<BR>"; ?>
-<?php if(!$_SESSION["auth_is_valid"]){ ?>
-<table width="800" border="0" class="border_greybg_light_thick">
+<?php //echo "FIRST SETUP: [".$GLOBALS['config_settings']['settings']['first_setup']."][".FixOutput_Bool($_SESSION['first_setup'],"YES","NO","EMPTY")."]";?>
+<?php if(!$_SESSION["auth_is_valid"] || $_SESSION["first_setup"]){ ?>
+<table width="800" border="0" class="borderblack_greybg_light_thick ui-corner-all">
   <tr>
     <td><form id="loginform" name="loginform" method="post" action="">
       <table width="100%" border="0">
         <tr>
           <td><table width="100%" height="90" border="0" class="xray_header">
             <tr>
-              <td><h1>&nbsp;</h1></td>
+              <td><a href="xray.php" target="_self"><img src="img/null15.gif" width="500" height="80" hspace="0" vspace="0" border="0" /></a></td>
             </tr>
           </table></td>
         </tr>
         <tr>
-          <td><table width="100%" border="0" class="border_greybg_dark_thick">
+          <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
             <tr>
               <td align="right">&nbsp;</td>
             </tr>
           </table></td>
         </tr>
         <tr>
-          <td><table width="100%" border="0" class="border_greybg_dark_thick">
+          <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
             <tr>
               <td>&nbsp;</td>
               </tr>
             <tr>
-              <td align="right"><?php if($logout_success!=""){ ?><table width="100%" border="0" class="bg_I_4 border_black_thick">
-                <tr>
-                  <td align="center" valign="middle"><h1 class="success"><?php echo $logout_success; ?></h1></td>
-                </tr>
-                </table>
-                <br />
-                <?php } if($login_error!=""){ ?>
-                <table width="100%" border="0" class="bg_I_-3 border_black_thick">
+              <td align="right"><?php if($logout_success!=""){ ?>
+                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-highlight ui-corner-all">
                   <tr>
-                    <td align="center" valign="middle"><h1 class="error"> <?php echo $login_error; ?></h1></td>
+                    <td align="center" valign="middle">&nbsp;</td>
                   </tr>
-                </table>
-                <br />
+                  <tr>
+                    <td align="center" valign="middle"><strong><?php echo $auth['logout_success']; ?>
+                      </h1>
+                    </strong></td>
+                  </tr>
+                  <tr>
+                    <td align="center" valign="middle">&nbsp;</td>
+                  </tr>
+              </table>
+<br />
+                <?php } if($login_error!=""){ ?>
+                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all">
+                  <tr>
+                    <td align="center" valign="middle">&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td align="center" valign="middle"><strong><?php echo $auth['login_error']; ?>
+                      </h1>
+                    </strong></td>
+                  </tr>
+                  <tr>
+                    <td align="center" valign="middle">&nbsp;</td>
+                  </tr>
+                  </table>
+<br />
                 <?php } ?>
-                <?php if($auth_mode == "username"){ ?>
-                <?php if($totalRows_IP_Users > 0) { // Show if recordset not empty ?>
+                <?php if($GLOBALS['config_settings']['auth']['mode'] == "username"){ ?>
+                <?php if(count($GLOBALS['auth']['IP_Users_list']) > 0) { // Show if recordset not empty ?>
                 <table width="100%" border="0">
                   <tr>
                     <td align="center" valign="middle"><h1>Please Login...</h1></td>
-                    <td><table width="100%" border="0" class="border_greybg_light_thick">
+                    <td><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
                       <tr>
-                        <td class="border_greybg_norm_thin"><strong>Select Your Username</strong></td>
+                        <td class="borderblack_greybg_norm_thin"><strong>Select Your Username</strong></td>
                         </tr>
                       <tr>
                         <td><table width="100%" border="0">
                           <tr>
                             <td width="200" valign="top" nowrap="nowrap"><strong>Your Username:</strong></td>
                             <td valign="top"><select name="my_username" id="my_username">
-                              <?php foreach($IP_Users_list as $ip_index => $ip_item) { ?>
+                              <?php foreach($GLOBALS['auth']['IP_Users_list'] as $ip_index => $ip_item) { ?>
                               <option value="<?php echo $ip_item['playername']; ?>"><?php echo $ip_item['playername']; ?></option>
                               <?php } ?>
                               </select></td>
@@ -225,18 +358,30 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     </tr>
                   </table>
                 <?php } else { ?>
-                <table width="100%" border="0" class="bg_I_-3 border_black_thick">
+                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all">
                   <tr>
-                    <td align="center" valign="middle"><h1 class="error">You are not authorized to view this page.</h1></td>
+                    <td align="center" valign="middle">&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td align="center" valign="middle"><strong>
+                      <?php if($_SESSION['first_setup']){ ?>Thank you for choosing X-Ray Detective!<br /><br />
+                      It looks like you are running this for the first time.<BR /><BR />
+                      You cannot use X-Ray Detective until you have fully completed the <a href="setup.php">Setup</a>.
+                      <?php }else{ ?> You are not authorized to view this page.<?php } ?>
+                      </h1>
+                    </strong></td>
+                  </tr>
+                  <tr>
+                    <td align="center" valign="middle">&nbsp;</td>
                   </tr>
                 </table>
-                <?php } } if ($auth_mode == "password"){ ?>
+                <?php } } if ($GLOBALS['config_settings']['auth']['mode'] == "password"){ ?>
                 <table width="100%" border="0">
                   <tr>
                     <td align="center" valign="middle"><h1>Please Login...</h1></td>
-                    <td align="center" valign="middle"><table width="100%" border="0" class="border_greybg_light_thick">
+                    <td align="center" valign="middle"><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
                       <tr>
-                        <td class="border_greybg_norm_thin"><strong>Enter Your Password</strong></td>
+                        <td class="borderblack_greybg_norm_thin"><strong>Enter Your Password</strong></td>
                         </tr>
                       <tr>
                         <td><table  border="0" cellspacing="0" cellpadding="0">
@@ -263,7 +408,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
             </table></td>
         </tr>
         <tr>
-          <td><table width="100%" border="0" class="border_greybg_dark_thick">
+          <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
             <tr>
               <td align="right">&nbsp;</td>
               </tr>
@@ -274,19 +419,19 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
   </tr>
 </table>
 <br />
-<?php } if($_SESSION["auth_is_valid"] && $show_process==true){ ?>
-<table width="800" border="0" class="border_greybg_light_thick">
+<?php } if($_SESSION["auth_is_valid"] && !$_SESSION["first_setup"] && $show_process==true){ ?>
+<table width="800" border="0" class="borderblack_greybg_light_thick ui-corner-all">
   <tr>
     <td><table width="100%" border="0">
       <tr>
         <td><table width="100%" height="90" border="0" class="xray_header">
           <tr>
-            <td><h1>&nbsp;</h1></td>
+            <td><h1><a href="xray.php" target="_self"><img src="img/null15.gif" alt="" width="500" height="80" hspace="0" vspace="0" border="0" /></a></h1></td>
           </tr>
         </table></td>
       </tr>
       <tr>
-        <td><table width="100%" border="0" class="border_greybg_dark_thick">
+        <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
           <tr>
             <td>&nbsp;</td>
           </tr>
@@ -294,11 +439,11 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
       </tr>
       <tr>
         <td><?php if($require_confirmation && $_GET['confirm']!="1"){ ?>
-          <table width="100%" border="0" class="border_greybg_dark_thick">
+          <table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
           <tr>
             <td><table width="100%" border="0" cellpadding="25">
               <tr>
-                <td><table width="100%" border="0" cellpadding="15" class="border_greybg_dark_thick">
+                <td><table width="100%" border="0" cellpadding="15" class="borderblack_greybg_dark_thick ui-corner-all">
                   <tr>
                     <td colspan="2" class="bg_I_10"><h2>WARNING:</h2></td>
                   </tr>
@@ -306,8 +451,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td colspan="2" class="bg_I_-3"><?php echo $msg_confirmation; ?></td>
                   </tr>
                   <tr>
-                    <td align="center" class="border_greybg_norm_thick"><strong><a href="xray.php">ABORT</a></strong></td>
-                    <td align="center" class="border_greybg_norm_thick"><strong><a href="<?php echo $_SERVER['REQUEST_URI'] . "&confirm=1"; ?>">PROCEED</a></strong></td>
+                    <td align="center" class="borderblack_greybg_norm_thick ui-corner-all"><strong><a href="xray.php">ABORT</a></strong></td>
+                    <td align="center" class="borderblack_greybg_norm_thick ui-corner-all"><strong><a href="<?php echo $_SERVER['REQUEST_URI'] . "&confirm=1"; ?>">PROCEED</a></strong></td>
                   </tr>
                 </table></td>
               </tr>
@@ -315,7 +460,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
           </tr>
         </table>
           <?php } else { ?>
-          <table width="100%" border="0" class="border_greybg_dark_thick">
+          <table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
           <tr>
             <td><h2>
               Processing...              
@@ -333,9 +478,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 					{						
 						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"])
 						{
-							$Worlds_Array = GetWorlds();
-							foreach($Worlds_Array as $world_index => $world_item)
-								{ AddPlayerMines($player_id, $world_item["worldid"], $mine_settings); }
+							foreach($GLOBALS['worlds'] as $world_index => $world_item)
+								{ AddPlayerMines($player_id); }
 							UpdatePlayerMinesStats($player_id);
 						}
 						else { $command_error .= "You do not have permission to do that.<BR>"; }
@@ -377,7 +521,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
           <?php } ?></td>
       </tr>
       <tr>
-        <td><table width="100%" border="0" class="border_greybg_dark_thick">
+        <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
           <tr>
             <td>&nbsp;</td>
           </tr>
@@ -387,35 +531,42 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
   </tr>
 </table>
 <br />
-<?php } elseif($_SESSION["auth_is_valid"]) { ?>
-<table width="800" border="0" class="border_greybg_light_thick">
+<?php } elseif($_SESSION["auth_is_valid"] && !$_SESSION["first_setup"] && array_search($command, array("", "xtoplist", "xsingle", "xglobal", "xworlds"))!==false ) { ?>
+<table width="800" border="0" class="borderblack_greybg_light_thick ui-corner-all">
   <tr>
     <td><table width="100%" border="0">
       <tr>
-        <td><table width="100%" border="0" height="90" class="xray_header">
+        <td><table width="100%" height="90" border="0" cellpadding="0" cellspacing="0" class="xray_header">
           <tr>
-            <td><h1>&nbsp;</h1></td>
-            <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";} ?></strong>              <form id="logoutform" name="logoutform" method="post" action="">
-                <strong>
-              <input type="submit" name="Submit" id="Submit" value="Logout" />
-              <input name="form" type="hidden" id="form" value="logoutform" />
+            <td><a href="xray.php" target="_self"><img src="img/null15.gif" alt="" width="500" height="80" hspace="0" vspace="0" border="0" /></a></td>
+            <td align="right"><table width="100%" border="0">
+              <tr>
+                <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>ADMIN IP OVERRIDE";} ?><br />
                 </strong>
-              </form></td>
+                  <form id="logoutform" name="logoutform" method="post" action="">
+                    <strong>
+                      <input type="submit" name="Submit" id="Submit" value="Logout" />
+                      <input name="form" type="hidden" id="form" value="logoutform" />
+                      </strong>
+                  </form>
+                  </td>
+              </tr>
+            </table></td>
           </tr>
         </table></td>
       </tr>
       <tr>
-        <td><table width="100%" border="0" class="border_greybg_norm_thick">
+        <td><table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
           <tr>
-            <td><table width="100%" border="0" class="border_greybg_dark_thick">
+            <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
               <tr>
-                <td><h2>Tasks</h2></td>
+                <td><h1>Tasks</h1></td>
               </tr>
             </table></td>
           </tr>
           <tr>
             <td><table width="100%" border="0" class="bg_black">
-              <tr class="border_greybg_light_thin">
+              <tr class="borderblack_greybg_light_thin">
                 <td><h3><strong>Users</strong></h3></td>
                 <td><h3><strong>Moderators</strong></h3></td>
                 <td><h3><strong>Administrators</strong></h3></td>
@@ -423,7 +574,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
               <tr class="bg_white">
                 <td><strong><a href="xray.php?command=xtoplist" style="color:#000000">Top User Statistics</a><a href="xray.php?command=xclear" style="color:#000000"></a></strong></td>
                 <td><a href="xray.php?command=xupdate" style="color:#000000"><strong>Update  X-Ray Stats</strong></a></td>
-                <td><a href="xray.php?command=xsettings" style="color:#000000"><strong>Change Settings</strong></a></td>
+                <td><a href="setup.php" style="color:#000000"><strong>Change X-Ray Settings</strong></a></td>
               </tr>
               <tr class="bg_white">
                 <td>&nbsp;</td>
@@ -436,7 +587,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                 <td>&nbsp;</td>
               </tr>
               <tr class="bg_white">
-                <td><strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000">Check Global Averages</a></strong></td>
+                <td><strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong></td>
                 <td>&nbsp;</td>
                 <td><a href="xray.php?command=xclear" style="color:#000000"><strong>Clear X-Ray Stats</strong></a></td>
               </tr>
@@ -444,9 +595,9 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
           </tr>
           <tr>
             <td><form action="xray.php" method="post" name="XR_form" target="_self" id="XR_form">
-              <table width="100%" border="0" class="border_greybg_light_thin">
+              <table width="100%" border="0" class="borderblack_greybg_light_thin">
                 <tr>
-                  <td width="14%" nowrap="nowrap"><strong>Check Player By Name
+                  <td width="14%" nowrap="nowrap"><strong><s>Check Player By Name</s>
                     <input name="command" type="hidden" id="command" value="xsingle" />
                     <input name="form" type="hidden" id="form" value="XR_form" />
                   </strong></td>
@@ -462,11 +613,11 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
       <tr>
         <td><?php if($command=="xtoplist"){ ?>
           <form id="toplist_form" name="toplist_form" method="post" action="xray.php">
-            <table width="100%" border="0" class="border_greybg_norm_thick">
+            <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
               <tr>
-                <td><table width="100%" border="0" class="border_greybg_dark_thick">
+                <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
                   <tr>
-                    <td><h2>Top Ratios</h2></td>
+                    <td><h1>Top Ratios</h1></td>
                   </tr>
                 </table></td>
               </tr>
@@ -488,7 +639,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <tr>
                       <td><strong>World</strong></td>
                       <td><select name="worldid" id="worldid">
-<?php foreach($world_array as $world_key => $world_item ){ ?>
+<?php foreach($GLOBALS['worlds'] as $world_key => $world_item ){ ?>
                         <option value="<?php echo $world_item["worldid"]; ?>"<?php if($world_id==$world_item["worldid"]){ echo " selected";}?>><?php echo $world_item["worldalias"]; ?></option>
 <?php } ?>
                       </select>
@@ -533,6 +684,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                 <td>
                 <?php 
 				//echo "TOP_ARRAY: "; print_r($TopArray); echo "<br>";
+				if(count($TopArray)>0){ 
 				?>
                   <table width="100%" border="0" class="bg_black">
                   <tr class="bg_white">
@@ -604,7 +756,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td colspan="2" align="center" class="bg_<?php if($limit_block=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
                     </tr>
                   <?php } ?>
-                </table></td>
+                </table>
+				<?php } // TopArray is not empty ?></td>
               </tr>
               <tr>
                 <td>&nbsp;</td>
@@ -614,11 +767,17 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
           <?php } ?></td>
       </tr>
       <tr>
-        <td><?php if($command=="xsingle" || $command=="xglobal"){ ?><table width="100%" border="0" class="border_greybg_norm_thick">
-          <tr>
-            <td><table width="100%" border="0" class="border_greybg_dark_thick">
+        <td><?php if($command=="xsingle" || $command=="xglobal"){ ?>
+          <table width="100%" border="0" class="bg_I_10">
+            <tr>
+              <th scope="row"><h1><strong>THIS PAGE IS NOT YET FUNCTIONAL</strong></h1></th>
+            </tr>
+          </table>
+          <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
+            <tr>
+            <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
               <tr>
-                <td><h2>Basic Player Stats: <font color="#FF0000"><?php echo $player; ?></font></h2></td>
+                <td><h1>Basic Player Stats: <font color="#FF0000"><?php echo $player; ?></font></h1></td>
               </tr>
             </table></td>
           </tr>
@@ -626,18 +785,18 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
             <td><form action="xray.php" method="post" name="useraction_form" target="_self" id="useraction_form">
               <table width="100%" border="0">
                 <tr>
-                  <td valign="top"><table width="100%" border="0" class="border_greybg_light_thick">
+                  <td valign="top"><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
                     <tr>
-                      <td><table width="100%" border="0" class="border_greybg_dark_thick">
+                      <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
                         <tr>
                           <td><strong>User Status </strong></td>
                           </tr>
                         </table></td>
                       </tr>
                     <tr>
-                      <td><table width="100%" border="0" class="border_greybg_norm_thick">
+                      <td><table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
                         <tr>
-                          <td><strong>Punishment Status</strong></td>
+                          <td><s><strong>Punishment Status</strong></s></td>
                           <td><select name="playerstatus" id="playerstatus">
                             <option value="0" selected="selected">Normal</option>
                             <option value="1">Warned</option>
@@ -647,7 +806,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                             </select></td>
                           </tr>
                         <tr>
-                          <td><strong>Watching</strong></td>
+                          <td><s><strong>Watching</strong></s></td>
                           <td><label for="watchingplayer"></label>
                             <select name="watchingplayer" id="watchingplayer">
                               <option value="0">Hide User</option>
@@ -676,9 +835,9 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                 <td>&nbsp;</td>
               </tr>
               <tr>
-                <td><table width="100%" border="0" class="border_greybg_light_thick">
+                <td><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
                   <tr>
-                    <td><table width="100%" border="0" class="border_greybg_dark_thick">
+                    <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
                         <tr>
                           <td><strong><?php echo $player_name; ?>'s Stats for World <?php echo $pw_item["worldalias"]; ?> </strong></td>
                         </tr>
@@ -771,16 +930,16 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 <?php } ?>
             </td>
           </tr>
-        </table></td>
+      </table></td>
       </tr>
       <tr>
-        <td><table width="100%" border="0" class="border_greybg_norm_thick">
+        <td><table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
           <tr>
-            <td><table width="100%" border="0" class="border_greybg_dark_thick">
+            <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
               <tr>
-                <td><h2>
+                <td><h1>
                   Advanced Player Statistics: <font color="#FF0000"><?php echo $player; ?></font>
-                  </h2></td>
+                </h1></td>
                 </tr>
               </table></td>
             </tr>
@@ -885,42 +1044,6 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                   </tr>
-                  <tr>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                  </tr>
-                  <tr>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                  </tr>
-                  <tr>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                  </tr>
-                  <tr>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                  </tr>
-                  <tr>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                  </tr>
-                  <tr>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                  </tr>
-                  <tr>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                  </tr>
-                  <tr>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                  </tr>
-                  <tr>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                  </tr>
                 </table></td>
               </tr>
             </table></td>
@@ -1018,11 +1141,11 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
       </tr>
 <tr>
   <td><?php if($command=="xsingle" || $command=="xglobal"){ ?>
-    <table width="100%" border="0" class="border_greybg_norm_thick">
+    <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
       <tr>
-        <td><table width="100%" border="0" class="border_greybg_dark_thick">
+        <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
           <tr>
-            <td><h2>Ratio Guide</h2></td>
+            <td><h1>Global Averages</h1></td>
             </tr>
           </table></td>
         </tr>
@@ -1097,7 +1220,7 @@ for ($col = 0; $col <= 10 ; $col++)
       </table>
     <?php } ?></td>
 </tr>
-    </table></td>
+</table></td>
   </tr>
 </table>
 <br />

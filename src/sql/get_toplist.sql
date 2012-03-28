@@ -1,2 +1,0 @@
-SELECT `playerid`, `playername`, `worldid`, `diamond_count`, `gold_count`, `lapis_count`, `mossy_count`, `iron_count`, `stone_count`, `banned`, `diamond_ratio`, `gold_ratio`, `lapis_ratio`, `iron_ratio`, `stone_ratio`, `mossy_ratio` FROM minecraft.`x-stats`
-LEFT JOIN `lb-players` USING (playerid)

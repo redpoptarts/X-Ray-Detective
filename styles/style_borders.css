@@ -1,3 +1,128 @@
+.borderblack_blackbg_norm_thin {
+	background-color: #000000;
+	border: thin solid #000000;
+	color: #FFFFFF;
+}
+.borderblack_blackbg_norm_thick {
+	background-color: #000000;
+	border: thick solid #000000;
+	color: #FFFFFF;
+}
+.borderblack_whitebg_norm_thin {
+	background-color: #FFFFFF;
+	border: thin solid #000000;
+	color: #000000;
+}
+.borderblack_whitebg_norm_thick {
+	background-color: #FFFFFF;
+	border: thick solid #000000;
+	color: #000000;
+}
+.borderblack_greybg_light_thin {
+	background-color:#CCCCCC;
+	border: thin solid #000000;
+	color: #000000;
+}
+.borderblack_greybg_light_thick {
+	background-color: #CCCCCC;
+	border: thick solid #000000;
+	color: #000000;
+}
+.borderblack_greybg_norm_thin {
+	background-color:#999999;
+	border: thin solid #000000;
+	color: #000000;
+}
+.borderblack_greybg_norm_thick {
+	background-color: #999999;
+	border: thick solid #000000;
+	color: #000000;
+}
+.borderblack_greybg_dark_thin {
+	background-color:#666666;
+	border: thin solid #000000;
+	color: #FFFFFF;
+}
+.borderblack_greybg_dark_thick {
+	background-color: #666666;
+	border: thick solid #000000;
+	color: #FFFFFF;
+}
+.borderwhite_blackbg_norm_thin {
+	background-color: #000000;
+	border: thin solid #FFFFFF;
+	color: #FFFFFF;
+}
+.borderwhite_blackbg_norm_thick {
+	background-color: #000000;
+	border: thick solid #FFFFFF;
+	color: #FFFFFF;
+}
+.borderwhite_whitebg_norm_thin {
+	background-color: #FFFFFF;
+	border: thin solid #FFFFFF;
+	color: #000000;
+}
+.borderwhite_whitebg_norm_thick {
+	background-color: #FFFFFF;
+	border: thick solid #FFFFFF;
+	color: #000000;
+}
+.borderwhite_greybg_light_thin {
+	background-color:#CCCCCC;
+	border: thin solid #FFFFFF;
+	color: #000000;
+}
+.borderwhite_greybg_light_thick {
+	background-color: #CCCCCC;
+	border: thick solid #FFFFFF;
+	color: #000000;
+}
+.borderwhite_greybg_norm_thin {
+	background-color:#999999;
+	border: thin solid #FFFFFF;
+	color: #000000;
+}
+.borderwhite_greybg_norm_thick {
+	background-color: #999999;
+	border: thick solid #FFFFFF;
+	color: #000000;
+}
+.borderwhite_greybg_dark_thin {
+	background-color:#666666;
+	border: thin solid #FFFFFF;
+	color: #FFFFFF;
+}
+.borderwhite_greybg_dark_thick {
+	background-color: #666666;
+	border: thick solid #FFFFFF;
+	color: #FFFFFF;
+}
+
+
+
+.bordernone_blackbg_norm {
+	background-color: #000000;
+	color: #FFFFFF;
+}
+.bordernone_whitebg_norm {
+	background-color: #FFFFFF;
+	color: #000000;
+}
+.bordernone_greybg_light {
+	background-color:#CCCCCC;
+	color: #000000;
+}
+.bordernone_greybg_norm {
+	background-color: #999999;
+	color: #000000;
+}
+.bordernone_greybg_dark {
+	background-color:#666666;
+	color: #FFFFFF;
+}
+
+
 .border_black_thin {
 	border: thin solid #000000;
 }
@@ -9,55 +134,4 @@
 }
 .border_white_thick {
 	border: thick solid #FFFFFF;
-}
-
-.border_whitebg_norm_thin {
-	background-color: #FFFFFF;
-	border: thin solid #000000;
-	color: #000000;
-}
-.border_whitebg_norm_thick {
-	background-color: #FFFFFF;
-	border: thick solid #000000;
-	color: #000000;
-}
-.border_blackbg_norm_thin {
-	background-color: #000000;
-	border: thin solid #FFFFFF;
-	color: #FFFFFF;
-}
-.border_blackbg_norm_thick {
-	background-color: #000000;
-	border: thick solid #FFFFFF;
-	color: #FFFFFF;
-}
-.border_greybg_light_thin {
-	background-color:#CCCCCC;
-	border: thin solid #000000;
-	color: #000000;
-}
-.border_greybg_light_thick {
-	background-color: #CCCCCC;
-	border: thick solid #000000;
-	color: #000000;
-}
-.border_greybg_norm_thin {
-	background-color:#999999;
-	border: thin solid #000000;
-	color: #000000;
-}
-.border_greybg_norm_thick {
-	background-color: #999999;
-	border: thick solid #000000;
-	color: #000000;
-}
-.border_greybg_dark_thin {
-	background-color:#666666;
-	border: thin solid #000000;
-	color: #FFFFFF;
-}
-.border_greybg_dark_thick {
-	background-color: #666666;
-	border: thick solid #000000;
-	color: #FFFFFF;
 }
