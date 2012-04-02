@@ -11,7 +11,7 @@ version = v0.02.00a
 ;
 ; IRC Channel: (irc.esper.net) #xray
 ;
-; Version: 0.01a
+; Version: v0.02.00a
 ;
 ;=====================================================
 
