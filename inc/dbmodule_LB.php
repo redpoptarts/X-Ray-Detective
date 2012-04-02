@@ -27,7 +27,8 @@ function World_IsValid($worldname)
 function get_PlayerStats($playerid, $worldid)
 {
 	// Get ID of players whose names partially match the search parameter
-	$sql_PlayerStats  = "SELECT * FROM minecraft.`x-stats`";
+	Use_DB("xray");
+	$sql_PlayerStats  = "SELECT * FROM `x-stats`";
 	$sql_PlayerStats .= "    WHERE `playerid` = $playerid AND `worldid` = $worldid";
 	//echo "SQL QUERY: <BR>" . $sql_PlayerIDexists . "<BR>";
 	$res_PlayerStats = mysql_query($sql_PlayerStats) or die("get_PlayerStats: " . mysql_error());
@@ -90,7 +91,8 @@ function AddNewBreaks()
 		} else {
 			// Get ALL new breaks after latest_date_processed
 			echo "...Beginning User Scan, Please Be Patient...";
-			$sql_newbreaks  = "INSERT INTO `minecraft`.`x-stats` ";
+			Use_DB("xray");
+			$sql_newbreaks  = "INSERT INTO `x-stats` ";
 			$sql_newbreaks .= " (`playerid`, `worldid`, `diamond_count`, `gold_count`, `lapis_count`, `mossy_count`, `iron_count`, `stone_count`) ";
 			$sql_newbreaks .= " SELECT p.playerid, '".$world_item["worldid"]."', IFNULL(diamond_info.cnt,0) AS diamond_count, IFNULL(gold_info.cnt,0) AS gold_count, ";
 			$sql_newbreaks .= " 	IFNULL(lapis_info.cnt,0) AS lapis_count, IFNULL(mossy_info.cnt,0) AS mossy_count, IFNUlL(iron_info.cnt,0) AS iron_count, IFNULL(stone_info.cnt,0) AS stone_count";
