@@ -164,7 +164,7 @@ function Do_Auth($ip_only=false)
 	
 		foreach($auth_failsafe_ips_exploded as $auth_test_item)
 		{
-			if($_SERVER['REMOTE_ADDR'] == $auth_test_item)
+			if(inet_ntop($_SERVER['REMOTE_ADDR']) == $auth_test_item)
 			{
 				$_SESSION["auth_admin"] = true; $_SESSION["auth_level"] = "Administrator";
 				$_SESSION["auth_type"] = "ip";
