@@ -1,7 +1,7 @@
 ;<?php die();
 ;/* DO NOT EDIT ABOVE THIS LINE
 [xray_config]
-version = v0.01a
+version = v0.02.00a
 ;=====================================================
 ; X-Ray Detective Config - General Settings
 ;=====================================================
@@ -11,7 +11,7 @@ version = v0.01a
 ;
 ; IRC Channel: (irc.esper.net) #xray
 ;
-; Version: 0.01a
+; Version: v0.02.00a
 ;
 ;=====================================================
 

@@ -11,7 +11,7 @@ require_once( dirname(__FILE__) . '/core_config_handler.php');
 //
 // IRC Channel: (irc.esper.net) #xray
 //
-// Version: 0.01a
+// Version: v0.02.00a
 //
 //=====================================================
 //
