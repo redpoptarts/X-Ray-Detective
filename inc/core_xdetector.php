@@ -32,26 +32,28 @@ function Global_Init()
 	
 	//echo "GLOBALS: <BR>"; print_r($GLOBALS['db']); echo "<BR>";
 	
-	$GLOBALS['db']['s_resource'] = @mysql_connect($GLOBALS['db']['s_host'], $GLOBALS['db']['s_user'], $GLOBALS['db']['s_pass'])
-		or die($_SERVER["SCRIPT_FILENAME"] . "Could not connect to Source MySQL Server. : " . mysql_error());
-	@mysql_selectdb($GLOBALS['db']['s_base'])
-		or die("Could not connect to Source database [".$GLOBALS['db']['s_base']."] : " . mysql_error() );
+	if(!FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true))
+	{
+		$GLOBALS['db']['s_resource'] = @mysql_connect($GLOBALS['db']['s_host'], $GLOBALS['db']['s_user'], $GLOBALS['db']['s_pass'])
+			or die($_SERVER["SCRIPT_FILENAME"] . "Could not connect to Source MySQL Server. : " . mysql_error());
+		@mysql_selectdb($GLOBALS['db']['s_base'])
+			or die("Could not connect to Source database [".$GLOBALS['db']['s_base']."] : " . mysql_error() );
+		
+		$GLOBALS['db']['x_resource'] = @mysql_connect($GLOBALS['db']['x_host'], $GLOBALS['db']['x_user'], $GLOBALS['db']['x_pass'])
+			or die($_SERVER["SCRIPT_FILENAME"] . "Could not connect to X-Ray  MySQL Server. : " . mysql_error());
+		@mysql_selectdb($GLOBALS['db']['x_base'])
+			or die("Could not connect to X-Ray database [".$GLOBALS['db']['x_base']."] : " . mysql_error() );
 	
-	$GLOBALS['db']['x_resource'] = @mysql_connect($GLOBALS['db']['x_host'], $GLOBALS['db']['x_user'], $GLOBALS['db']['x_pass'])
-		or die($_SERVER["SCRIPT_FILENAME"] . "Could not connect to X-Ray  MySQL Server. : " . mysql_error());
-	@mysql_selectdb($GLOBALS['db']['x_base'])
-		or die("Could not connect to X-Ray database [".$GLOBALS['db']['x_base']."] : " . mysql_error() );
-
-	$GLOBALS['db']['s_link'] = mysqli_connect($GLOBALS['db']['s_host'], $GLOBALS['db']['s_user'], $GLOBALS['db']['s_pass'], $GLOBALS['db']['s_base'])
-		or die($_SERVER["SCRIPT_FILENAME"] . "Could not connect to Source MySQL Server (multilink). : " . mysqli_error($GLOBALS['db']['s_link']));
-	mysqli_select_db($GLOBALS['db']['s_link'], $GLOBALS['db']['s_base'])
-		or die("Could not connect to Source database (multilink) [".$GLOBALS['db']['s_base']."] : " . mysqli_error($GLOBALS['db']['s_link']) );
-	
-	$GLOBALS['db']['x_link'] = mysqli_connect($GLOBALS['db']['x_host'],$GLOBALS['db']['x_user'],$GLOBALS['db']['x_pass'], $GLOBALS['db']['x_base'])
-		or die($_SERVER["SCRIPT_FILENAME"] . "Could not connect to X-Ray MySQL Server (multilink). : " . mysqli_error($GLOBALS['db']['x_link']));;
-	mysqli_select_db($GLOBALS['db']['x_link'], $GLOBALS['db']['x_base'])
-		or die("Could not connect to X-Ray database (multilink) [".$GLOBALS['db']['x_base']."] : " . mysqli_error($GLOBALS['db']['x_link']) );
-	
+		$GLOBALS['db']['s_link'] = mysqli_connect($GLOBALS['db']['s_host'], $GLOBALS['db']['s_user'], $GLOBALS['db']['s_pass'], $GLOBALS['db']['s_base'])
+			or die($_SERVER["SCRIPT_FILENAME"] . "Could not connect to Source MySQL Server (multilink). : " . mysqli_error($GLOBALS['db']['s_link']));
+		mysqli_select_db($GLOBALS['db']['s_link'], $GLOBALS['db']['s_base'])
+			or die("Could not connect to Source database (multilink) [".$GLOBALS['db']['s_base']."] : " . mysqli_error($GLOBALS['db']['s_link']) );
+		
+		$GLOBALS['db']['x_link'] = mysqli_connect($GLOBALS['db']['x_host'],$GLOBALS['db']['x_user'],$GLOBALS['db']['x_pass'], $GLOBALS['db']['x_base'])
+			or die($_SERVER["SCRIPT_FILENAME"] . "Could not connect to X-Ray MySQL Server (multilink). : " . mysqli_error($GLOBALS['db']['x_link']));;
+		mysqli_select_db($GLOBALS['db']['x_link'], $GLOBALS['db']['x_base'])
+			or die("Could not connect to X-Ray database (multilink) [".$GLOBALS['db']['x_base']."] : " . mysqli_error($GLOBALS['db']['x_link']) );
+	}
 	
 
 	if($_POST['form']!=""){$_GET = $_POST;}
