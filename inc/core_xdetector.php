@@ -64,7 +64,6 @@ function Global_Init()
 		$GLOBALS['worlds'] = GetWorlds_Enabled();
 	}
 	
-
 }
 
 

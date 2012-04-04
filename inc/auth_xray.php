@@ -158,13 +158,13 @@ function Do_Auth($ip_only=false)
 	{
 		$auth_failsafe_ips_exploded = explode(",", $GLOBALS['config']['auth']['failsafe_ips']);
 		foreach($auth_failsafe_ips_exploded as &$input_fix_item){ $input_fix_item = trim($input_fix_item); }
-		array_push($auth_failsafe_ips_exploded, "127.0.0.1");
+		array_push($auth_failsafe_ips_exploded, "127.0.0.1","::1");
 		
 		//echo "FAILSAFE_IPS: "; print_r($auth_failsafe_ips_exploded); echo "<BR>";
 	
 		foreach($auth_failsafe_ips_exploded as $auth_test_item)
 		{
-			if(inet_ntop($_SERVER['REMOTE_ADDR']) == $auth_test_item)
+			if($_SERVER['REMOTE_ADDR'] == $auth_test_item)
 			{
 				$_SESSION["auth_admin"] = true; $_SESSION["auth_level"] = "Administrator";
 				$_SESSION["auth_type"] = "ip";
