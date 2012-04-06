@@ -1,4 +1,8 @@
-v0.02.00 a:
+v0.02.02 a:
+				Fixed first time setup database issue (BDev Issue #21)
+				Added support for IPv6 localhost "::1"
+				Removed `x-settings` from setup and table-checking code
+v0.02.01 a:
                 Fixed 'Update Stats' page causing (INSERT, UPDATE) permissions error
                 Fixed missing background image
 v0.01.00 a:
