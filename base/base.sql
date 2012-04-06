@@ -1,6 +1,22 @@
 
 USE `%%DATABASE%%` ;
 
+CREATE TABLE IF NOT EXISTS `%%DATABASE%%`.`x-log` (
+  `level` enum('NOTICE', 'WARN', 'CRITICAL'),
+  `message` TEXT,
+  `created` DATETIME )
+ENGINE = INNODB
+DEFAULT CHARACTER SET = utf8;
+
+CREATE TABLE IF NOT EXISTS `%%DATABASE%%`.`x-auth` (
+  `username` varchar(32) UNIQUE,
+  `password` char(60),
+  `access` int, -- 0 = user, 1 = mod, 2 = admin?
+  `salt` char(8),
+  `crypt_passes` int )
+ENGINE = INNODB
+DEFAULT CHARACTER SET = utf8;
+
 CREATE TABLE IF NOT EXISTS `%%DATABASE%%`.`x-config` (
   `conf_key` varchar(32),
   `conf_val` varchar(32) )
