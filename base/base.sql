@@ -1,6 +1,12 @@
 
 USE `%%DATABASE%%` ;
 
+CREATE TABLE IF NOT EXISTS `%%DATABASE%%`.`x-config` (
+  `conf_key` varchar(32),
+  `conf_val` varchar(32) )
+ENGINE=INNODB
+DEFAULT CHARACTER SET = utf8;
+
 CREATE  TABLE IF NOT EXISTS `%%DATABASE%%`.`x-mines` (
   `mineid` INT(3) UNSIGNED NOT NULL AUTO_INCREMENT ,
   `playerid` SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0 ,
