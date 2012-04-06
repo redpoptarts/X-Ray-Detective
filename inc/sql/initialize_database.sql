@@ -44,12 +44,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `minecraft`.`x-settings`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `minecraft`.`x-settings` (
-  `settingsid` INT(3) UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `last_date_processed` DATETIME NOT NULL ,
-  PRIMARY KEY (`settingsid`) ,
-  UNIQUE INDEX `settingsid_UNIQUE` (`settingsid` ASC) )
-ENGINE = InnoDB;
+DROP TABLE `minecraft`.`x-settings`;
 
 
 -- -----------------------------------------------------

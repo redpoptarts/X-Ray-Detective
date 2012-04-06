@@ -226,7 +226,7 @@ function Check_DB_Exists($validate_table, $db_type, $db_host, $db_base, $db_user
 
 function Check_XTables_Valid()
 {
-	$correct_tablecount = 6;
+	$correct_tablecount = 5;
 	$db_ok_response = SQL_DB_OK("xray");
 	
 	if($db_ok_response["error"])
@@ -242,7 +242,7 @@ function Check_XTables_Valid()
 		if( mysql_num_rows($res_Find_XTables) == $correct_tablecount )
 			{ return (array('error' => false, 'message' => "X-Ray Tables Found (".mysql_num_rows($res_Find_XTables)."/$correct_tablecount)" )); }
 		else
-			{ return (array('error' => true, 'message' => "Database connection OK, but could not find ".DB_Type_Name($GLOBALS['db']['type'])." installation." )); }	
+			{ return (array('error' => true, 'message' => "X-Ray Tables Found (".mysql_num_rows($res_Find_XTables)."/$correct_tablecount), Incorrect Number of Tables Found (Need $correct_tablecount)." )); }	
 	} else
 	{
 		return (array('error' => true, 'message' => "Attempted to search for X-Ray Tables, but and error occurred while executing SQL Query: <p>[$sql_Find_XTables]<p> <p>ERROR: [".mysql_error()."]</p> "));
