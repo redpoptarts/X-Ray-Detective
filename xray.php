@@ -2,7 +2,9 @@
 <?php include_once('inc/auth_xray.php'); ?>
 <?php
 
+//echo "Global Init...<BR>";
 Global_Init();
+//echo "Global Init Complete...<BR>";
 $auth = Do_Auth();
 
 $command = $_GET['command'];
@@ -10,7 +12,7 @@ $command = $_GET['command'];
 //echo "Begin script...<br>";
 if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 {
-//	echo "Continuing...<br>";
+	//echo "Continuing...<br>";
 	@mysql_connect($db['x_host'], $db['x_user'], $db['x_pass']) or die($_SERVER["REQUEST_URI"] . "Could not connect to XRAY DB host [".$db['x_host']."].");
 	@mysql_selectdb($db['x_base']) or die($_SERVER["REQUEST_URI"] . "Could not select XRAY DB [".$db['x_base']."]");
 
