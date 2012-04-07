@@ -62,7 +62,7 @@ function AddNewBreaks()
 	}
 
 	//echo "SQL_QUERY: <br>". $sql_getdate . "<br>";
-	$res_getdate = mysql_query($sql_getdate) or die("top: " . mysql_error());
+	$res_getdate = mysql_query($sql_getdate) or die("World-LatestBreakDate: " . mysql_error());
 	while(($LatestDateArray[] = mysql_fetch_assoc($res_getdate)) || array_pop($LatestDateArray));
 	//echo "LATEST_DATE_ARRAY: <BR>"; print_r($LatestDateArray); echo "<BR>";
 
