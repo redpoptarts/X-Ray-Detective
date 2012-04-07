@@ -2,6 +2,7 @@
 <?php include_once('inc/auth_xray.php'); ?>
 <?php
 
+$config_error = Check_Env_OK();
 Global_Init();
 Do_Auth(true);
 
