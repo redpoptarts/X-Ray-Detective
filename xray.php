@@ -8,7 +8,7 @@ $auth = Do_Auth();
 $command = $_GET['command'];
 
 //echo "Begin script...<br>";
-if($_SESSION["auth_is_valid"])
+if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 {
 //	echo "Continuing...<br>";
 	@mysql_connect($db['x_host'], $db['x_user'], $db['x_pass']) or die($_SERVER["REQUEST_URI"] . "Could not connect to XRAY DB host [".$db['x_host']."].");
