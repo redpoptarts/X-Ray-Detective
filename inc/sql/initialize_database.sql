@@ -44,7 +44,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `minecraft`.`x-settings`
 -- -----------------------------------------------------
-DROP TABLE `minecraft`.`x-settings`;
+DROP TABLE IF EXISTS `minecraft`.`x-settings`;
 
 
 -- -----------------------------------------------------

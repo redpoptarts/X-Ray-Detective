@@ -2,28 +2,30 @@
 <?php include_once('inc/auth_xray.php'); ?>
 <?php
 
+//echo "Global Init...<BR>";
 Global_Init();
+//echo "Global Init Complete...<BR>";
 $auth = Do_Auth();
 
-$command = $_GET['command'];
+if(array_key_exists('command', $_POST)){ $_GET = $_POST; }
+$command = array_key_exists('command', $_GET) ? $_GET['command'] : "";
+$command_error = ""; $command_success = "";
 
 //echo "Begin script...<br>";
-if($_SESSION["auth_is_valid"])
+if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 {
-//	echo "Continuing...<br>";
+	//echo "Continuing...<br>";
 	@mysql_connect($db['x_host'], $db['x_user'], $db['x_pass']) or die($_SERVER["REQUEST_URI"] . "Could not connect to XRAY DB host [".$db['x_host']."].");
 	@mysql_selectdb($db['x_base']) or die($_SERVER["REQUEST_URI"] . "Could not select XRAY DB [".$db['x_base']."]");
 
-
-	$command = $_GET["command"];
-	$block_type = $_GET["block_type"]; if($block_type==""){ $block_type = 56; }
-	$stone_threshold = $_GET["stone_threshold"]; if($stone_threshold==""){ $stone_threshold = 500; }
-	$limit_results = $_GET["limit_results"]; if($limit_results==""){ $limit_results = 100; }
-
-
-
-	
-	$player_name = $_GET["player"];	$player_id = GetPlayerID_ByName($player_name);
+	$block_type = array_key_exists('block_type', $_GET) ? $_GET['block_type'] : 56;
+	$stone_threshold = array_key_exists('stone_threshold', $_GET) ? $_GET['stone_threshold'] : 500;
+	$limit_results = array_key_exists('limit_results', $_GET) ? $_GET['limit_results'] : 100;
+	$player_name = array_key_exists('player', $_GET) ? $_GET['player'] : NULL;
+	$player_id = GetPlayerID_ByName($player_name);
+	$show_process = false;
+	$require_confirmation = false;
+	$_GET['confirm'] = array_key_exists('confirm', $_GET) ? $_GET['confirm'] : NULL;
 	
 	switch($block_type){
 		case 56: $limit_block = "diamond"; break;
@@ -146,7 +148,8 @@ if($_SESSION["auth_is_valid"])
 		}
 	} elseif ($command == 'xtoplist')
 	{
-		$world_id = $_GET["worldid"]; if($world_id==""){ $world_name = $GLOBALS['worlds'][0]["worldid"]; }
+		$world_id = array_key_exists('worldid', $_GET) ? $_GET["worldid"] : $GLOBALS['worlds'][0]["worldid"];
+		
 		foreach($GLOBALS['worlds'] as $world_key => $world_item )
 		{
 			if($world_id==$world_item["worldid"]){ $world_name = $world_item["worldname"]; $world_alias = $world_item["worldalias"];}
@@ -159,19 +162,6 @@ if($_SESSION["auth_is_valid"])
 		
 		$TopArray = TopList($world_id, $limit_results, $block_type, $stone_threshold);
 
-		foreach($limits as $limit_type => $limit_array)
-		{
-			//echo "BLOCK: "; print_r($limit_type); echo "<br>";
-			//echo "ARRAY: "; print_r($limt_array); echo "<br>";
-			$tempcolor = 10;
-			$color[$limit_type] = -3;
-			while($findrate[$limit_type] < $limits[$limit_type][$tempcolor] && $tempcolor > 0)
-			{
-				//echo "$limit_type >> " . $limits[$limit_type][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-				$tempcolor--;	
-			}
-			$color[$limit_type] = $tempcolor;
-		}
 	} elseif ($command == 'xscan')
 	{
 		$show_process = true;
@@ -424,9 +414,21 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
   <tr>
     <td><table width="100%" border="0">
       <tr>
-        <td><table width="100%" height="90" border="0" class="xray_header">
+        <td><table width="100%" height="90" border="0" cellpadding="0" cellspacing="0" class="xray_header">
           <tr>
-            <td><h1><a href="xray.php" target="_self"><img src="img/null15.gif" alt="" width="500" height="80" hspace="0" vspace="0" border="0" /></a></h1></td>
+            <td><a href="xray.php" target="_self"><img src="img/null15.gif" alt="" width="500" height="80" hspace="0" vspace="0" border="0" /></a></td>
+            <td align="right"><table width="100%" border="0">
+              <tr>
+                <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>ADMIN IP OVERRIDE";} ?><br />
+                  </strong>
+                  <form id="logoutform2" name="logoutform" method="post" action="">
+                    <strong>
+                      <input type="submit" name="Submit" id="Submit" value="Logout" />
+                      <input name="form" type="hidden" id="form" value="logoutform" />
+                      </strong>
+                  </form></td>
+              </tr>
+            </table></td>
           </tr>
         </table></td>
       </tr>
@@ -471,7 +473,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
             <td><?php 
 					if($command == "xupdate")
 					{
-						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"]) { AddNewBreaks(); AutoFlagWatching(); TakeSnapshots(); }
+						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"]) { AddNewBreaks(); /* AutoFlagWatching(); TakeSnapshots();*/ }
 						else { $command_error .= "You do not have permission to do that.<BR>"; }
 					}
 					if($command == "xanalyze")

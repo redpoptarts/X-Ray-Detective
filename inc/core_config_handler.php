@@ -8,6 +8,8 @@ function Load_Configs()
 	$config_database_file_path = "config/config_database.php";
 	$config_settings_file_path = "config/config_settings.php";
 	
+	$copy_stx = array_key_exists('copy_stx', $_POST) ? $_POST['copy_stx'] : NULL;
+	
 	
 	$read_config_database_ok = read_ini_file($config_database_file_path, $GLOBALS['config_db']);
 	if($read_config_database_ok === 1)
@@ -56,7 +58,7 @@ function Load_Configs()
 		$GLOBALS['db']['s_host'], $GLOBALS['db']['s_base'], $GLOBALS['db']['s_user'], $GLOBALS['db']['s_pass'], $GLOBALS['db']['s_prefix']);
 	if(!$db1_ok){ echo "ERROR: There was an error validating the Source Database: [". $GLOBALS['db']['s_base']."]<BR>"; }
 
-	if(!$_POST['copy_stx'])
+	if($copy_stx)
 	{
 		$db2_ok = Check_DB_Exists(false, "",
 			$GLOBALS['db']['x_host'], $GLOBALS['db']['x_base'], $GLOBALS['db']['x_user'], $GLOBALS['db']['x_pass'], $GLOBALS['db']['x_prefix']);
