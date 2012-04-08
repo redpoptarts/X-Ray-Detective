@@ -599,19 +599,16 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                 <td>&nbsp;</td>
               </tr>
               <tr class="bg_white">
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-              </tr>
-              <tr class="bg_white">
-                <td><strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong></td>
+                <td><?php // Feature currently hidden until future version
+				/*<strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong>*/?></td>
                 <td>&nbsp;</td>
                 <td><a href="xray.php?command=xclear" style="color:#000000"><strong>Clear X-Ray Stats</strong></a></td>
               </tr>
              </table></td>
           </tr>
           <tr>
-            <td><form action="xray.php" method="post" name="XR_form" target="_self" id="XR_form">
+            <td><?php // Feature currently hidden until future version
+			/*<form action="xray.php" method="post" name="XR_form" target="_self" id="XR_form">
               <table width="100%" border="0" class="borderblack_greybg_light_thin">
                 <tr>
                   <td width="14%" nowrap="nowrap"><strong><s>Check Player By Name</s>
@@ -623,7 +620,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <input type="submit" name="xr_submit" id="xr_submit" value="Analyze" /></td>
                 </tr>
               </table>
-            </form></td>
+            </form>*/?></td>
           </tr>
         </table></td>
       </tr>
@@ -690,11 +687,15 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                       </select>
                         <input type="submit" name="top_go" id="top_go" value="Go" /></td>
                     </tr>
+                    <?php 
+					// Feature currently hidden until future version
+					/*
                     <tr>
                       <td><s><strong>Hide Banned Users</strong></s></td>
                       <td><input name="hide_banned" type="checkbox" id="hide_banned" value="1" />
                         <input type="submit" name="top_go" id="top_go" value="Go" /></td>
-                    </tr>
+                    </tr>*/
+					?>
                 </table></td>
               </tr>
               <tr>
@@ -731,7 +732,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 							$top["firstlogin"] = date_create_from_format("Y-m-d H:i:s", $top["firstlogin"]);
 ?>
                   <tr class="bg_I_<?php echo $color[$limit_block];?>">
-                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
+                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $top["playername"]; ?></strong></td>
+<!--                <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>-->
                     <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $top["stone_count"]; ?></strong></td>
                     <td nowrap="nowrap"><span class="bg_I_<?php echo $color[$limit_block];?>&gt;&lt;strong&gt;&lt;a href=">
                       <?php if($top["firstlogin"] > $datetime_week_ago){ ?>

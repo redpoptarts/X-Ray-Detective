@@ -38,7 +38,7 @@ if( $_SESSION['auth_type']!="ip" )
 {
 	$_SESSION['auth_is_valid'] = false;
 	$config_error['message'] .= "ERROR: Your IP is not on the Failsafe IPs list.<BR>You cannot use the Setup script until you add your IP to that list.<BR><BR>(You must manually edit: <em>config_settings.php</em>)<BR><BR>Your current IP is: [" . $_SERVER['REMOTE_ADDR'] . "]<BR>";
-	$config_error['canceltext'] = "Try Again";
+	$config_error['canceltext'] = "Try Again"; $config_error['URL']="setup.php";
 }
 
 
