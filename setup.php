@@ -2,32 +2,50 @@
 <?php include_once('inc/auth_xray.php'); ?>
 <?php
 
+//Initialize error message
+$config_error = array("message" => Check_Env_OK(), "canceltext" => "Start Over", "URL" => "setup.php");
+$config_error['message'] = Check_Env_OK(); if($config_error['message']!=""){ $config_error['canceltext'] = "Try Again"; }
+$config_success = "";
+ 
+$tab_count = 3;
+
+array_key_exists('setup_stage', $_GET) ? $_POST = $_GET : $_POST['setup_stage'] = "0";
+$_POST['db_type'] = array_key_exists('db_type', $_POST) ? $_POST['db_type'] : NULL;
+$_POST['db_source_host'] = array_key_exists('db_source_host', $_POST) ? $_POST['db_source_host'] : NULL;
+$_POST['db_source_base'] = array_key_exists('db_source_base', $_POST) ? $_POST['db_source_base'] : NULL;
+$_POST['db_source_user'] = array_key_exists('db_source_user', $_POST) ? $_POST['db_source_user'] : NULL;
+$_POST['db_source_pass'] = array_key_exists('db_source_pass', $_POST) ? $_POST['db_source_pass'] : NULL;
+$_POST['db_source_prefix'] = array_key_exists('db_source_prefix', $_POST) ? $_POST['db_source_prefix'] : NULL;
+
+session_cache_limiter( 'nocache' );
 Global_Init();
 Do_Auth(true);
 
-$tab_count = 3;
+if($_SESSION['auth_type']!="ip"){ $config_error['canceltext'] = "Cancel"; $config_error['URL'] = "xray.php"; }
 
-if($_GET['setup_stage']!=""){$_POST = $_GET; }
+// If specified, open certain tab by default
+$setup_stage_tab = array_key_exists('setup_stage', $_POST) ? $_POST['setup_stage'] : 0;
 
-$setup_stage_tab = $_POST['setup_stage']; if($setup_stage_tab==""){ $setup_stage_tab = 0; }
+$Find_Worlds_array = array();
+$Worlds_all_array = array();
+$Worlds_enabled_array = array();
 
-if( FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true) )
-{
-	$_SESSION['first_setup'] = true;
-}
+$_SESSION['first_setup'] = FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true);
+//echo "FIRST SETUP: " . FixOutput_Bool($_SESSION['first_setup'], "YES", "NO", "UNDEFINED") . "<BR>";
 
 // Only users who have been authenticated by IP can use the setup script
 if( $_SESSION['auth_type']!="ip" )
 {
 	$_SESSION['auth_is_valid'] = false;
-	$config_error .= "ERROR: Your IP is not on the Failsafe IPs list.<BR>You cannot use the Setup script until you add your IP to that list.<BR><BR>(You must manually edit: <em>config_settings.php</em>)<BR><BR>Your current IP is: [" . $_SERVER['REMOTE_ADDR'] . "]<BR>";
+	$config_error['message'] .= "ERROR: Your IP is not on the Failsafe IPs list.<BR>You cannot use the Setup script until you add your IP to that list.<BR><BR>(You must manually edit: <em>config_settings.php</em>)<BR><BR>Your current IP is: [" . $_SERVER['REMOTE_ADDR'] . "]<BR>";
+	$config_error['canceltext'] = "Try Again";
 }
 
 
 if($_POST['form']!="")
 {
 	$setup_submit_ok = false;
-	if($_POST['config_db_submit']!="")
+	if(isset($_POST['config_db_submit']) && $_POST['config_db_submit']!="")
 	{
 		$setup_stage_tab = 0;
 		
@@ -75,7 +93,7 @@ if($_POST['form']!="")
 			
 			if($outfile_ok)
 			{
-				$infile_ok = Load_Configs($config_database_file_path, $GLOBALS['config_db']);
+				$infile_ok = Load_Configs();
 				//echo FixOutput_Bool($infile_ok, "INFILE OK<BR>", "INFILE BAD<BR>");
 			}
 			// Create Tables
@@ -115,16 +133,16 @@ if($_POST['form']!="")
 				
 				/* close connection */
 				mysqli_close($multi_link);
-			} else { $config_error .= "ERROR: There was a problem reading the database configuration after saving it.<BR>";}
+			} else { $config_error['message'] .= "ERROR: There was a problem reading the database configuration after saving it.<BR>";}
 			
 			$xtables_valid_response =Check_XTables_Valid();
 			//echo FixOutput_Bool($xtables_valid_response["error"], $xtables_valid_response["message"], "XTABLES OK<BR>");
 			
 			if($xtables_valid_response["error"])
 			{
-				$config_error .= "ERROR: There was a problem creating the tables in the database you specified.<BR>";	
-				$config_error .= "After attempting to create the X-Ray Detective tables, they could not be found.<BR>";
-				$config_error .= "[".$xtables_valid_response["message"]."]<BR>";
+				$config_error['message'] .= "ERROR: There was a problem creating the tables in the database you specified.<BR>";	
+				$config_error['message'] .= "After attempting to create the X-Ray Detective tables, they could not be found.<BR>";
+				$config_error['message'] .= "[".$xtables_valid_response["message"]."]<BR>";
 			}
 			else
 			{
@@ -134,7 +152,7 @@ if($_POST['form']!="")
 			
 		}
 	}
-	elseif($_POST['config_auth_submit']!="")
+	elseif(isset($_POST['config_auth_submit']) && $_POST['config_auth_submit']!="")
 	{
 		$setup_stage_tab = 1;
 		$auth_input_ok = true;
@@ -143,22 +161,22 @@ if($_POST['form']!="")
 		{
 			case "":
 				$auth_input_ok = false;
-				$config_error .= "ERROR: Invalid form data. Auth_Mode cannot be blank.<BR>"; break;
+				$config_error['message'] .= "ERROR: Invalid form data. Auth_Mode cannot be blank.<BR>"; break;
 			case "username":
 				if( !ctype_alnum(str_replace(array(","," ","_"), "", $_POST['auth_admin_usernames'])) )
-					{ $config_error .= "ERROR: Admin Username list contains invalid characters. <BR>"; $auth_input_ok = false; }
+					{ $config_error['message'] .= "ERROR: Admin Username list contains invalid characters. <BR>"; $auth_input_ok = false; }
 				if( $_POST['auth_mod_usernames']!="" && !ctype_alnum(str_replace(array(","," ","_"), "", $_POST['auth_mod_usernames'])) )
-					{ $config_error .= "ERROR: Moderator Username list contains invalid characters. <BR>"; $auth_input_ok = false; }
+					{ $config_error['message'] .= "ERROR: Moderator Username list contains invalid characters. <BR>"; $auth_input_ok = false; }
 				if( $_POST['auth_user_usernames']!="" && !ctype_alnum(str_replace(array(","," ","_"), "", $_POST['auth_user_usernames'])) )
-					{ $config_error .= "ERROR: User Username list contains invalid characters. <BR>"; $auth_input_ok = false; }
+					{ $config_error['message'] .= "ERROR: User Username list contains invalid characters. <BR>"; $auth_input_ok = false; }
 				break;
 			case "password":
 				if( !ctype_graph($_POST['auth_admin_password']) )
-					{ $config_error .= "ERROR: Admin password must contain no spaces. <BR>"; $auth_input_ok = false; }
+					{ $config_error['message'] .= "ERROR: Admin password must contain no spaces. <BR>"; $auth_input_ok = false; }
 				if( !ctype_graph($_POST['auth_mod_password']) )
-					{ $config_error .= "ERROR: Moderator password must contain no spaces. <BR>"; $auth_input_ok = false; }
+					{ $config_error['message'] .= "ERROR: Moderator password must contain no spaces. <BR>"; $auth_input_ok = false; }
 				if( !ctype_graph($_POST['auth_user_password']) )
-					{ $config_error .= "ERROR: User password must contain no spaces. <BR>"; $auth_input_ok = false; }
+					{ $config_error['message'] .= "ERROR: User password must contain no spaces. <BR>"; $auth_input_ok = false; }
 				break;
 			case "none":
 				$auth_input_ok = true;
@@ -173,7 +191,7 @@ if($_POST['form']!="")
 			{
 				case "":
 					$auth_input_ok = false;
-					$config_error .= "ERROR: Invalid form data. Auth_Mode cannot be blank.<BR>"; break;
+					$config_error['message'] .= "ERROR: Invalid form data. Auth_Mode cannot be blank.<BR>"; break;
 				case "username":
 					// Write settings into config_file array
 					$GLOBALS['config_settings']['auth']['admin_usernames']	= implode(", ", preg_split("/[\s,]+/", $_POST['auth_admin_usernames']) );
@@ -210,10 +228,14 @@ if($_POST['form']!="")
 			}
 			else
 			{
-				$config_error .= "ERROR: There was a problem writing the Settings configuration file.<BR>";
+				$config_error['message'] .= "ERROR: There was a problem writing the Settings configuration file.<BR>";
 			}
 			//echo "GLOBAL AUTH: <BR>"; print_r( $GLOBALS['config']['auth'] ); echo "<BR>";
 			
+		}
+		else
+		{
+			$config_error['URL'] = "setup.php?setup_stage=1"; $config_error['canceltext'] = "Reset Form";
 		}
 	}
 	elseif($_POST['config_worlds_submit']!="")
@@ -228,6 +250,7 @@ if($_POST['form']!="")
 			if($_POST["worldalias_".$world_item["worldid"]]!="")
 			{
 				//echo "[". $_POST["worldtoggle_".$world_item["worldid"]] . "]";
+				$_POST["worldtoggle_".$world_item["worldid"]] = array_key_exists('worldtoggle_'.$world_item["worldid"], $_POST) ? 1 : 0;
 				array_push($Worlds_update_array, array(
 					"worldid"	=>	$world_item["worldid"],
 					"enabled"	=>	FixOutput_Bool($_POST["worldtoggle_".$world_item["worldid"]],"1","0"),
@@ -237,8 +260,8 @@ if($_POST['form']!="")
 		
 		if(count($Worlds_update_array)==0)
 		{
-			$config_error .= "ERROR: World Aliases cannot be blank.<BR>";
-			
+			$config_error['message'] .= "ERROR: World Aliases cannot be blank.<BR>";
+			$config_error['URL'] = "setup.php?setup_stage=2"; $config_error['canceltext'] = "Reset Form";
 		}
 		else
 		{
@@ -267,7 +290,7 @@ if($_POST['form']!="")
 	}
 	else
 	{
-		$config_error .= "ERROR: Invalid form data.<BR>";
+		$config_error['message'] .= "ERROR: Invalid form data.<BR>";
 	}
 	
 	if($_SESSION['first_setup'])
@@ -275,11 +298,11 @@ if($_POST['form']!="")
 		if($setup_submit_ok)
 		{
 			$setup_stage_tab++;	
-			echo "SETUP SUBMIT OK [$setup_stage_tab]<BR>";
+			//echo "SETUP SUBMIT OK [$setup_stage_tab]<BR>";
 		}
 		else
 		{
-			echo "SETUP ERROR: [$config_error]<BR>";
+			echo "SETUP ERROR: [". $config_error['message'] ."]<BR>";
 		}
 		if($setup_stage_tab == $tab_count)
 		{
@@ -293,11 +316,11 @@ if($_POST['form']!="")
 			}
 			else
 			{
-				$config_error .= "ERROR: There was a problem writing to the Settings config file.<BR>";
+				$config_error['message'] .= "ERROR: There was a problem writing to the Settings config file.<BR>";
 			}
 		}
 	}
-	if(!$setup_submit_ok && $config_error == ""){ $config_error .= "ERROR: An unknown error occurred. Cannot continue to next step of installation.<BR>"; }
+	if(!$setup_submit_ok && $config_error['message'] == ""){ $config_error['message'] .= "ERROR: An unknown error occurred. Cannot continue to next step of installation.<BR>"; }
 }
 
 
@@ -925,18 +948,18 @@ $(function()
         </tr>
         <tr>
           <td>
-            <?php if($config_error!="" || $config_success!=""){ ?>
+            <?php if($config_error['message']!="" || $config_success!=""){ ?>
             <table width="100%" border="0" cellpadding="20" class="borderblack_greybg_dark_thick ui-corner-all">
               <tr>
-                <td><?php if($config_error!=""){ ?>
+                <td><?php if($config_error['message']!=""){ ?>
                   <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all">
                     <tr>
-                      <td align="center" valign="middle"><strong><?php echo $config_error; ?>
+                      <td align="center" valign="middle"><strong><?php echo $config_error['message']; ?>
                         </h1>
                       </strong></td>
                       </tr>
                     <tr>
-                      <td align="center" valign="middle"><?php if($_SESSION['auth_is_valid']){ ?>[ <a href="setup.php">Start Over</a> ]<?php } ?><?php if($_SESSION['auth_type']!="ip"){ ?>[ <a href="xray.php">Cancel</a> ]<?php } ?></td>
+                      <td align="center" valign="middle">[ <a href="<?php echo $config_error['URL']; ?>"><?php echo $config_error['canceltext']; ?></a> ]</td>
                       </tr>
                     </table>
                   <?php } ?>
@@ -948,7 +971,7 @@ $(function()
                       </strong></td>
                       </tr>
                     <tr>
-                      <td align="center" valign="middle"><?php if($config_error==""){ ?>
+                      <td align="center" valign="middle"><?php if($config_error['message']==""){ ?>
                         <?php if($setup_stage_tab==$tab_count && $setup_submit_ok){?>
                         [ <a href="xray.php">Let's Get Started</a> ]
                         <?php } ?></td>

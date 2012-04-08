@@ -2,28 +2,32 @@
 <?php include_once('inc/auth_xray.php'); ?>
 <?php
 
+//echo "Global Init...<BR>";
 Global_Init();
+//echo "Global Init Complete...<BR>";
 $auth = Do_Auth();
 
-$command = $_GET['command'];
+//if(array_key_exists('command', $_POST)){ $_GET = $_POST; }
+if(array_key_exists('Submit', $_POST)){ $_GET = $_POST; }
+if(array_key_exists('command', $_POST)){ $_GET = $_POST; }
+$command = array_key_exists('command', $_GET) ? $_GET['command'] : "";
+$command_error = ""; $command_success = "";
 
 //echo "Begin script...<br>";
-if($_SESSION["auth_is_valid"])
+if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 {
-//	echo "Continuing...<br>";
+	//echo "Continuing...<br>";
 	@mysql_connect($db['x_host'], $db['x_user'], $db['x_pass']) or die($_SERVER["REQUEST_URI"] . "Could not connect to XRAY DB host [".$db['x_host']."].");
 	@mysql_selectdb($db['x_base']) or die($_SERVER["REQUEST_URI"] . "Could not select XRAY DB [".$db['x_base']."]");
 
-
-	$command = $_GET["command"];
-	$block_type = $_GET["block_type"]; if($block_type==""){ $block_type = 56; }
-	$stone_threshold = $_GET["stone_threshold"]; if($stone_threshold==""){ $stone_threshold = 500; }
-	$limit_results = $_GET["limit_results"]; if($limit_results==""){ $limit_results = 100; }
-
-
-
-	
-	$player_name = $_GET["player"];	$player_id = GetPlayerID_ByName($player_name);
+	$block_type = array_key_exists('block_type', $_GET) ? $_GET['block_type'] : 56;
+	$stone_threshold = array_key_exists('stone_threshold', $_GET) ? $_GET['stone_threshold'] : 500;
+	$limit_results = array_key_exists('limit_results', $_GET) ? $_GET['limit_results'] : 100;
+	$player_name = array_key_exists('player', $_GET) ? $_GET['player'] : NULL;
+	$player_id = GetPlayerID_ByName($player_name);
+	$show_process = false;
+	$require_confirmation = false;
+	$_GET['confirm'] = array_key_exists('confirm', $_GET) ? $_GET['confirm'] : NULL;
 	
 	switch($block_type){
 		case 56: $limit_block = "diamond"; break;
@@ -146,7 +150,8 @@ if($_SESSION["auth_is_valid"])
 		}
 	} elseif ($command == 'xtoplist')
 	{
-		$world_id = $_GET["worldid"]; if($world_id==""){ $world_name = $GLOBALS['worlds'][0]["worldid"]; }
+		$world_id = array_key_exists('worldid', $_GET) ? $_GET["worldid"] : $GLOBALS['worlds'][0]["worldid"];
+		
 		foreach($GLOBALS['worlds'] as $world_key => $world_item )
 		{
 			if($world_id==$world_item["worldid"]){ $world_name = $world_item["worldname"]; $world_alias = $world_item["worldalias"];}
@@ -159,19 +164,6 @@ if($_SESSION["auth_is_valid"])
 		
 		$TopArray = TopList($world_id, $limit_results, $block_type, $stone_threshold);
 
-		foreach($limits as $limit_type => $limit_array)
-		{
-			//echo "BLOCK: "; print_r($limit_type); echo "<br>";
-			//echo "ARRAY: "; print_r($limt_array); echo "<br>";
-			$tempcolor = 10;
-			$color[$limit_type] = -3;
-			while($findrate[$limit_type] < $limits[$limit_type][$tempcolor] && $tempcolor > 0)
-			{
-				//echo "$limit_type >> " . $limits[$limit_type][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-				$tempcolor--;	
-			}
-			$color[$limit_type] = $tempcolor;
-		}
 	} elseif ($command == 'xscan')
 	{
 		$show_process = true;
@@ -297,8 +289,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
               <td>&nbsp;</td>
               </tr>
             <tr>
-              <td align="right"><?php if($logout_success!=""){ ?>
-                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-highlight ui-corner-all">
+              <td align="right"><?php if($auth['logout_success']!=""){ ?>
+                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-highlight ui-corner-all border_black_thick">
                   <tr>
                     <td align="center" valign="middle">&nbsp;</td>
                   </tr>
@@ -308,18 +300,17 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     </strong></td>
                   </tr>
                   <tr>
-                    <td align="center" valign="middle">&nbsp;</td>
+                    <td align="center" valign="middle">[ <a href="xray.php" target="_self">Login</a> ]</td>
                   </tr>
               </table>
 <br />
-                <?php } if($login_error!=""){ ?>
-                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all">
+                <?php } if($auth['login_error']!=""){ ?>
+                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all border_black_thick">
                   <tr>
                     <td align="center" valign="middle">&nbsp;</td>
                   </tr>
                   <tr>
                     <td align="center" valign="middle"><strong><?php echo $auth['login_error']; ?>
-                      </h1>
                     </strong></td>
                   </tr>
                   <tr>
@@ -328,8 +319,24 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                   </table>
 <br />
                 <?php } ?>
-                <?php if($GLOBALS['config_settings']['auth']['mode'] == "username"){ ?>
-                <?php if(count($GLOBALS['auth']['IP_Users_list']) > 0) { // Show if recordset not empty ?>
+				<?php if($_SESSION['first_setup']){ ?>
+                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all border_black_thick">
+                  <tr>
+                    <td align="center" valign="middle">&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td align="center" valign="middle"><strong>
+						Thank you for choosing X-Ray Detective!<br /><br />
+						It looks like you are running this for the first time.<BR /><BR />
+						You cannot use X-Ray Detective until you have fully completed the <a href="setup.php">Setup</a>.
+                    </strong></td>
+                  </tr>
+                  <tr>
+                    <td align="center" valign="middle">&nbsp;</td>
+                  </tr>
+                </table>
+                <?php } elseif($GLOBALS['config_settings']['auth']['mode'] == "username"){ ?>
+                <?php if(isset($GLOBALS['auth']['IP_Users_list']) && count($GLOBALS['auth']['IP_Users_list']) > 0) { // Show if recordset not empty ?>
                 <table width="100%" border="0">
                   <tr>
                     <td align="center" valign="middle"><h1>Please Login...</h1></td>
@@ -358,17 +365,12 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     </tr>
                   </table>
                 <?php } else { ?>
-                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all">
+                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all border_black_thick">
                   <tr>
                     <td align="center" valign="middle">&nbsp;</td>
                   </tr>
                   <tr>
-                    <td align="center" valign="middle"><strong>
-                      <?php if($_SESSION['first_setup']){ ?>Thank you for choosing X-Ray Detective!<br /><br />
-                      It looks like you are running this for the first time.<BR /><BR />
-                      You cannot use X-Ray Detective until you have fully completed the <a href="setup.php">Setup</a>.
-                      <?php }else{ ?> You are not authorized to view this page.<?php } ?>
-                      </h1>
+                    <td align="center" valign="middle"><strong>You are not authorized to view this page:<BR /><BR />Could not find any users matching your IP.
                     </strong></td>
                   </tr>
                   <tr>
@@ -424,9 +426,21 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
   <tr>
     <td><table width="100%" border="0">
       <tr>
-        <td><table width="100%" height="90" border="0" class="xray_header">
+        <td><table width="100%" height="90" border="0" cellpadding="0" cellspacing="0" class="xray_header">
           <tr>
-            <td><h1><a href="xray.php" target="_self"><img src="img/null15.gif" alt="" width="500" height="80" hspace="0" vspace="0" border="0" /></a></h1></td>
+            <td><a href="xray.php" target="_self"><img src="img/null15.gif" alt="" width="500" height="80" hspace="0" vspace="0" border="0" /></a></td>
+            <td align="right"><table width="100%" border="0">
+              <tr>
+                <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>ADMIN IP OVERRIDE";} ?><br />
+                  </strong>
+                  <form id="logoutform" name="logoutform" method="post" action="xray.php">
+                    <strong>
+                      <input type="submit" name="Submit" id="Submit" value="Logout" />
+                      <input name="form" type="hidden" id="form" value="logoutform" />
+                      </strong>
+                  </form></td>
+              </tr>
+            </table></td>
           </tr>
         </table></td>
       </tr>
@@ -471,7 +485,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
             <td><?php 
 					if($command == "xupdate")
 					{
-						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"]) { AddNewBreaks(); AutoFlagWatching(); TakeSnapshots(); }
+						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"]) { AddNewBreaks(); /* AutoFlagWatching(); TakeSnapshots();*/ }
 						else { $command_error .= "You do not have permission to do that.<BR>"; }
 					}
 					if($command == "xanalyze")
@@ -493,7 +507,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
           </tr>
           <tr>
             <td><?php if($command_error!=""){ ?>
-              <table width="100%" border="0" class="bg_I_-3 border_black_thick">
+              <table width="100%" border="0" class="ui-widget ui-state-error ui-corner-all border_black_thick">
               <tr>
                 <td align="center" valign="middle"><h1 class="error"><?php echo $command_error; ?></h1>
                   </h1></td>
@@ -506,13 +520,16 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
           </tr>
           <tr>
             <td><?php if($command_success!=""){ ?>
-              <table width="100%" border="0" class="bg_I_4 border_black_thick">
+              <table width="100%" border="0" class="ui-widget ui-state-highlight ui-corner-all border_black_thick">
               <tr>
                 <td align="center" valign="middle"><h1 class="success"><?php echo $command_success; ?></h1>
                   </h1></td>
               </tr>
               <tr>
-                <td align="center" valign="middle"><?php if($player_name!=""){ ?>[ <a href="xray.php?command=xsingle&player=<?php echo $player_name; ?>">Player's Stats</a> ] <?php } ?>[ <a href="xray.php">Home</a> ]</td>
+                <td align="center" valign="middle">
+					<?php if($player_name!=""){ ?>[ <a href="xray.php?command=xsingle&player=<?php echo $player_name; ?>">Player's Stats</a> ] <?php } ?>
+                    <?php if($command=="xupdate"){ ?>[ <a href="xray.php?command=xtoplist">Top List</a> ] <?php } ?>
+                    [ <a href="xray.php">Home</a> ]</td>
               </tr>
             </table>
               <?php } ?></td>
@@ -543,7 +560,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
               <tr>
                 <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>ADMIN IP OVERRIDE";} ?><br />
                 </strong>
-                  <form id="logoutform" name="logoutform" method="post" action="">
+                  <form id="logoutform" name="logoutform" method="post" action="xray.php">
                     <strong>
                       <input type="submit" name="Submit" id="Submit" value="Logout" />
                       <input name="form" type="hidden" id="form" value="logoutform" />
@@ -953,7 +970,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                   <td align="center" class="bg_H_-3"><p>You have not yet analyzed this players mining behavior. Would you like to do that now?</p>
                     <p>
                       <input name="form" type="hidden" id="form" value="form_analyze_mines_now" />
-                      <input type="submit" name="submit" id="submit" value="Analyze Mining Behavior" />
+                      <input type="submit" name="Submit" id="Submit" value="Analyze Mining Behavior" />
                       <input name="command" type="hidden" id="command" value="xanalyze" />
                       <input name="player" type="hidden" id="player" value="<?php echo $player_name;?>" />
                     </p></td>

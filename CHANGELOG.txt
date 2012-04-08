@@ -1,9 +1,18 @@
+v0.03.00 a:
+		Check for correct PHP version and a writeable config directory before setup
+		Fix most Notice/Warning messages, for servers with display_errors = on (Declare variables properly)
+		Only run Update Toplist if world has new breaks
+		Minor UI style cleanup
+		New file: basic diagnostic script
+		Fix Login/Logout message display method
+v0.02.03 a:
+		Fix critical problem with X Tables initialization
 v0.02.02 a:
-				Fixed first time setup database issue (BDev Issue #21)
-				Added support for IPv6 localhost "::1"
-				Removed `x-settings` from setup and table-checking code
+		Fixed first time setup database issue (BDev Issue #21)
+		Added support for IPv6 localhost "::1"
+		Removed `x-settings` from setup and table-checking code
 v0.02.01 a:
-                Fixed 'Update Stats' page causing (INSERT, UPDATE) permissions error
-                Fixed missing background image
+		Fixed 'Update Stats' page causing (INSERT, UPDATE) permissions error
+		Fixed missing background image
 v0.01.00 a:
-                Initial Release
+		Initial Release

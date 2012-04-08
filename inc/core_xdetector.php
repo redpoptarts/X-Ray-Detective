@@ -11,7 +11,7 @@ require_once( dirname(__FILE__) . '/core_config_handler.php');
 //
 // IRC Channel: (irc.esper.net) #xray
 //
-// Version: v0.02.02a
+// Version: v0.03.00a
 //
 //=====================================================
 //
@@ -21,6 +21,22 @@ require_once( dirname(__FILE__) . '/core_config_handler.php');
 // future updates.
 //
 //=====================================================
+
+function Check_Env_OK()
+{
+	$error = "";
+	if ( !(version_compare(PHP_VERSION, '5.3.0') >= 0) ){$error .= "ERROR: PHP version 5.3.0 or greater is required.<BR>You are running PHP ".PHP_VERSION.".<BR>"; }
+	if ( !is__writeable("config/") )
+	{
+		$error .= "ERROR: Your /config/ directory is not writeable.<BR><BR>Unix/Linux: CHMOD the directory and its contents to 777.<BR><BR>Windows: Right click the /config/ folder, go to the Security tab, and Edit the permissions, allowing the appropriate account to modify the folder.<BR>If you are using IIS, it will be 'IIS_IUSRS'.<BR><BR>Note: It may take a few minutes for the changes to take effect."; 
+	}
+	else
+	{
+		if ( !is__writeable("config/config_database.php") ){$error .= "ERROR: The config file /config/config_database.php is not writeable.<BR>"; }
+		if ( !is__writeable("config/config_settings.php") ){$error .= "ERROR: The config file /config/config_settings.php is not writeable.<BR>"; }
+	}
+	return $error;
+}
 
 function Global_Init()
 {
@@ -32,7 +48,9 @@ function Global_Init()
 	
 	//echo "GLOBALS: <BR>"; print_r($GLOBALS['db']); echo "<BR>";
 	
-	if(!FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true))
+	$source_db_ok = SQL_DB_OK("source");
+	
+	if($source_db_ok['error'] === false)
 	{
 		$GLOBALS['db']['s_resource'] = @mysql_connect($GLOBALS['db']['s_host'], $GLOBALS['db']['s_user'], $GLOBALS['db']['s_pass'])
 			or die($_SERVER["SCRIPT_FILENAME"] . "Could not connect to Source MySQL Server. : " . mysql_error());
@@ -54,10 +72,16 @@ function Global_Init()
 		mysqli_select_db($GLOBALS['db']['x_link'], $GLOBALS['db']['x_base'])
 			or die("Could not connect to X-Ray database (multilink) [".$GLOBALS['db']['x_base']."] : " . mysqli_error($GLOBALS['db']['x_link']) );
 	}
+	else
+	{
+		$config_error .= $source_db_ok['message'] . "<BR>";
+	}
 	
-
-	if($_POST['form']!=""){$_GET = $_POST;}
-	if($_GET['force']!=""){$_POST = $_GET;}
+//	array_key_exists('form', $_POST) && $_POST['form']!="" ? $_GET = $_POST : NULL;
+//	array_key_exists('force', $_GET) && $_GET['force']!="" ? $_POST = $_GET : NULL;
+	if(count($_GET) > 0){ $_POST = $_GET; }
+//	if($_POST['form']!=""){$_GET = $_POST;}
+//	if($_GET['force']!=""){$_POST = $_GET;}
 	
 	if(!FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true))
 	{
@@ -899,16 +923,13 @@ function GetAllMines($playerid, $worldid)
 
 function AutoFlagWatching()
 {
-	$error .= "WARNING: AutoWatch flagging feature not yet implemented.<BR>";
-	
+	echo "WARNING: AutoWatch flagging feature not yet implemented.<BR>";
 }
 
 
 function TakeSnapshots()
 {
-	$error .= "WARNING: Snapshots feature not yet implemented.<BR>";
-	
-	
+	echo "WARNING: Snapshots feature not yet implemented.<BR>";
 }
 
 
