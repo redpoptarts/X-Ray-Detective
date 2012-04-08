@@ -88,7 +88,12 @@ function AddNewBreaks()
 		if(!$found_break)
 		{
 			echo "...This world has no mining history. Aborting scan.<br>";
-		} else {
+		}
+		if($latest_break_date == $world_item["last_date_processed"])
+		{
+			echo "...There is no new information to process in this world. Skipping scan.<BR>";
+		}
+		else if($found_break) {
 			// Get ALL new breaks after latest_date_processed
 			echo "...Beginning User Scan, Please Be Patient...";
 			Use_DB("xray");
@@ -127,7 +132,7 @@ function AddNewBreaks()
 			
 	
 			//while(($BreaksArray[] = mysql_fetch_assoc($res_newbreaks)) || array_pop($BreaksArray)); 
-			$stats_sql = GetMySQL_ResultStats($resource_newbreaks);
+			$stats_sql = GetMySQL_ResultStats();
 			//echo "STATS_SQL: <BR>"; print_r($stats_sql); echo "<BR>";
 			echo "-----------------------------------------------<br>";
 			echo "Summary For World [".$world_item["worldalias"]."]<BR>";
