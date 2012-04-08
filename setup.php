@@ -3,19 +3,30 @@
 <?php
 
 $config_error = Check_Env_OK();
+
+$tab_count = 3;
+$config_error = ""; $config_success = "";
+
+array_key_exists('setup_stage', $_GET) ? $_POST = $_GET : $_POST['setup_stage'] = "0";
+$_POST['db_type'] = array_key_exists('db_type', $_POST) ? $_POST['db_type'] : NULL;
+$_POST['db_source_host'] = array_key_exists('db_source_host', $_POST) ? $_POST['db_source_host'] : NULL;
+$_POST['db_source_base'] = array_key_exists('db_source_base', $_POST) ? $_POST['db_source_base'] : NULL;
+$_POST['db_source_user'] = array_key_exists('db_source_user', $_POST) ? $_POST['db_source_user'] : NULL;
+$_POST['db_source_pass'] = array_key_exists('db_source_pass', $_POST) ? $_POST['db_source_pass'] : NULL;
+$_POST['db_source_prefix'] = array_key_exists('db_source_prefix', $_POST) ? $_POST['db_source_prefix'] : NULL;
+
 Global_Init();
 Do_Auth(true);
 
-$tab_count = 3;
+// If specified, open certain tab by default
+$setup_stage_tab = array_key_exists('setup_stage', $_POST) ? $_POST['setup_stage'] : 0;
 
-if($_GET['setup_stage']!=""){$_POST = $_GET; }
+$Find_Worlds_array = array();
+$Worlds_all_array = array();
+$Worlds_enabled_array = array();
 
-$setup_stage_tab = $_POST['setup_stage']; if($setup_stage_tab==""){ $setup_stage_tab = 0; }
-
-if( FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true) )
-{
-	$_SESSION['first_setup'] = true;
-}
+$_SESSION['first_setup'] = FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true);
+echo "FIRST SETUP: " . FixOutput_Bool($_SESSION['first_setup'], "YES", "NO", "UNDEFINED") . "<BR>";
 
 // Only users who have been authenticated by IP can use the setup script
 if( $_SESSION['auth_type']!="ip" )
@@ -28,7 +39,7 @@ if( $_SESSION['auth_type']!="ip" )
 if($_POST['form']!="")
 {
 	$setup_submit_ok = false;
-	if($_POST['config_db_submit']!="")
+	if(isset($_POST['config_db_submit']) && $_POST['config_db_submit']!="")
 	{
 		$setup_stage_tab = 0;
 		
@@ -76,7 +87,7 @@ if($_POST['form']!="")
 			
 			if($outfile_ok)
 			{
-				$infile_ok = Load_Configs($config_database_file_path, $GLOBALS['config_db']);
+				$infile_ok = Load_Configs();
 				//echo FixOutput_Bool($infile_ok, "INFILE OK<BR>", "INFILE BAD<BR>");
 			}
 			// Create Tables
@@ -135,7 +146,7 @@ if($_POST['form']!="")
 			
 		}
 	}
-	elseif($_POST['config_auth_submit']!="")
+	elseif(isset($_POST['config_auth_submit']) && $_POST['config_auth_submit']!="")
 	{
 		$setup_stage_tab = 1;
 		$auth_input_ok = true;
@@ -229,6 +240,7 @@ if($_POST['form']!="")
 			if($_POST["worldalias_".$world_item["worldid"]]!="")
 			{
 				//echo "[". $_POST["worldtoggle_".$world_item["worldid"]] . "]";
+				$_POST["worldtoggle_".$world_item["worldid"]] = array_key_exists('worldtoggle_'.$world_item["worldid"], $_POST) ? 1 : 0;
 				array_push($Worlds_update_array, array(
 					"worldid"	=>	$world_item["worldid"],
 					"enabled"	=>	FixOutput_Bool($_POST["worldtoggle_".$world_item["worldid"]],"1","0"),
@@ -276,7 +288,7 @@ if($_POST['form']!="")
 		if($setup_submit_ok)
 		{
 			$setup_stage_tab++;	
-			echo "SETUP SUBMIT OK [$setup_stage_tab]<BR>";
+			//echo "SETUP SUBMIT OK [$setup_stage_tab]<BR>";
 		}
 		else
 		{
@@ -937,7 +949,7 @@ $(function()
                       </strong></td>
                       </tr>
                     <tr>
-                      <td align="center" valign="middle"><?php if($_SESSION['auth_is_valid']){ ?>[ <a href="setup.php">Start Over</a> ]<?php } ?><?php if($_SESSION['auth_type']!="ip"){ ?>[ <a href="xray.php">Cancel</a> ]<?php } ?></td>
+                      <td align="center" valign="middle"><?php if($_SESSION['auth_is_valid']){ ?>[ <a href="setup.php">Start Over</a> ]<?php } ?><?php if($_SESSION['auth_type']!="ip"){ ?>[ <a href="setup.php">Cancel</a> ]<?php } ?></td>
                       </tr>
                     </table>
                   <?php } ?>
