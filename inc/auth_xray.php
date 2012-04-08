@@ -163,8 +163,8 @@ function Do_Auth($ip_only=false)
 			
 			if($GLOBALS['config_settings']['auth']['mode'] == "none")
 			{
-				$_SESSION["auth_user"] = true; $_SESSION["auth_level"] = "Administrator"; break;
-				$_SESSION["auth_username"] = $auth_test_item["playername"];
+				$_SESSION["auth_user"] = true; $_SESSION["auth_level"] = "Administrator";
+				$_SESSION["auth_username"] = NULL;
 			}
 		}
 	}
@@ -193,6 +193,9 @@ function Do_Auth($ip_only=false)
 	{
 		session_unset();
 		$logout_success .= "You have been logged off successfully.<br>";
+		$_SESSION['auth_is_valid'] = false;
+		$_SESSION['first_setup'] = FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true);
+		$_SESSION['IP_Users_List'] = $IP_Users_list;
 	}
 	
 	$GLOBALS['auth']['IP_Users_list'] = $IP_Users_list;
