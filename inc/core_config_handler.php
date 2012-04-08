@@ -195,6 +195,26 @@ function write_ini_file($path, $assoc_arr) {
 	} else { return -2; }
 }
 
+function is__writeable($path)
+{	
+	clearstatcache($path);
+	if ($path{strlen($path)-1}=='/')
+		return is__writeable($path.uniqid(mt_rand()).'.tmp');
+	
+	if (file_exists($path)) {
+		if (!($f = @fopen($path, 'r+')))
+			return false;
+		fclose($f);
+		return true;
+	}
+	
+	if (!($f = @fopen($path, 'w')))
+		return false;
+	fclose($f);
+	unlink($path);
+	return true;
+}
+
 function beginsWith( $str, $sub ) {
 	return ( substr( $str, 0, strlen( $sub ) ) === $sub );
 }

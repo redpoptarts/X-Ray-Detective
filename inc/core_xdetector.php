@@ -26,14 +26,14 @@ function Check_Env_OK()
 {
 	$error = "";
 	if ( !(version_compare(PHP_VERSION, '5.3.0') >= 0) ){$error .= "ERROR: PHP version 5.3.0 or greater is required.<BR>You are running PHP ".PHP_VERSION.".<BR>"; }
-	if ( !is_writeable("config") )
+	if ( !is__writeable("config/") )
 	{
-		$error .= "ERROR: Your /config/ directory is not writeable.<BR><BR>Unix/Linux: CHMOD the directory and its contents to 777.<BR><BR>Windows: Right click the /config/ folder, go to the Security tab, and Edit the permissions, allowing the appropriate account to modify the folder.<BR>If you are using IIS, it will be 'IIS_IUSRS'.<BR>"; 
+		$error .= "ERROR: Your /config/ directory is not writeable.<BR><BR>Unix/Linux: CHMOD the directory and its contents to 777.<BR><BR>Windows: Right click the /config/ folder, go to the Security tab, and Edit the permissions, allowing the appropriate account to modify the folder.<BR>If you are using IIS, it will be 'IIS_IUSRS'.<BR><BR>Note: It may take a few minutes for the changes to take effect."; 
 	}
 	else
 	{
-		if ( !is_writeable("config/config_database.php") ){$error .= "ERROR: The config file /config/config_database.php is not writeable.<BR>"; }
-		if ( !is_writeable("config/config_settings.php") ){$error .= "ERROR: The config file /config/config_settings.php is not writeable.<BR>"; }
+		if ( !is__writeable("config/config_database.php") ){$error .= "ERROR: The config file /config/config_database.php is not writeable.<BR>"; }
+		if ( !is__writeable("config/config_settings.php") ){$error .= "ERROR: The config file /config/config_settings.php is not writeable.<BR>"; }
 	}
 	return $error;
 }

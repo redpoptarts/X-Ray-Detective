@@ -287,7 +287,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
               <td>&nbsp;</td>
               </tr>
             <tr>
-              <td align="right"><?php if($logout_success!=""){ ?>
+              <td align="right"><?php if($auth['logout_success']!=""){ ?>
                 <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-highlight ui-corner-all">
                   <tr>
                     <td align="center" valign="middle">&nbsp;</td>
@@ -302,7 +302,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                   </tr>
               </table>
 <br />
-                <?php } if($login_error!=""){ ?>
+                <?php } if($auth['login_error']!=""){ ?>
                 <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all">
                   <tr>
                     <td align="center" valign="middle">&nbsp;</td>
@@ -318,7 +318,23 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                   </table>
 <br />
                 <?php } ?>
-                <?php if($GLOBALS['config_settings']['auth']['mode'] == "username"){ ?>
+                <?php if($_SESSION['first_setup']){ ?>
+                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all">
+                  <tr>
+                    <td align="center" valign="middle">&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td align="center" valign="middle"><strong>
+						Thank you for choosing X-Ray Detective!<br /><br />
+						It looks like you are running this for the first time.<BR /><BR />
+						You cannot use X-Ray Detective until you have fully completed the <a href="setup.php">Setup</a>.
+                    </strong></td>
+                  </tr>
+                  <tr>
+                    <td align="center" valign="middle">&nbsp;</td>
+                  </tr>
+                </table>
+                <?php } elseif($GLOBALS['config_settings']['auth']['mode'] == "username"){ ?>
                 <?php if(count($GLOBALS['auth']['IP_Users_list']) > 0) { // Show if recordset not empty ?>
                 <table width="100%" border="0">
                   <tr>
@@ -353,12 +369,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td align="center" valign="middle">&nbsp;</td>
                   </tr>
                   <tr>
-                    <td align="center" valign="middle"><strong>
-                      <?php if($_SESSION['first_setup']){ ?>Thank you for choosing X-Ray Detective!<br /><br />
-                      It looks like you are running this for the first time.<BR /><BR />
-                      You cannot use X-Ray Detective until you have fully completed the <a href="setup.php">Setup</a>.
-                      <?php }else{ ?> You are not authorized to view this page.<?php } ?>
-                      </h1>
+                    <td align="center" valign="middle"><strong>You are not authorized to view this page.
                     </strong></td>
                   </tr>
                   <tr>

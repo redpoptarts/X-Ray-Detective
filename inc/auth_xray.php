@@ -6,6 +6,18 @@ if($_SERVER['REMOTE_ADDR']=="173.74.253.9"){ $_SERVER['REMOTE_ADDR'] = "127.0.0.
 
 function Do_Auth($ip_only=false)
 {
+	// Force IP to match Failsafe IPs list if running setup for first time
+	if( FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true) )
+	{
+		session_unset(); session_start();
+		$_SESSION['first_setup'] = true;
+		$ip_only = true;
+	}
+	else
+	{
+		$_SESSION['first_setup'] = false;
+	}
+
 	// Initialize variables
 	if(count($_GET) > 0){ $_POST = $_GET; }
 	if(!isset($_POST['form'])){$_POST['form']="";}
@@ -14,16 +26,9 @@ function Do_Auth($ip_only=false)
 	$_SESSION['auth_is_valid'] = false;
 	$_SESSION['first_setup'] = FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true);
 	
-	// Force IP to match Failsafe IPs list if running setup for first time
-	if( FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true) )
+
+	if(!$ip_only)
 	{
-		session_unset(); session_start();
-		$_SESSION['first_setup'] = true;
-		$ip_only = true;
-	}
-	elseif(!$ip_only)
-	{
-		$_SESSION['first_setup'] = false;
 		if($_SESSION['auth_is_valid']==true)
 		{
 			/*
