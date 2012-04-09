@@ -7,6 +7,8 @@ Global_Init();
 //echo "Global Init Complete...<BR>";
 $auth = Do_Auth();
 
+//if(array_key_exists('command', $_POST)){ $_GET = $_POST; }
+if(array_key_exists('Submit', $_POST)){ $_GET = $_POST; }
 if(array_key_exists('command', $_POST)){ $_GET = $_POST; }
 $command = array_key_exists('command', $_GET) ? $_GET['command'] : "";
 $command_error = ""; $command_success = "";
@@ -288,7 +290,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
               </tr>
             <tr>
               <td align="right"><?php if($auth['logout_success']!=""){ ?>
-                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-highlight ui-corner-all">
+                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-highlight ui-corner-all border_black_thick">
                   <tr>
                     <td align="center" valign="middle">&nbsp;</td>
                   </tr>
@@ -298,18 +300,17 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     </strong></td>
                   </tr>
                   <tr>
-                    <td align="center" valign="middle">&nbsp;</td>
+                    <td align="center" valign="middle">[ <a href="xray.php" target="_self">Login</a> ]</td>
                   </tr>
               </table>
 <br />
                 <?php } if($auth['login_error']!=""){ ?>
-                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all">
+                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all border_black_thick">
                   <tr>
                     <td align="center" valign="middle">&nbsp;</td>
                   </tr>
                   <tr>
                     <td align="center" valign="middle"><strong><?php echo $auth['login_error']; ?>
-                      </h1>
                     </strong></td>
                   </tr>
                   <tr>
@@ -318,8 +319,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                   </table>
 <br />
                 <?php } ?>
-                <?php if($_SESSION['first_setup']){ ?>
-                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all">
+				<?php if($_SESSION['first_setup']){ ?>
+                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all border_black_thick">
                   <tr>
                     <td align="center" valign="middle">&nbsp;</td>
                   </tr>
@@ -335,7 +336,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                   </tr>
                 </table>
                 <?php } elseif($GLOBALS['config_settings']['auth']['mode'] == "username"){ ?>
-                <?php if(count($GLOBALS['auth']['IP_Users_list']) > 0) { // Show if recordset not empty ?>
+                <?php if(isset($GLOBALS['auth']['IP_Users_list']) && count($GLOBALS['auth']['IP_Users_list']) > 0) { // Show if recordset not empty ?>
                 <table width="100%" border="0">
                   <tr>
                     <td align="center" valign="middle"><h1>Please Login...</h1></td>
@@ -364,12 +365,12 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     </tr>
                   </table>
                 <?php } else { ?>
-                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all">
+                <table width="100%" border="0" cellpadding="20" class="ui-widget ui-state-error ui-corner-all border_black_thick">
                   <tr>
                     <td align="center" valign="middle">&nbsp;</td>
                   </tr>
                   <tr>
-                    <td align="center" valign="middle"><strong>You are not authorized to view this page.
+                    <td align="center" valign="middle"><strong>You are not authorized to view this page:<BR /><BR />Could not find any users matching your IP.
                     </strong></td>
                   </tr>
                   <tr>
@@ -432,7 +433,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
               <tr>
                 <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>ADMIN IP OVERRIDE";} ?><br />
                   </strong>
-                  <form id="logoutform2" name="logoutform" method="post" action="">
+                  <form id="logoutform" name="logoutform" method="post" action="xray.php">
                     <strong>
                       <input type="submit" name="Submit" id="Submit" value="Logout" />
                       <input name="form" type="hidden" id="form" value="logoutform" />
@@ -506,7 +507,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
           </tr>
           <tr>
             <td><?php if($command_error!=""){ ?>
-              <table width="100%" border="0" class="bg_I_-3 border_black_thick">
+              <table width="100%" border="0" class="ui-widget ui-state-error ui-corner-all border_black_thick">
               <tr>
                 <td align="center" valign="middle"><h1 class="error"><?php echo $command_error; ?></h1>
                   </h1></td>
@@ -519,13 +520,16 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
           </tr>
           <tr>
             <td><?php if($command_success!=""){ ?>
-              <table width="100%" border="0" class="bg_I_4 border_black_thick">
+              <table width="100%" border="0" class="ui-widget ui-state-highlight ui-corner-all border_black_thick">
               <tr>
                 <td align="center" valign="middle"><h1 class="success"><?php echo $command_success; ?></h1>
                   </h1></td>
               </tr>
               <tr>
-                <td align="center" valign="middle"><?php if($player_name!=""){ ?>[ <a href="xray.php?command=xsingle&player=<?php echo $player_name; ?>">Player's Stats</a> ] <?php } ?>[ <a href="xray.php">Home</a> ]</td>
+                <td align="center" valign="middle">
+					<?php if($player_name!=""){ ?>[ <a href="xray.php?command=xsingle&player=<?php echo $player_name; ?>">Player's Stats</a> ] <?php } ?>
+                    <?php if($command=="xupdate"){ ?>[ <a href="xray.php?command=xtoplist">Top List</a> ] <?php } ?>
+                    [ <a href="xray.php">Home</a> ]</td>
               </tr>
             </table>
               <?php } ?></td>
@@ -556,7 +560,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
               <tr>
                 <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>ADMIN IP OVERRIDE";} ?><br />
                 </strong>
-                  <form id="logoutform" name="logoutform" method="post" action="">
+                  <form id="logoutform" name="logoutform" method="post" action="xray.php">
                     <strong>
                       <input type="submit" name="Submit" id="Submit" value="Logout" />
                       <input name="form" type="hidden" id="form" value="logoutform" />
@@ -595,19 +599,16 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                 <td>&nbsp;</td>
               </tr>
               <tr class="bg_white">
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-              </tr>
-              <tr class="bg_white">
-                <td><strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong></td>
+                <td><?php // Feature currently hidden until future version
+				/*<strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong>*/?></td>
                 <td>&nbsp;</td>
                 <td><a href="xray.php?command=xclear" style="color:#000000"><strong>Clear X-Ray Stats</strong></a></td>
               </tr>
              </table></td>
           </tr>
           <tr>
-            <td><form action="xray.php" method="post" name="XR_form" target="_self" id="XR_form">
+            <td><?php // Feature currently hidden until future version
+			/*<form action="xray.php" method="post" name="XR_form" target="_self" id="XR_form">
               <table width="100%" border="0" class="borderblack_greybg_light_thin">
                 <tr>
                   <td width="14%" nowrap="nowrap"><strong><s>Check Player By Name</s>
@@ -619,7 +620,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <input type="submit" name="xr_submit" id="xr_submit" value="Analyze" /></td>
                 </tr>
               </table>
-            </form></td>
+            </form>*/?></td>
           </tr>
         </table></td>
       </tr>
@@ -686,11 +687,15 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                       </select>
                         <input type="submit" name="top_go" id="top_go" value="Go" /></td>
                     </tr>
+                    <?php 
+					// Feature currently hidden until future version
+					/*
                     <tr>
                       <td><s><strong>Hide Banned Users</strong></s></td>
                       <td><input name="hide_banned" type="checkbox" id="hide_banned" value="1" />
                         <input type="submit" name="top_go" id="top_go" value="Go" /></td>
-                    </tr>
+                    </tr>*/
+					?>
                 </table></td>
               </tr>
               <tr>
@@ -727,7 +732,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 							$top["firstlogin"] = date_create_from_format("Y-m-d H:i:s", $top["firstlogin"]);
 ?>
                   <tr class="bg_I_<?php echo $color[$limit_block];?>">
-                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
+                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $top["playername"]; ?></strong></td>
+<!--                <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>-->
                     <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $top["stone_count"]; ?></strong></td>
                     <td nowrap="nowrap"><span class="bg_I_<?php echo $color[$limit_block];?>&gt;&lt;strong&gt;&lt;a href=">
                       <?php if($top["firstlogin"] > $datetime_week_ago){ ?>
@@ -966,7 +972,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                   <td align="center" class="bg_H_-3"><p>You have not yet analyzed this players mining behavior. Would you like to do that now?</p>
                     <p>
                       <input name="form" type="hidden" id="form" value="form_analyze_mines_now" />
-                      <input type="submit" name="submit" id="submit" value="Analyze Mining Behavior" />
+                      <input type="submit" name="Submit" id="Submit" value="Analyze Mining Behavior" />
                       <input name="command" type="hidden" id="command" value="xanalyze" />
                       <input name="player" type="hidden" id="player" value="<?php echo $player_name;?>" />
                     </p></td>

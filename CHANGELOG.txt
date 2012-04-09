@@ -1,3 +1,12 @@
+v0.03.00 a:
+		Check for correct PHP version and a writeable config directory before setup
+		Fix most Notice/Warning messages, for servers with display_errors = on (Declare variables properly)
+		Only run Update Toplist if world has new breaks
+		Minor UI style cleanup
+		New file: basic diagnostic script
+		Fix Login/Logout message display method
+v0.02.03 a:
+		Fix critical problem with X Tables initialization
 v0.02.02 a:
 		Fixed first time setup database issue (BDev Issue #21)
 		Added support for IPv6 localhost "::1"

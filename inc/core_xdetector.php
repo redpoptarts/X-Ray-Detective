@@ -11,7 +11,7 @@ require_once( dirname(__FILE__) . '/core_config_handler.php');
 //
 // IRC Channel: (irc.esper.net) #xray
 //
-// Version: v0.02.02a
+// Version: v0.03.00a
 //
 //=====================================================
 //
@@ -35,6 +35,12 @@ function Check_Env_OK()
 		if ( !is__writeable("config/config_database.php") ){$error .= "ERROR: The config file /config/config_database.php is not writeable.<BR>"; }
 		if ( !is__writeable("config/config_settings.php") ){$error .= "ERROR: The config file /config/config_settings.php is not writeable.<BR>"; }
 	}
+	$php_config_timezone = ini_get('date.timezone');
+	if ( empty($php_config_timezone) )
+	{
+      	$error .= "ERROR: Your timezone has not been configured in your PHP.ini file<BR>(Yours is located in ".$_SERVER['PHPRC'].")<BR><BR>List of <a href='http://us2.php.net/manual/en/timezones.php'>supported timezones</a>.<BR>";
+    }
+	
 	return $error;
 }
 

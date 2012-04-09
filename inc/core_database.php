@@ -257,8 +257,9 @@ switch($GLOBALS['db']['type'])
 			// search for tables that contain column_name = 'replaced'. This should find all LB world tables
 			$sql_Find_WorldTables  = "SELECT `table_name` ";
 			$sql_Find_WorldTables .= "	FROM `information_schema`.`columns` ";
-			$sql_Find_WorldTables .= " 		WHERE `table_schema` = '".$GLOBALS['db']['s_base']."' AND ";
-			$sql_Find_WorldTables .= " 			(`column_name` = 'replaced') ";
+			$sql_Find_WorldTables .= " 		WHERE `table_schema` = '".$GLOBALS['db']['s_base']."' ";
+			$sql_Find_WorldTables .= " 			AND (`column_name` = 'replaced') ";
+			$sql_Find_WorldTables .= " 			AND (`table_name` != 'lb-main') "; // Omit LogBlockStats table
 			$sql_Find_WorldTables .= " GROUP BY `table_name`";
 			$sql_Find_WorldTables .= " ";
 			$sql_Find_WorldTables .= " ";
@@ -269,7 +270,6 @@ switch($GLOBALS['db']['type'])
 			while(($WorldsArray[] = mysql_fetch_assoc($res_Find_WorldTables)) || array_pop($WorldsArray));
 			return $WorldsArray;		
 			break;
-			
 		case "GD": return false; break; // Guardian lists the worlds in a separate table (gd_worlds by default)
 		case "HE": return false; break; // Hawkeye lists the worlds in a separate table (hawk_worlds by default)
 		case "BB": return false; break; // Hawkeye lists the worlds in a separate table (bbworlds by default)
