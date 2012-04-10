@@ -24,7 +24,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 	$stone_threshold = array_key_exists('stone_threshold', $_GET) ? $_GET['stone_threshold'] : 500;
 	$limit_results = array_key_exists('limit_results', $_GET) ? $_GET['limit_results'] : 100;
 	$player_name = array_key_exists('player', $_GET) ? $_GET['player'] : NULL;
-	$player_id = GetPlayerID_ByName($player_name);
+	$player_id = Get_Player_IDByName($player_name);
 	$show_process = false;
 	$require_confirmation = false;
 	$_GET['confirm'] = array_key_exists('confirm', $_GET) ? $_GET['confirm'] : NULL;
@@ -93,7 +93,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		if($_GET['xr_submit']=="Check" || $_GET['xr_submit']=="")
 		{
 			// Check user's totals from stats table
-			$player_world_stats = GetSingleStats($player_id);
+			$player_world_stats = Get_Player_WorldRatios($player_id);
 			
 
 			foreach($player_world_stats as $pw_index => $pw_item)
@@ -148,7 +148,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 			}
 			$color[$limit_type] = $tempcolor;
 		}
-	} elseif ($command == 'xtoplist')
+	} elseif ($command == 'xGet_Ratios_ByWorldID')
 	{
 		$world_id = array_key_exists('worldid', $_GET) ? $_GET["worldid"] : $GLOBALS['worlds'][0]["worldid"];
 		
@@ -162,7 +162,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		if($limit_results==""){$limit_results=50;}
 		if($stone_threshold==""){$stone_threshold=500;}
 		
-		$TopArray = TopList($world_id, $limit_results, $block_type, $stone_threshold);
+		$TopArray = Get_Ratios_ByWorldID($world_id, $limit_results, $block_type, $stone_threshold);
 
 	} elseif ($command == 'xscan')
 	{
@@ -485,7 +485,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
             <td><?php 
 					if($command == "xupdate")
 					{
-						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"]) { AddNewBreaks(); /* AutoFlagWatching(); TakeSnapshots();*/ }
+						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"]) { Add_NewBreaks(); /* AutoFlagWatching(); TakeSnapshots();*/ }
 						else { $command_error .= "You do not have permission to do that.<BR>"; }
 					}
 					if($command == "xanalyze")
@@ -493,8 +493,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"])
 						{
 							foreach($GLOBALS['worlds'] as $world_index => $world_item)
-								{ AddPlayerMines($player_id); }
-							UpdatePlayerMinesStats($player_id);
+								{ Add_Player_Mines($player_id); }
+							Update_Player_MinesStats($player_id);
 						}
 						else { $command_error .= "You do not have permission to do that.<BR>"; }
 					}
@@ -528,7 +528,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
               <tr>
                 <td align="center" valign="middle">
 					<?php if($player_name!=""){ ?>[ <a href="xray.php?command=xsingle&player=<?php echo $player_name; ?>">Player's Stats</a> ] <?php } ?>
-                    <?php if($command=="xupdate"){ ?>[ <a href="xray.php?command=xtoplist">Top List</a> ] <?php } ?>
+                    <?php if($command=="xupdate"){ ?>[ <a href="xray.php?command=xGet_Ratios_ByWorldID">Top List</a> ] <?php } ?>
                     [ <a href="xray.php">Home</a> ]</td>
               </tr>
             </table>
@@ -548,7 +548,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
   </tr>
 </table>
 <br />
-<?php } elseif($_SESSION["auth_is_valid"] && !$_SESSION["first_setup"] && array_search($command, array("", "xtoplist", "xsingle", "xglobal", "xworlds"))!==false ) { ?>
+<?php } elseif($_SESSION["auth_is_valid"] && !$_SESSION["first_setup"] && array_search($command, array("", "xGet_Ratios_ByWorldID", "xsingle", "xglobal", "xworlds"))!==false ) { ?>
 <table width="800" border="0" class="borderblack_greybg_light_thick ui-corner-all">
   <tr>
     <td><table width="100%" border="0">
@@ -589,7 +589,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                 <td><h3><strong>Administrators</strong></h3></td>
               </tr>
               <tr class="bg_white">
-                <td><strong><a href="xray.php?command=xtoplist" style="color:#000000">Top User Statistics</a><a href="xray.php?command=xclear" style="color:#000000"></a></strong></td>
+                <td><strong><a href="xray.php?command=xGet_Ratios_ByWorldID" style="color:#000000">Top User Statistics</a><a href="xray.php?command=xclear" style="color:#000000"></a></strong></td>
                 <td><a href="xray.php?command=xupdate" style="color:#000000"><strong>Update  X-Ray Stats</strong></a></td>
                 <td><a href="setup.php" style="color:#000000"><strong>Change X-Ray Settings</strong></a></td>
               </tr>
@@ -599,16 +599,14 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                 <td>&nbsp;</td>
               </tr>
               <tr class="bg_white">
-                <td><?php // Feature currently hidden until future version
-				/*<strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong>*/?></td>
+                <td><strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong></td>
                 <td>&nbsp;</td>
                 <td><a href="xray.php?command=xclear" style="color:#000000"><strong>Clear X-Ray Stats</strong></a></td>
               </tr>
              </table></td>
           </tr>
           <tr>
-            <td><?php // Feature currently hidden until future version
-			/*<form action="xray.php" method="post" name="XR_form" target="_self" id="XR_form">
+            <td><form action="xray.php" method="post" name="XR_form" target="_self" id="XR_form">
               <table width="100%" border="0" class="borderblack_greybg_light_thin">
                 <tr>
                   <td width="14%" nowrap="nowrap"><strong><s>Check Player By Name</s>
@@ -620,13 +618,13 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <input type="submit" name="xr_submit" id="xr_submit" value="Analyze" /></td>
                 </tr>
               </table>
-            </form>*/?></td>
+            </form></td>
           </tr>
         </table></td>
       </tr>
       <tr>
-        <td><?php if($command=="xtoplist"){ ?>
-          <form id="toplist_form" name="toplist_form" method="post" action="xray.php">
+        <td><?php if($command=="xGet_Ratios_ByWorldID"){ ?>
+          <form id="Get_Ratios_ByWorldID_form" name="Get_Ratios_ByWorldID_form" method="post" action="xray.php">
             <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
               <tr>
                 <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
@@ -647,8 +645,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                         <option value="15"<?php if($block_type=="15"){echo " selected";}?>>Iron</option>
                       </select>
                         <input type="submit" name="top_go" id="top_go" value="Go" />
-                        <input name="form" type="hidden" id="form" value="form_toplist" />
-                        <input name="command" type="hidden" id="command" value="xtoplist" /></td>
+                        <input name="form" type="hidden" id="form" value="form_Get_Ratios_ByWorldID" />
+                        <input name="command" type="hidden" id="command" value="xGet_Ratios_ByWorldID" /></td>
                     </tr>
                     <tr>
                       <td><strong>World</strong></td>
@@ -732,8 +730,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 							$top["firstlogin"] = date_create_from_format("Y-m-d H:i:s", $top["firstlogin"]);
 ?>
                   <tr class="bg_I_<?php echo $color[$limit_block];?>">
-                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $top["playername"]; ?></strong></td>
-<!--                <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>-->
+<!--                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $top["playername"]; ?></strong></td> -->
+                <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
                     <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $top["stone_count"]; ?></strong></td>
                     <td nowrap="nowrap"><span class="bg_I_<?php echo $color[$limit_block];?>&gt;&lt;strong&gt;&lt;a href=">
                       <?php if($top["firstlogin"] > $datetime_week_ago){ ?>
@@ -787,16 +785,11 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
       </tr>
       <tr>
         <td><?php if($command=="xsingle" || $command=="xglobal"){ ?>
-          <table width="100%" border="0" class="bg_I_10">
-            <tr>
-              <th scope="row"><h1><strong>THIS PAGE IS NOT YET FUNCTIONAL</strong></h1></th>
-            </tr>
-          </table>
           <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
             <tr>
             <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
               <tr>
-                <td><h1>Basic Player Stats: <font color="#FF0000"><?php echo $player; ?></font></h1></td>
+                <td><h1>Basic Player Stats: <font color="#FF0000"><?php echo $player_name; ?></font></h1></td>
               </tr>
             </table></td>
           </tr>
@@ -847,109 +840,240 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
             </form></td>
           </tr>
           <tr>
-            <td>
-<?php foreach($player_world_stats as $pw_index => $pw_item) {?>
-             <table width="100%" border="0">
-              <tr>
-                <td>&nbsp;</td>
-              </tr>
+            <td><table width="100%" border="0">
               <tr>
                 <td><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
                   <tr>
                     <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
+                      <tr>
+                        <td><strong>Summary</strong></td>
+                        </tr>
+                      </table></td>
+                    </tr>
+                  <tr>
+                    <td><table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
+                      <tr>
+                        <td><table width="100%" border="0">
+                          <tr>
+                            <td width="11%"><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td width="89%">User's Diamond ratio is extremely high.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td>User's Lapis ratio is extremely high.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td>User's Gold ratio is extremely high.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td>User's Mossy ratio is extremely high.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td>User's Iron ratio is extremely high.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Diamond ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Lapis ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Gold ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Mossy ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Iron ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Diamond ratio is normal.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Lapis ratio is normal.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Gold ratio is normal.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Mossy ratio is normal.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Iron ratio is normal.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td>User often  stops mining nearby after finding ores.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User continues mining nearby after finding ores.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td>User frequently mines only ores that are visible. This could suggest an x-ray texture pack, but could also simply indicate a preference to mine in exposed caverns.</td>
+                          </tr>
+                          <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                        </table></td>
+                      </tr>
+                    </table></td>
+                    </tr>
+                  </table></td>
+              </tr>
+              </table></td>
+          </tr>
+          <tr>
+            <td><table width="100%" border="0">
+              <tr>
+                <td><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
+                  <tr>
+                    <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
+                      <tr>
+                        <td><strong>General Info</strong></td>
+                      </tr>
+                    </table></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
                         <tr>
-                          <td><strong><?php echo $player_name; ?>'s Stats for World <?php echo $pw_item["worldalias"]; ?> </strong></td>
+                          <th width="22%" align="right" scope="row"><s>Location</s></th>
+                          <td width="78%">Future Feature</td>
+                        </tr>
+                        <tr>
+                          <th align="right" scope="row">IP Address</th>
+                          <td><?php ?></td>
+                        </tr>
+                        <tr>
+                          <th align="right" scope="row">Join Date</th>
+                          <td>&nbsp;</td>
+                        </tr>
+                        <tr>
+                          <th align="right" scope="row">Online Time</th>
+                          <td>&nbsp;</td>
+                        </tr>
+                        <tr>
+                          <th align="right" scope="row">&nbsp;</th>
+                          <td>&nbsp;</td>
                         </tr>
                       </table></td>
                   </tr>
+                </table></td>
+              </tr>
+            </table></td>
+          </tr>
+          <tr>
+            <td><table width="100%" border="0">
+              <tr>
+                <td><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
+                  <tr>
+                    <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
+                      <tr>
+                        <td><strong><?php echo $player_name; ?>'s Basic Stats</strong></td>
+                        </tr>
+                      </table></td>
+                    </tr>
                   <tr>
                     <td><table width="100%" border="0" class="bg_black">
                       <tr class="bg_white">
-                        <td class="bg_AAA_x"><strong>Date</strong></td>
-                        <td class="bg_AAA_x"><strong>Stones</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
-                      </tr>
+                        <td class="bg_I_x"><strong>World</strong></td>
+                        <td class="bg_I_x"><strong>Stones</strong></td>
+                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Diamonds</strong></td>
+                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Lapis</strong></td>
+                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Gold</strong></td>
+                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Mossy</strong></td>
+                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Iron</strong></td>
+                        </tr>
+                      <?php foreach($player_world_stats as $pw_index => $pw_item) {?>
                       <tr class="bg_I_<?php echo $color[$limit_block];?>">
-                        <td nowrap="nowrap" class="bg_E_<?php echo $pw_item["color_max"];?>">NOW</td>
-                        <td nowrap="nowrap" class="bg_E_<?php echo $pw_item["color_max"];?>"><?php echo $pw_item["stone_count"];?></td>
-                        <td nowrap="nowrap" class="bg_E_<?php echo $pw_item["color_diamond"];?>"><?php echo $pw_item["diamond_count"];?></td>
-                        <td nowrap="nowrap" class="bg_E_<?php echo $pw_item["color_diamond"];?>"><?php echo $pw_item["diamond_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_E_<?php echo $pw_item["color_lapis"];?>"><?php echo $pw_item["lapis_count"];?></td>
-                        <td nowrap="nowrap" class="bg_E_<?php echo $pw_item["color_lapis"];?>"><?php echo $pw_item["lapis_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_E_<?php echo $pw_item["color_gold"];?>"><?php echo $pw_item["gold_count"];?></td>
-                        <td nowrap="nowrap" class="bg_E_<?php echo $pw_item["color_gold"];?>"><?php echo $pw_item["gold_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_E_<?php echo $pw_item["color_mossy"];?>"><?php echo $pw_item["mossy_count"];?></td>
-                        <td nowrap="nowrap" class="bg_E_<?php echo $pw_item["color_mossy"];?>"><?php echo $pw_item["mossy_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_E_<?php echo $pw_item["color_iron"];?>"><?php echo $pw_item["iron_count"];?></td>
-                        <td nowrap="nowrap" class="bg_E_<?php echo $pw_item["color_iron"];?>"><?php echo $pw_item["iron_ratio"];?></td>
-                      </tr>
-                      <?php if(count($SnapshotArray) > 0 ) { foreach($SnapshotArray as $key => $snap)
-				  		{
-							foreach($limits as $limit_type => $limit_array)
-							{
-								$tempcolor = 10;
-								$color[$limit_type] = -3;
-								while($snap[$limit_type . "_ratio"] < $limits[$limit_type][$tempcolor] && $tempcolor > 0)
-								{
-									//echo "<br>$limit_block >> " . $limits[$limit_block][$tempcolor] . " [" . ($tempcolor) . "]";
-									$tempcolor--;	
-								}
-								//echo "<< <BR>";
-								$color[$limit_type] = $tempcolor;
-							}
-?>
-                      <tr class="bg_I_<?php echo $color[$limit_block];?>">
-                        <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>&gt;&lt;strong&gt;&lt;a href="xray.php?command="xsingle&amp;player=<?php echo $top["playername"]; ?>&amp;authKey=yourpassword&quot;"><strong><?php echo $snap["datetime"]; ?></a></strong></strong></td>
-                        <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $snap["stone_count"]; ?></strong></td>
-                        <td nowrap="nowrap" class="bg_I_<?php echo $color["diamond"];?>"><strong><?php echo $snap["diamond_count"]; ?></strong></td>
-                        <td nowrap="nowrap" class="bg_I_<?php echo $color["diamond"];?>"><strong><?php echo number_format($snap["diamond_ratio"], 2); ?> %</strong></td>
-                        <td nowrap="nowrap" class="bg_I_<?php echo $color["lapis"];?>"><strong><?php echo $snap["lapis_count"]; ?></strong></td>
-                        <td nowrap="nowrap" class="bg_I_<?php echo $color["lapis"];?>"><strong><?php echo number_format($snap["lapis_ratio"], 2); ?> %</strong></td>
-                        <td nowrap="nowrap" class="bg_I_<?php echo $color["gold"];?>"><strong><?php echo $snap["gold_count"]; ?></strong></td>
-                        <td nowrap="nowrap" class="bg_I_<?php echo $color["gold"];?>"><strong><?php echo number_format($snap["gold_ratio"], 2); ?> %</strong></td>
-                        <td nowrap="nowrap" class="bg_I_<?php echo $color["mossy"];?>"><strong><?php echo $snap["mossy_count"]; ?></strong></td>
-                        <td nowrap="nowrap" class="bg_I_<?php echo $color["mossy"];?>"><strong><?php echo number_format($snap["mossy_ratio"], 2); ?> %</strong></td>
-                        <td nowrap="nowrap" class="bg_I_<?php echo $color["iron"];?>"><strong><?php echo $snap["iron_count"]; ?></strong></td>
-                        <td nowrap="nowrap" class="bg_I_<?php echo $color["iron"];?>"><strong><?php echo number_format($snap["iron_ratio"], 2); ?> %</strong></td>
-                      </tr>
-                      <?php if(!(($key+1) % 25) ){ ?>
-                      <tr class="bg_white">
-                        <td class="bg_AAA_x"><strong>Date</strong></td>
-                        <td class="bg_AAA_x"><strong>Stones</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
-                      </tr>
-                      <?php } } }
-				  if( (($key+1) % 25) ){ ?>
-                      <tr class="bg_white">
-                        <td class="bg_AAA_x"><strong>Date</strong></td>
-                        <td class="bg_AAA_x"><strong>Stones</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
-                        <td colspan="2" align="center" class="bg_<?php if($limit_block=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
-                      </tr>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_max"];?>"><?php echo $pw_item["worldalias"]; ?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_max"];?>"><?php echo $pw_item["stone_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_diamond"];?>"><?php echo $pw_item["diamond_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_diamond"];?>"><?php echo $pw_item["diamond_ratio"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_lapis"];?>"><?php echo $pw_item["lapis_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_lapis"];?>"><?php echo $pw_item["lapis_ratio"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_gold"];?>"><?php echo $pw_item["gold_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_gold"];?>"><?php echo $pw_item["gold_ratio"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_mossy"];?>"><?php echo $pw_item["mossy_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_mossy"];?>"><?php echo $pw_item["mossy_ratio"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_iron"];?>"><?php echo $pw_item["iron_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_iron"];?>"><?php echo $pw_item["iron_ratio"];?></td>
+                        </tr>
                       <?php } ?>
-                    </table></td>
+                      <tr class="bg_white">
+                        <td class="bg_I_x"><strong>World</strong></td>
+                        <td class="bg_I_x"><strong>Stones</strong></td>
+                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Diamonds</strong></td>
+                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Lapis</strong></td>
+                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Gold</strong></td>
+                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Mossy</strong></td>
+                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Iron</strong></td>
+                        </tr>
+                      </table></td>
+                    </tr>
+                  </table></td>
+              </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
+              <tr>
+                <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
+                  <tr>
+                    <td><strong><?php echo $player_name; ?>'s Advanced Stats</strong></td>
                   </tr>
                 </table></td>
               </tr>
               <tr>
-                <td>&nbsp;</td>
+                <td><table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
+                  <tr>
+                    <td><table width="100%" border="0">
+                      <tr>
+                        <td><table width="100%" border="0">
+                          <tr>
+                            <td align="center">&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td align="center" class="bg_H_-3"><p>You have not yet analyzed this players mining behavior. Would you like to do that now?</p>
+                              <p>
+                                <input name="form" type="hidden" id="form" value="form_analyze_mines_now" />
+                                <input type="submit" name="Submit" id="Submit" value="Analyze Mining Behavior" />
+                                <input name="command" type="hidden" id="command" value="xanalyze" />
+                                <input name="player" type="hidden" id="player" value="<?php echo $player_name;?>" />
+                              </p></td>
+                          </tr>
+                          <tr>
+                            <td align="center">&nbsp;</td>
+                          </tr>
+                        </table></td>
+                      </tr>
+                      <tr>
+                        <td>&nbsp;</td>
+                      </tr>
+                    </table></td>
+                  </tr>
+                </table></td>
               </tr>
-            </table>
-<?php } ?>
-            </td>
+            </table></td>
           </tr>
-      </table></td>
+          </table></td>
       </tr>
       <tr>
         <td><table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
@@ -964,106 +1088,12 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
             </tr>
           <tr>
             <td><form action="" method="post" name="form_startanalysis" target="_self" id="form_startanalysis">
-              <table width="100%" border="0">
-                <tr>
-                  <td align="center">&nbsp;</td>
-                  </tr>
-                <tr>
-                  <td align="center" class="bg_H_-3"><p>You have not yet analyzed this players mining behavior. Would you like to do that now?</p>
-                    <p>
-                      <input name="form" type="hidden" id="form" value="form_analyze_mines_now" />
-                      <input type="submit" name="Submit" id="Submit" value="Analyze Mining Behavior" />
-                      <input name="command" type="hidden" id="command" value="xanalyze" />
-                      <input name="player" type="hidden" id="player" value="<?php echo $player_name;?>" />
-                    </p></td>
-                  </tr>
-                <tr>
-                  <td align="center">&nbsp;</td>
-                  </tr>
-                </table>
-              </form></td>
+            </form></td>
             </tr>
           <tr>
             <td><table width="100%" border="0">
               <tr>
-                <td><table width="100%" border="0">
-                  <tr>
-                    <td width="11%"><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                    <td width="89%">User's Diamond ratio is extremely high.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                    <td>User's Lapis ratio is extremely high.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                    <td>User's Gold ratio is extremely high.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                    <td>User's Mossy ratio is extremely high.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                    <td>User's Iron ratio is extremely high.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                    <td>User's Diamond ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                    <td>User's Lapis ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                    <td>User's Gold ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                    <td>User's Mossy ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                    <td>User's Iron ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                    <td>User's Diamond ratio is normal.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                    <td>User's Lapis ratio is normal.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                    <td>User's Gold ratio is normal.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                    <td>User's Mossy ratio is normal.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                    <td>User's Iron ratio is normal.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                    <td>User often  stops mining nearby after finding ores.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                    <td>User continues mining nearby after finding ores.</td>
-                  </tr>
-                  <tr>
-                    <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                    <td>User frequently mines only ores that are visible. This could suggest an x-ray texture pack, but could also simply indicate a preference to mine in exposed caverns.</td>
-                  </tr>
-                  <tr>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                  </tr>
-                </table></td>
+                <td>&nbsp;</td>
               </tr>
             </table></td>
           </tr>
