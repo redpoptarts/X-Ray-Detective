@@ -175,7 +175,7 @@ function Get_Player_NameByID(&$playerid)
 	else
 	{
 		return false;
-	}	
+	}
 	
 	return $playername;
 }
@@ -262,6 +262,22 @@ function Get_Player_Stats_ByWorld($playerid, $worldid)
 		{ return false; }
 }
 
+function Get_Player_ListAll()
+{
+	// Get ID of players whose names partially match the search parameter
+	Use_DB("xray");
+	$sql_PlayerList  = "SELECT * FROM `x-stats`";
+	//echo "SQL QUERY: <BR>" . $sql_PlayerList . "<BR>";
+	$res_PlayerList = mysql_query($sql_PlayerList) or die("Get_Player_ListAll: " . mysql_error());
+	while(($PlayerList_Array[] = mysql_fetch_assoc($res_PlayerList)) || array_pop($PlayerList_Array)); 
+
+	if( mysql_num_rows($res_PlayerList) > 0 )
+		{ return $PlayerList_Array; }
+	else
+		{ return false; }
+}
+
+
 function Get_Ratios_ByWorldID($world_id, $limit_results, &$block_type, &$stone_threshold)
 {
 	if($stone_threshold==""){$stone_threshold = 500;}
@@ -312,16 +328,22 @@ function Add_Player_Mines($playerid)
 		echo "ERROR: The player you specified does not exist. (Player ID: '$playerid')<BR>";
 	} else
 	{
-		//die("VARIABLES NOT IMPLEMENTED");
 		$datetime_now = new DateTime;
 		$datetime_hour_ago = new DateTime;
 		$datetime_hour_ago->modify( '-1 hour' );
 		
+		$final_postbreak_total = 0;
+		$final_postbreak_possible = 0;
+		$final_postbreak_ratio = 0;
+		
 		foreach($GLOBALS['worlds'] as $world_index => $world_item)
 		{
 				
-			$latest_mine_date = Get_Mine_Latest($playerid, $world_item['worldid']);
+			$latest_mine_date = Get_Player_LatestMine($playerid, $world_item['worldid']);
 			
+			echo "<BR><BR>[========================[WORLD ".$world_item["worldalias"]."]========================]<BR>";
+			echo "Analyzing mining behavior of player [".Get_Player_NameByID($playerid)."] in World [".$world_item["worldalias"]."]...<br>";
+			echo "<BR><BR>[------------------------PROCESS------------------------]<BR>";
 			
 			// Get all breaks after date
 			// ------------------------------
@@ -348,12 +370,10 @@ function Add_Player_Mines($playerid)
 			
 			// Process all breaks into chunks
 			// ------------------------------
-			echo "<BR><BR>[========================[WORLD ".$world_item["worldalias"]."]========================]<BR>";
-			echo "Analyzing mining behavior of player [".Get_Player_NameByID($playerid)."] in World [".$world_item["worldalias"]."]...<br>";
-			echo "<BR><BR>[------------------------PROCESS------------------------]<BR>";
+
 			// Initiate statistic arrays and variables
 			$init_prev_break = array("replaced"=>"0", "beforeblock"=>"0", "x"=>"0","y"=>"64","z"=>"0");
-			$init_current_mine = array("breaks"=>array(),"ores"=>array(),"stats"=>array("first_block_ore"=>false,"total_volume"=>0,"adjusted_volume"=>0,"total_ores"=>0,"total_notores"=>0,"postbreak_possible"=>0,"postbreak_total"=>0), "clusters"=>array() );
+			$init_current_mine = array("breaks"=>array(),"ores"=>array(),"stats"=>array("first_block_ore"=>false,"total_volume"=>0,"adjusted_volume"=>0,"total_ores"=>0,"adjusted_ores"=>0,"total_notores"=>0,"adjusted_notores"=>0,"postbreak_possible"=>0,"postbreak_total"=>0,"depth_total"=>0,"depth_avg"=>0,"postbreak_total"=>0,"postbreak_possible"=>0),"clusters"=>array() );
 			$init_cluster = array("nearby_before"=>array(), "nearby_after"=>array(), "ore_begin"=>NULL, "ore_length"=>NULL);
 			
 			$Mine_Array = array();
@@ -363,6 +383,7 @@ function Add_Player_Mines($playerid)
 	
 			$fullbreaks_item = array();	$fullbreaks_done = false; 
 			$recent_depth = array(); $inside_cluster = false;
+			$postbreak_checking = false; $postbreak_check_count = 0;
 			$blocks_since_ore = 0;
 		
 			// Process each break, moving it from the original array into smaller chunks (mines)
@@ -770,7 +791,7 @@ function Add_Player_Mines($playerid)
 				$sql_newmine .= " VALUES ";
 				$sql_newmine .= sprintf(" 	( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ",
 										GetSQLValueString($playerid,"int"),
-										GetSQLValueString(1,"int"),
+										GetSQLValueString($world_item['worldid'],"int"),
 										GetSQLValueString($mine_item["stats"]["total_volume"],"int"),
 										GetSQLValueString($mine_item["stats"]["first_block_ore"],"defined",1,0),
 										GetSQLValueString($mine_item["stats"]["last_break_date"],"date"),
@@ -794,7 +815,7 @@ function Add_Player_Mines($playerid)
 						$sql_newmine .= sprintf(" 	( %s, %s, %s, %s, %s, %s, %s, %s, %s) ",
 							"last_insert_id()",
 							GetSQLValueString($playerid,"int"),
-							GetSQLValueString(1,"int"),
+							GetSQLValueString($world_item['worldid'],"int"),
 							GetSQLValueString($cluster_item["ore_begin"],"int"),
 							GetSQLValueString($cluster_item["ore_length"],"int"),
 							GetSQLValueString($cluster_item["slope_before"],"double"),
@@ -903,14 +924,13 @@ function Update_Player_MinesStats($playerid)
 	}
 }
 
-function Get_Mine_Latest($playerid, $worldid)
+function Get_Player_LatestMine($playerid, $worldid)
 {
-	// Get ID of players whose names partially match the search parameter
-	$sql_Get_Mine_Latest  = "SELECT MAX(`last_break_date`) as latest_mine FROM `x-mines`";
-	$sql_Get_Mine_Latest .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
-	//echo "SQL QUERY: <BR>" . $sql_getWorlds . "<BR>";
-	$res_Get_Mine_Latest = mysql_query($sql_Get_Mine_Latest) or die("Get_Mine_Latest: " . mysql_error());
-	while(($LatestMine_result[] = mysql_fetch_assoc($res_Get_Mine_Latest)) || array_pop($LatestMine_result));
+	$sql_Get_Player_LatestMine  = "SELECT MAX(`last_break_date`) as latest_mine FROM `x-mines`";
+	$sql_Get_Player_LatestMine .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
+	//echo "SQL QUERY: <BR>" . $sql_Get_Player_LatestMine . "<BR>";
+	$res_Get_Player_LatestMine = mysql_query($sql_Get_Player_LatestMine) or die("Get_Player_LatestMine: " . mysql_error());
+	while(($LatestMine_result[] = mysql_fetch_assoc($res_Get_Player_LatestMine)) || array_pop($LatestMine_result));
 
 	$latest_mine_date = $LatestMine_result[0]["latest_mine"];
 	
@@ -925,26 +945,32 @@ function Get_Mine_Latest($playerid, $worldid)
 	return $latest_mine_date;
 }
 
-function Get_Mine_All($playerid, $worldid)
+function Get_Player_Mines_InWorld($playerid, $worldid)
+{
+	$sql_Get_Player_Mines_InWorld  = "SELECT * FROM `x-mines`";
+	$sql_Get_Player_Mines_InWorld .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
+	//echo "SQL QUERY: <BR>" . $sql_Get_Player_Mines_InWorld . "<BR>";
+	$res_Get_Player_Mines_InWorld = mysql_query($sql_Get_Player_Mines_InWorld) or die("Get_Player_Mines_InWorld: " . mysql_error());
+
+	while(($Mine_array[] = mysql_fetch_assoc($res_Get_Player_Mines_InWorld)) || array_pop($Mine_array));
+
+	//echo "MINE ARRAY: "; print_r($Mine_array); echo "<BR>";
+	
+	return $Mine_array;
+}
+
+function Get_Player_Clusters_InWorld($playerid, $worldid)
 {
 	// Get ID of players whose names partially match the search parameter
-	$sql_Get_Mine_Latest  = "SELECT MAX(`last_break_date`) as latest_mine FROM `x-mines`";
-	$sql_Get_Mine_Latest .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
-	//echo "SQL QUERY: <BR>" . $sql_getWorlds . "<BR>";
-	$res_Get_Mine_Latest = mysql_query($sql_Get_Mine_Latest) or die("Get_Mine_Latest: " . mysql_error());
-	while(($LatestMine_result[] = mysql_fetch_assoc($res_Get_Mine_Latest)) || array_pop($LatestMine_result));
+	$sql_Get_Player_Clusters  = "SELECT * FROM `x-clusters`";
+	$sql_Get_Player_Clusters .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
+	//echo "SQL QUERY: <BR>" . $sql_Get_Player_Clusters . "<BR>";
+	$res_Get_Player_Clusters = mysql_query($sql_Get_Player_Clusters) or die("Get_Player_Clusters: " . mysql_error());
+	while(($Clusters_array[] = mysql_fetch_assoc($res_Get_Player_Clusters)) || array_pop($Clusters_array));
 
-	$latest_mine_date = $LatestMine_result[0]["latest_mine"];
+	//echo "CLUSTERS ARRAY: "; print_r($Clusters_array); echo "<BR>";
 	
-	if($latest_mine_date == NULL)
-	{
-		$latest_mine_date = "2010-01-01 00:00:00";
-	}	
-	
-	//echo "LATESTMINE ARRAY: "; print_r($LatestMine_result); echo "<BR>";
-	//echo "LATEST MINE FOUND: [$latest_mine_date]<BR>";
-	
-	return $latest_mine_date;
+	return $Clusters_array;
 }
 
 function AutoFlagWatching()

@@ -30,14 +30,14 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 	$_GET['confirm'] = array_key_exists('confirm', $_GET) ? $_GET['confirm'] : NULL;
 	
 	switch($block_type){
-		case 56: $limit_block = "diamond"; break;
-		case 25: $limit_block = "lapis"; break;
-		case 14: $limit_block = "gold"; break;
-		case 48: $limit_block = "mossy"; break;
-		case 15: $limit_block = "iron"; break;
-		default: $limit_block = "invalid"; break;
+		case 56: $sortby_column_name = "diamond_ratio"; break;
+		case 25: $sortby_column_name = "lapis_ratio"; break;
+		case 14: $sortby_column_name = "gold_ratio"; break;
+		case 48: $sortby_column_name = "moss_ratioy"; break;
+		case 15: $sortby_column_name = "iron_ratio"; break;
+		default: $sortby_column_name = "invalid"; break;
 	}
-	//echo "LIMIT BLOCK: $limit_block<BR>";
+	//echo "LIMIT BLOCK: $sortby_column_name<BR>";
 	//echo "WORLD ID: $world_id<BR>";
 	//echo "WORLD NAME: $world_name<BR>";
 	//echo "WORLD ALIAS: $world_alias<BR>";
@@ -50,81 +50,156 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 	print_r($_POST); echo "<br>";
 	echo "---------------<br>";
 	*/
-	
 
 
-	$limits["diamond"] = array_fill(0, 10, 0); $limits["lapis"] = array_fill(0, 10, 0); $limits["gold"] = array_fill(0, 10, 0); $limits["mossy"] = array_fill(0, 10, 0); $limits["iron"] = array_fill(0, 10, 0);
+	$colorbins["diamond_ratio"] = array_fill(0, 10, 0); $colorbins["lapis_ratio"] = array_fill(0, 10, 0); $colorbins["gold_ratio"] = array_fill(0, 10, 0); $colorbins["mossy_ratio"] = array_fill(0, 10, 0); $colorbins["iron_ratio"] = array_fill(0, 10, 0);
 	
-	// Here are the sensitivity limits for each block type.
+	// Here are the sensitivity colorbins for each block type.
 	// 3 is the LOW value (GREEN)
 	// 6 is the MID value (YELLOW)
 	// 9 is the HIGH value (RED)
 	//
 	// All other color values will be created for you automatically.
 	//
-	/////////////////////////////////////////[   ]///////////[    ]//////////[   ]/////
-	$limits["diamond"] = array(0 => 0,	3 => "0.5", 	6 => "1.25",	9 => "2");
-	$limits["lapis"] =   array(0 => 0,	3 => "1",		6 => "2",   	9 => "3");
-	$limits["gold"] =    array(0 => 0, 	3 => "2.5",		6 => "4", 	9 => "6");
-	$limits["mossy"] =   array(0 => 0,	3 => "5",   	6 => "10",		9 => "15");
-	$limits["iron"] =    array(0 => 0,	3 => "15",  	6 => "20",		9 => "30");
-	/////////////////////////////////////////[   ]///////////[    ]//////////[   ]/////
-	
-	//echo "LIMITS::<br>"; print_r($limits); echo "<br><br>";
-	
-	foreach($limits as $limit_type => $limit_array)
+	if($command == "xsingle" || $command == "xtoplist")
 	{
-		//echo "BLOCK TYPE: $limit_block <br>";
-		$limits[$limit_type][1] = $limits[$limit_type][3] * 0.33;
-		$limits[$limit_type][2] = $limits[$limit_type][3] * 0.66;
-		$limits[$limit_type][4] = $limits[$limit_type][3] + ($limits[$limit_type][6] - $limits[$limit_type][3]) * 0.33;
-		$limits[$limit_type][5] = $limits[$limit_type][3] + ($limits[$limit_type][6] - $limits[$limit_type][3]) * 0.66;
-		$limits[$limit_type][7] = $limits[$limit_type][6] + ($limits[$limit_type][9] - $limits[$limit_type][6]) * 0.33;
-		$limits[$limit_type][8] = $limits[$limit_type][6] + ($limits[$limit_type][9] - $limits[$limit_type][6]) * 0.66;
-		$limits[$limit_type][10] = $limits[$limit_type][9] + ($limits[$limit_type][9] - $limits[$limit_type][6]) * 1.33;
-		asort($limits[$limit_type]);
-		//echo "[" . $limit_type . "]<br>"; print_r($limits[$limit_type]); echo "<br>";
+		/////////////////////////////////////////[   ]///////////[    ]//////////[   ]/////
+		$colorbins["diamond_ratio"] = array(0 => 0,	3 => "0.5", 	6 => "1.25",	9 => "2");
+		$colorbins["lapis_ratio"] =   array(0 => 0,	3 => "1",		6 => "2",   	9 => "3");
+		$colorbins["gold_ratio"] =    array(0 => 0, 3 => "2.5",		6 => "4", 		9 => "6");
+		$colorbins["mossy_ratio"] =   array(0 => 0,	3 => "5",   	6 => "10",		9 => "15");
+		$colorbins["iron_ratio"] =    array(0 => 0,	3 => "15",  	6 => "20",		9 => "30");
+		/////////////////////////////////////////[   ]///////////[    ]//////////[   ]/////	
+	}
+	if($command == "xsingle")
+	{
+		$colorbins["slope_before|-"] =array(0 => 0,	3 => "-0.21", 	6 => "-0.35",	9 => "-0.45");
+		$colorbins["slope_before|+"] =array(0 => 0,	3 => "0.1", 	6 => "0.20",	9 => "0.30");
+		$colorbins["spread_before"] =	array(0 => 0, 	3 => "1",		6 => "2.1", 		9 => "4");
+	}
+	/////////////////////////////////////////[   ]///////////[    ]//////////[   ]/////
+	
+	//echo "LIMITS::<br>"; print_r($colorbins); echo "<br><br>";
+	
+	foreach($colorbins as $column_name => $bins)
+	{
+		//echo "BLOCK TYPE: $sortby_column_name <br>";
+		$colorbins[$column_name][1] = $colorbins[$column_name][3] * 0.33;
+		$colorbins[$column_name][2] = $colorbins[$column_name][3] * 0.66;
+		$colorbins[$column_name][4] = $colorbins[$column_name][3] + ($colorbins[$column_name][6] - $colorbins[$column_name][3]) * 0.33;
+		$colorbins[$column_name][5] = $colorbins[$column_name][3] + ($colorbins[$column_name][6] - $colorbins[$column_name][3]) * 0.66;
+		$colorbins[$column_name][7] = $colorbins[$column_name][6] + ($colorbins[$column_name][9] - $colorbins[$column_name][6]) * 0.33;
+		$colorbins[$column_name][8] = $colorbins[$column_name][6] + ($colorbins[$column_name][9] - $colorbins[$column_name][6]) * 0.66;
+		$colorbins[$column_name][10] = $colorbins[$column_name][9] + ($colorbins[$column_name][9] - $colorbins[$column_name][6]) * 1.33;
+		asort($colorbins[$column_name]);
+		//echo "[" . $column_name . "]<br>"; print_r($colorbins[$column_name]); echo "<br>";
 	}
 
 	if ($command == 'xsingle')
 	{
+	
 		
+		$_GET['xr_submit'] = array_key_exists('xr_submit', $_GET) ? $_GET['xr_submit'] : NULL;
 //		echo "XCHECK";
 		if($_GET['xr_submit']=="Check" || $_GET['xr_submit']=="")
 		{
 			// Check user's totals from stats table
 			$player_world_stats = Get_Player_WorldRatios($player_id);
-			
-
-			foreach($player_world_stats as $pw_index => $pw_item)
+			$player_mines_all = Get_Player_Mines_InWorld($player_id, $GLOBALS['worlds'][0]['worldid']);
+			foreach($GLOBALS['worlds'] as $world_index => $world_item)
 			{
-				
-				foreach($limits as $limit_type => $limit_array)
+				$player_clusters_world[$world_index] = Get_Player_Clusters_InWorld($player_id, $world_item['worldid']);
+			}
+
+
+			foreach($player_world_stats as $dataset_rownum => &$dataset_row)
+			{
+				//echo "INDEX: $dataset_rownum <br>";
+				foreach($colorbins as $color_column_name => $bins)
 				{
-					//echo "BLOCK: "; print_r($limit_type); echo "<br>";
-					//echo "ARRAY: "; print_r($limt_array); echo "<br>";
-					$tempcolor = 10;
-					$player_world_stats[$pw_index]["color_" . $limit_type] = -3;
-					while($pw_item[$limit_type . "_ratio"] < $limits[$limit_type][$tempcolor] && $tempcolor > 0)
+					//echo "COLOR_SEARCH: $color_column_name <br>";					
+					foreach($dataset_row as $row_column_name => &$row_column_value)
 					{
-						//echo "$limit_type >> " . $limits[$limit_type][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-						$tempcolor--;	
+						if(array_key_exists($color_column_name, $dataset_row) && $color_column_name == $row_column_name)
+						{
+							//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
+							$tempcolor = 10;
+							$dataset_row["color_" . $row_column_name] = -3;
+							while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
+							{
+								//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+								$tempcolor--;	
+							}
+							$dataset_row["color_" . $row_column_name] = $tempcolor;
+						}
 					}
-					$player_world_stats[$pw_index]["color_" . $limit_type] = $tempcolor;
 				}
-				$player_world_stats[$pw_index]["color_max"] = 
-					max(	$player_world_stats[$pw_index]["color_diamond"],
-							$player_world_stats[$pw_index]["color_lapis"],
-							$player_world_stats[$pw_index]["color_gold"],
-							$player_world_stats[$pw_index]["color_mossy"],
-							$player_world_stats[$pw_index]["color_iron"]);
+				$dataset_row["color_max"] = 
+					max(	$dataset_row["color_diamond_ratio"],
+							$dataset_row["color_lapis_ratio"],
+							$dataset_row["color_gold_ratio"],
+							$dataset_row["color_mossy_ratio"],
+							$dataset_row["color_iron_ratio"]);
+			}
+			
+			foreach($GLOBALS['worlds'] as $world_index => $world_item)
+			{
+				foreach($player_clusters_world[$world_index] as $dataset_rownum => &$dataset_row)
+				{
+					//echo "INDEX: $dataset_rownum <br>";
+					foreach($colorbins as $color_column_name => $bins)
+					{
+						//echo "COLOR_SEARCH: $color_column_name <br>";
+						$column_name_suffix = "";
+						foreach($dataset_row as $row_column_name => &$row_column_value)
+						{
+							if($row_column_name == "slope_before" && $row_column_value >= 0){$column_name_suffix = "|+";}
+							elseif($row_column_name == "slope_before" && $row_column_value < 0){$column_name_suffix = "|-";}
+							else {$column_name_suffix = "";}
+							$truncated_column_name = str_replace(mysql_real_escape_string($column_name_suffix), '', $color_column_name);
+							
+							//echo "Match? [". $truncated_column_name . "]<BR>";
+							if(array_key_exists($truncated_column_name, $dataset_row) && $truncated_column_name == $row_column_name)
+							{
+								//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
+								$dataset_row["color_" . $row_column_name] = -3;
+								$compare_value = ($colorbins[$color_column_name][9] < 0) ? abs($row_column_value) : $row_column_value;
+								if($colorbins[$color_column_name][9] > 0)
+								{
+									$tempcolor = 10;									
+									while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
+									{
+										//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+										$tempcolor--;	
+									}
+								}
+								else
+								{
+									$tempcolor = 0;
+									while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor < 10)
+									{
+										//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+										$tempcolor++;	
+									}	
+								}
+								
+								$dataset_row["color_" . $row_column_name] = $tempcolor;
+							}
+						}
+						//echo "<BR>";
+					}
+					$dataset_row["color_max"] = 
+						max(	$dataset_row["color_slope_before"],
+								$dataset_row["color_spread_before"]);
+				}
 			}
 		}
 		if($_GET['xr_submit']=="Analyze")
 		{
 			$command = "xanalyze"; $show_process = true;
 		}
-	} elseif ($command == 'xglobal')
+	}
+	elseif ($command == 'xglobal')
 	{
 		// Check average ratios from stats table
 
@@ -135,20 +210,21 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		if ($gold > 0) { $findrate["gold"] = number_format($gold * 100 / $stones,2); } else { $findrate["gold"] = number_format(0,4); }
 		if ($iron > 0) { $findrate["iron"] = number_format($iron * 100 / $stones,2); } else { $findrate["iron"] = number_format(0,4); }
 
-		foreach($limits as $limit_type => $limit_array)
+		foreach($colorbins as $column_name => $bins)
 		{
-			//echo "BLOCK: "; print_r($limit_type); echo "<br>";
+			//echo "BLOCK: "; print_r($column_name); echo "<br>";
 			//echo "ARRAY: "; print_r($limt_array); echo "<br>";
 			$tempcolor = 10;
-			$color[$limit_type] = -3;
-			while($findrate[$limit_type] < $limits[$limit_type][$tempcolor] && $tempcolor > 0)
+			$color[$column_name] = -3;
+			while($findrate[$column_name] < $colorbins[$column_name][$tempcolor] && $tempcolor > 0)
 			{
-				//echo "$limit_type >> " . $limits[$limit_type][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+				//echo "$column_name >> " . $colorbins[$column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
 				$tempcolor--;	
 			}
-			$color[$limit_type] = $tempcolor;
+			$color[$column_name] = $tempcolor;
 		}
-	} elseif ($command == 'xtoplist')
+	}
+	elseif ($command == 'xtoplist')
 	{
 		$world_id = array_key_exists('worldid', $_GET) ? $_GET["worldid"] : $GLOBALS['worlds'][0]["worldid"];
 		
@@ -164,24 +240,30 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		
 		$TopArray = Get_Ratios_ByWorldID($world_id, $limit_results, $block_type, $stone_threshold);
 
-	} elseif ($command == 'xscan')
+	}
+	elseif ($command == 'xscan')
 	{
 		$show_process = true;
-	} elseif ($command == 'xupdate')
+	}
+	elseif ($command == 'xupdate')
 	{
 		$show_process = true;
-	} elseif ($command == 'xanalyze')
+	}
+	elseif ($command == 'xanalyze')
 	{
 		$show_process = true;
-	} elseif ($command == 'xclear')
+	}
+	elseif ($command == 'xclear')
 	{
 		$show_process = true;
 		$require_confirmation = true;
 		$msg_confirmation = "You are about to delete all collected x-ray statistics (block counts) for all users!";
-	} elseif ($command == 'xworlds')
+	}
+	elseif ($command == 'xworlds')
 	{
 		
-	} else
+	}
+	else
 	{
 		echo "ERROR: Unrecognized command: [$command]";
 		
@@ -497,8 +579,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 					{						
 						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"])
 						{
-							foreach($GLOBALS['worlds'] as $world_index => $world_item)
-								{ Add_Player_Mines($player_id); }
+							Add_Player_Mines($player_id);
 							Update_Player_MinesStats($player_id);
 						}
 						else { $command_error .= "You do not have permission to do that.<BR>"; }
@@ -712,58 +793,58 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td class="bg_AAA_x"><strong>Username</strong></td>
                     <td class="bg_AAA_x"><strong>Stones</strong></td>
                     <td class="bg_AAA_x"><strong>Info</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="lapis_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="gold_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="mossy_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="iron_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
                     </tr>
                   <?php foreach($TopArray as $key => $top)
 				  		{
-							foreach($limits as $limit_type => $limit_array)
+							foreach($colorbins as $column_name => $bins)
 							{
 								$tempcolor = 10;
-								$color[$limit_type] = -3;
-								while($top[$limit_type . "_ratio"] < $limits[$limit_type][$tempcolor] && $tempcolor > 0)
+								$color[$column_name] = -3;
+								while($top[$column_name] < $colorbins[$column_name][$tempcolor] && $tempcolor > 0)
 								{
-									//echo "<br>$limit_block >> " . $limits[$limit_block][$tempcolor] . " [" . ($tempcolor) . "]";
+									//echo "<br>$sortby_column_name >> " . $colorbins[$sortby_column_name][$tempcolor] . " [" . ($tempcolor) . "]";
 									$tempcolor--;	
 								}
 								//echo "<< <BR>";
-								$color[$limit_type] = $tempcolor;
+								$color[$column_name] = $tempcolor;
 							}
 							$top["firstlogin"] = date_create_from_format("Y-m-d H:i:s", $top["firstlogin"]);
 ?>
-                  <tr class="bg_I_<?php echo $color[$limit_block];?>">
-<!--                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $top["playername"]; ?></strong></td> -->
-                <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
-                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $top["stone_count"]; ?></strong></td>
-                    <td nowrap="nowrap"><span class="bg_I_<?php echo $color[$limit_block];?>&gt;&lt;strong&gt;&lt;a href=">
+                  <tr class="bg_I_<?php echo $color[$sortby_column_name];?>">
+<!--                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$sortby_column_name];?>"><strong><?php echo $top["playername"]; ?></strong></td> -->
+                <td nowrap="nowrap" class="bg_I_<?php echo $color[$sortby_column_name];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
+                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$sortby_column_name];?>"><strong><?php echo $top["stone_count"]; ?></strong></td>
+                    <td nowrap="nowrap"><span class="bg_I_<?php echo $color[$sortby_column_name];?>&gt;&lt;strong&gt;&lt;a href=">
                       <?php if($top["firstlogin"] > $datetime_week_ago){ ?>
                       <img src="img/green.png" width="15" height="15" alt="New User" />
                       <?php } else { /*echo $top["firstlogin"];*/ } ?>
                     </span></td>
-                    <td nowrap="nowrap" class="bg_<?php if($limit_block=="diamond"){echo"E";}else{echo"I";}?>_<?php echo $color["diamond"];?>"><?php if($limit_block=="diamond"){echo"<strong>";}?><?php echo $top["diamond_count"]; ?><?php if($limit_block=="diamond"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($limit_block=="diamond"){echo"E";}else{echo"I";}?>_<?php echo $color["diamond"];?>"><?php if($limit_block=="diamond"){echo"<strong>";}?><?php echo number_format($top["diamond_ratio"], 2); ?> %<?php if($limit_block=="diamond"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($limit_block=="lapis"){echo"E";}else{echo"I";}?>_<?php echo $color["lapis"];?>"><?php if($limit_block=="lapis"){echo"<strong>";}?><?php echo $top["lapis_count"]; ?><?php if($limit_block=="lapis"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($limit_block=="lapis"){echo"E";}else{echo"I";}?>_<?php echo $color["lapis"];?>"><?php if($limit_block=="lapis"){echo"<strong>";}?><?php echo number_format($top["lapis_ratio"], 2); ?> %<?php if($limit_block=="lapis"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($limit_block=="gold"){echo"E";}else{echo"I";}?>_<?php echo $color["gold"];?>"><?php if($limit_block=="gold"){echo"<strong>";}?><?php echo $top["gold_count"]; ?><?php if($limit_block=="gold"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($limit_block=="gold"){echo"E";}else{echo"I";}?>_<?php echo $color["gold"];?>"><?php if($limit_block=="gold"){echo"<strong>";}?><?php echo number_format($top["gold_ratio"], 2); ?> %<?php if($limit_block=="gold"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($limit_block=="mossy"){echo"E";}else{echo"I";}?>_<?php echo $color["mossy"];?>"><?php if($limit_block=="mossy"){echo"<strong>";}?><?php echo $top["mossy_count"]; ?><?php if($limit_block=="mossy"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($limit_block=="mossy"){echo"E";}else{echo"I";}?>_<?php echo $color["mossy"];?>"><?php if($limit_block=="mossy"){echo"<strong>";}?><?php echo number_format($top["mossy_ratio"], 2); ?> %<?php if($limit_block=="mossy"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($limit_block=="iron"){echo"E";}else{echo"I";}?>_<?php echo $color["iron"];?>"><?php if($limit_block=="iron"){echo"<strong>";}?><?php echo $top["iron_count"]; ?><?php if($limit_block=="iron"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($limit_block=="iron"){echo"E";}else{echo"I";}?>_<?php echo $color["iron"];?>"><?php if($limit_block=="iron"){echo"<strong>";}?><?php echo number_format($top["iron_ratio"], 2); ?> %<?php if($limit_block=="iron"){echo"</strong>";}?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["diamond_ratio"];?>"><?php if($sortby_column_name=="diamond"){echo"<strong>";}?><?php echo $top["diamond_count"]; ?><?php if($sortby_column_name=="diamond"){echo"</strong>";}?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["diamond_ratio"];?>"><?php if($sortby_column_name=="diamond"){echo"<strong>";}?><?php echo number_format($top["diamond_ratio"], 2); ?> %<?php if($sortby_column_name=="diamond"){echo"</strong>";}?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="lapis_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["lapis_ratio"];?>"><?php if($sortby_column_name=="lapis"){echo"<strong>";}?><?php echo $top["lapis_count"]; ?><?php if($sortby_column_name=="lapis"){echo"</strong>";}?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="lapis_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["lapis_ratio"];?>"><?php if($sortby_column_name=="lapis"){echo"<strong>";}?><?php echo number_format($top["lapis_ratio"], 2); ?> %<?php if($sortby_column_name=="lapis"){echo"</strong>";}?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="gold_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["gold_ratio"];?>"><?php if($sortby_column_name=="gold"){echo"<strong>";}?><?php echo $top["gold_count"]; ?><?php if($sortby_column_name=="gold"){echo"</strong>";}?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="gold_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["gold_ratio"];?>"><?php if($sortby_column_name=="gold"){echo"<strong>";}?><?php echo number_format($top["gold_ratio"], 2); ?> %<?php if($sortby_column_name=="gold"){echo"</strong>";}?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="mossy_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["mossy_ratio"];?>"><?php if($sortby_column_name=="mossy"){echo"<strong>";}?><?php echo $top["mossy_count"]; ?><?php if($sortby_column_name=="mossy"){echo"</strong>";}?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="mossy_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["mossy_ratio"];?>"><?php if($sortby_column_name=="mossy"){echo"<strong>";}?><?php echo number_format($top["mossy_ratio"], 2); ?> %<?php if($sortby_column_name=="mossy"){echo"</strong>";}?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="iron_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["iron_ratio"];?>"><?php if($sortby_column_name=="iron"){echo"<strong>";}?><?php echo $top["iron_count"]; ?><?php if($sortby_column_name=="iron"){echo"</strong>";}?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="iron_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["iron_ratio"];?>"><?php if($sortby_column_name=="iron"){echo"<strong>";}?><?php echo number_format($top["iron_ratio"], 2); ?> %<?php if($sortby_column_name=="iron"){echo"</strong>";}?></td>
                     </tr>
                   <?php if(!(($key+1) % 25) ){ ?>
                   <tr class="bg_white">
                     <td class="bg_AAA_x"><strong>Username</strong></td>
                     <td class="bg_AAA_x"><strong>Stones</strong></td>
                     <td class="bg_AAA_x"><strong>Info</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
                     </tr>
                   <?php } }
 				  if( (($key+1) % 25) ){ ?>
@@ -771,11 +852,11 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td class="bg_AAA_x"><strong>Username</strong></td>
                     <td class="bg_AAA_x"><strong>Stones</strong></td>
                     <td class="bg_AAA_x"><strong>Info</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($limit_block=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
+                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
                     </tr>
                   <?php } ?>
                 </table>
@@ -1006,19 +1087,19 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                         <td colspan="2" align="center" class="bg_AAA_x"><strong>Iron</strong></td>
                         </tr>
                       <?php foreach($player_world_stats as $pw_index => $pw_item) {?>
-                      <tr class="bg_I_<?php echo $color[$limit_block];?>">
+                      <tr class="bg_I_<?php echo $color[$sortby_column_name];?>">
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_max"];?>"><?php echo $pw_item["worldalias"]; ?></td>
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_max"];?>"><?php echo $pw_item["stone_count"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_diamond"];?>"><?php echo $pw_item["diamond_count"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_diamond"];?>"><?php echo $pw_item["diamond_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_lapis"];?>"><?php echo $pw_item["lapis_count"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_lapis"];?>"><?php echo $pw_item["lapis_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_gold"];?>"><?php echo $pw_item["gold_count"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_gold"];?>"><?php echo $pw_item["gold_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_mossy"];?>"><?php echo $pw_item["mossy_count"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_mossy"];?>"><?php echo $pw_item["mossy_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_iron"];?>"><?php echo $pw_item["iron_count"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_iron"];?>"><?php echo $pw_item["iron_ratio"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_diamond_ratio"];?>"><?php echo $pw_item["diamond_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_diamond_ratio"];?>"><?php echo $pw_item["diamond_ratio"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_lapis_ratio"];?>"><?php echo $pw_item["lapis_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_lapis_ratio"];?>"><?php echo $pw_item["lapis_ratio"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_gold_ratio"];?>"><?php echo $pw_item["gold_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_gold_ratio"];?>"><?php echo $pw_item["gold_ratio"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_mossy_ratio"];?>"><?php echo $pw_item["mossy_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_mossy_ratio"];?>"><?php echo $pw_item["mossy_ratio"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_iron_ratio"];?>"><?php echo $pw_item["iron_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_iron_ratio"];?>"><?php echo $pw_item["iron_ratio"];?></td>
                         </tr>
                       <?php } ?>
                       <tr class="bg_white">
@@ -1051,147 +1132,131 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                   <tr>
                     <td><table width="100%" border="0">
                       <tr>
-                        <td><table width="100%" border="0">
-                          <tr>
-                            <td align="center">&nbsp;</td>
-                          </tr>
-                          <tr>
-                            <td align="center" class="bg_H_-3"><p>You have not yet analyzed this players mining behavior. Would you like to do that now?</p>
-                              <p>
-                                <input name="form" type="hidden" id="form" value="form_analyze_mines_now" />
-                                <input type="submit" name="Submit" id="Submit" value="Analyze Mining Behavior" />
-                                <input name="command" type="hidden" id="command" value="xanalyze" />
-                                <input name="player" type="hidden" id="player" value="<?php echo $player_name;?>" />
-                              </p></td>
-                          </tr>
-                          <tr>
-                            <td align="center">&nbsp;</td>
-                          </tr>
-                        </table></td>
+                        <td align="center">&nbsp;</td>
                       </tr>
+                      <tr>
+                        <td align="center" class="bg_H_-3"><p>You have not yet analyzed this players mining behavior. Would you like to do that now?</p>
+                          <p>&nbsp;</p>
+                          <form action="xray.php" method="post" name="form_startanalysis" target="_self" id="form_startanalysis">
+                            <input name="form" type="hidden" id="form" value="form_analyze_mines_now" />
+                            <input type="submit" name="Submit" id="Submit" value="Analyze Mining Behavior" />
+                            <input name="command" type="hidden" id="command" value="xanalyze" />
+                            <input name="player" type="hidden" id="player" value="<?php echo $player_name;?>" />
+                          </form>
+                          </p></td>
+                      </tr>
+                      <tr>
+                        <td align="center">&nbsp;</td>
+                      </tr>
+                    </table>
+                      <?php foreach($GLOBALS['worlds'] as $world_index => $world_item)
+					  { 
+					  	if(count( $player_clusters_world[$world_index]) > 0)
+						{ ?>
+                      <table width="100%" border="0">
                       <tr>
                         <td>&nbsp;</td>
                       </tr>
-                    </table></td>
+                      <tr>
+                        <td><table width="100%" border="0" class="bg_black">
+                          <tr class="bg_white">
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
+                          </tr>
+                          <?php 
+				  		foreach($player_clusters_world[$world_index] as $cluster_index => $cluster_item)
+				  		{
+						?>
+                          <tr class="bg_I_0">
+                            <td nowrap="nowrap" class="bg_H_<?php echo (!isset($cluster_item["slope_before"]) ) ? "-3" : $cluster_item["color_slope_before"];?>"><strong><?php echo $cluster_item["slope_before"]; ?></strong></td>
+                            <td nowrap="nowrap" class="bg_H_<?php echo (!isset($cluster_item["spread_before"]) ) ? "-3" : $cluster_item["color_spread_before"];?>"><strong><?php echo $cluster_item["spread_before"]; ?></strong></td>
+                            <td nowrap="nowrap"><strong><?php echo $cluster_item["ore_length"]; ?></strong></td>
+                            <td nowrap="nowrap" class="bg_H_<?php echo (!isset($cluster_item["slope_after"]) ) ? "-3" : "0"; ?>"><strong><?php echo $cluster_item["slope_after"]; ?></strong></td>
+                            <td nowrap="nowrap" class="bg_H_<?php echo (!isset($cluster_item["spread_after"]) ) ? "-3" : "0"; ?>"><strong><?php echo $cluster_item["spread_after"]; ?></strong></td>
+                          </tr>
+                          <?php if(!(($cluster_index+1) % 25) ){ ?>
+                          <tr class="bg_white">
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
+                          </tr>
+                          <?php } }
+				  if( (($cluster_index+1) % 25) ){ ?>
+                          <tr class="bg_white">
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
+                          </tr>
+                          <?php } ?>
+                        </table></td>
+                      </tr>
+                      <?php /*<!--<tr>
+                        <td><table width="100%" border="0" class="bg_black">
+                          <tr class="bg_white">
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Date</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Volume</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>First Block Ore?</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>PostBreaks</strong></td>
+                            </tr>
+	                  <?php 
+				  		foreach($player_mines_all as $mine_index => $mine_item)
+				  		{
+							foreach($colorbins as $column_name => $bins)
+							{
+								$tempcolor = 10;
+								$color[$column_name] = -3;
+								while($mine_item[$column_name . "_ratio"] < $colorbins[$column_name][$tempcolor] && $tempcolor > 0)
+								{
+									//echo "<br>$sortby_column_name >> " . $colorbins[$sortby_column_name][$tempcolor] . " [" . ($tempcolor) . "]";
+									$tempcolor--;	
+								}
+								//echo "<< <BR>";
+								$color[$column_name] = $tempcolor;
+							}
+						?>
+                          <tr class="bg_I_<?php echo $color[$sortby_column_name];?>">
+                            <td nowrap="nowrap"><strong><?php echo $mine_item["volume"]; ?></strong></td>
+                            <td nowrap="nowrap"><strong><?php echo $mine_item["volume"]; ?></strong></td>
+                            <td nowrap="nowrap"><strong><?php echo FixOutput_Bool($mine_item["first_block_ore"],"Yes","No","?"); ?></strong></td>
+                            <td nowrap="nowrap"><strong><?php echo $mine_item["volume"]; ?></strong></td>
+                            </tr>
+                          <?php if(!(($mine_index+1) % 25) ){ ?>
+                          <tr class="bg_white">
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Date</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Volume</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>First Block Ore?</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>PostBreaks</strong></td>
+                          </tr>
+                          <?php } }
+				  if( (($mine_index+1) % 25) ){ ?>
+                          <tr class="bg_white">
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Date</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Volume</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>First Block Ore?</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>PostBreaks</strong></td>
+                          </tr>
+                          <?php } ?>
+                        </table></td>
+                      </tr>-->*/ ?>
+                    </table>
+                    <?php } } ?></td>
                   </tr>
                 </table></td>
               </tr>
             </table></td>
           </tr>
-          </table></td>
-      </tr>
-      <tr>
-        <td><table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
-          <tr>
-            <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
-              <tr>
-                <td><h1>
-                  Advanced Player Statistics: <font color="#FF0000"><?php echo $player; ?></font>
-                </h1></td>
-                </tr>
-              </table></td>
-            </tr>
-          <tr>
-            <td><form action="" method="post" name="form_startanalysis" target="_self" id="form_startanalysis">
-            </form></td>
-            </tr>
-          <tr>
-            <td><table width="100%" border="0">
-              <tr>
-                <td>&nbsp;</td>
-              </tr>
-            </table></td>
-          </tr>
-          <tr>
-            <td><table width="100%" border="0" class="bg_black">
-              <tr class="bg_white">
-                <td nowrap="nowrap" class="bg_AAA_x"><strong>Volume</strong></td>
-                <td nowrap="nowrap" class="bg_AAA_x"><strong>Time / Block</strong></td>
-                <td nowrap="nowrap" class="bg_AAA_x"><strong>PostBreaks</strong></td>
-                <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread</strong></td>
-                <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope</strong></td>
-                <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
-                <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
-                <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
-                <td colspan="2" align="center" nowrap="nowrap" class="bg_<?php if($limit_block=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
-                <td colspan="2" align="center" nowrap="nowrap" class="bg_<?php if($limit_block=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
-                <td colspan="2" align="center" nowrap="nowrap" class="bg_<?php if($limit_block=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
-                <td colspan="2" align="center" nowrap="nowrap" class="bg_<?php if($limit_block=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
-                <td colspan="2" align="center" nowrap="nowrap" class="bg_<?php if($limit_block=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
-                </tr>
-              <?php foreach($TopArray as $key => $top)
-				  		{
-							foreach($limits as $limit_type => $limit_array)
-							{
-								$tempcolor = 10;
-								$color[$limit_type] = -3;
-								while($top[$limit_type . "_ratio"] < $limits[$limit_type][$tempcolor] && $tempcolor > 0)
-								{
-									//echo "<br>$limit_block >> " . $limits[$limit_block][$tempcolor] . " [" . ($tempcolor) . "]";
-									$tempcolor--;	
-								}
-								//echo "<< <BR>";
-								$color[$limit_type] = $tempcolor;
-							}
-?>
-              <tr class="bg_I_<?php echo $color[$limit_block];?>">
-                <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>&gt;&lt;strong&gt;&lt;a href="xray.php?command="xsingle&amp;player=<?php echo $top["playername"]; ?>&amp;authKey=yourpassword&quot;"><strong></a></strong></strong></td>
-                <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>">&nbsp;</td>
-                <td nowrap="nowrap">&nbsp;</td>
-                <td nowrap="nowrap">&nbsp;</td>
-                <td nowrap="nowrap">&nbsp;</td>
-                <td nowrap="nowrap">&nbsp;</td>
-                <td nowrap="nowrap">&nbsp;</td>
-                <td nowrap="nowrap">&nbsp;</td>
-                <td nowrap="nowrap" class="bg_<?php if($limit_block=="diamond"){echo"E";}else{echo"I";}?>_<?php echo $color["diamond"];?>"><strong><?php echo $top["diamond_count"]; ?></strong></td>
-                <td nowrap="nowrap" class="bg_<?php if($limit_block=="diamond"){echo"E";}else{echo"I";}?>_<?php echo $color["diamond"];?>"><strong><?php echo number_format($top["diamond_ratio"], 2); ?> %</strong></td>
-                <td nowrap="nowrap" class="bg_<?php if($limit_block=="lapis"){echo"E";}else{echo"I";}?>_<?php echo $color["lapis"];?>"><strong><?php echo $top["lapis_count"]; ?></strong></td>
-                <td nowrap="nowrap" class="bg_<?php if($limit_block=="lapis"){echo"E";}else{echo"I";}?>_<?php echo $color["lapis"];?>"><strong><?php echo number_format($top["lapis_ratio"], 2); ?> %</strong></td>
-                <td nowrap="nowrap" class="bg_<?php if($limit_block=="gold"){echo"E";}else{echo"I";}?>_<?php echo $color["gold"];?>"><strong><?php echo $top["gold_count"]; ?></strong></td>
-                <td nowrap="nowrap" class="bg_<?php if($limit_block=="gold"){echo"E";}else{echo"I";}?>_<?php echo $color["gold"];?>"><strong><?php echo number_format($top["gold_ratio"], 2); ?> %</strong></td>
-                <td nowrap="nowrap" class="bg_<?php if($limit_block=="mossy"){echo"E";}else{echo"I";}?>_<?php echo $color["mossy"];?>"><strong><?php echo $top["mossy_count"]; ?></strong></td>
-                <td nowrap="nowrap" class="bg_<?php if($limit_block=="mossy"){echo"E";}else{echo"I";}?>_<?php echo $color["mossy"];?>"><strong><?php echo number_format($top["mossy_ratio"], 2); ?> %</strong></td>
-                <td nowrap="nowrap" class="bg_<?php if($limit_block=="iron"){echo"E";}else{echo"I";}?>_<?php echo $color["iron"];?>"><strong><?php echo $top["iron_count"]; ?></strong></td>
-                <td nowrap="nowrap" class="bg_<?php if($limit_block=="iron"){echo"E";}else{echo"I";}?>_<?php echo $color["iron"];?>"><strong><?php echo number_format($top["iron_ratio"], 2); ?> %</strong></td>
-                </tr>
-              <?php if(!(($key+1) % 25) ){ ?>
-              <tr class="bg_white">
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td colspan="2" align="center" class="bg_<?php if($limit_block=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
-                <td colspan="2" align="center" class="bg_<?php if($limit_block=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
-                <td colspan="2" align="center" class="bg_<?php if($limit_block=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
-                <td colspan="2" align="center" class="bg_<?php if($limit_block=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
-                <td colspan="2" align="center" class="bg_<?php if($limit_block=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
-                </tr>
-              <?php } }
-				  if( (($key+1) % 25) ){ ?>
-              <tr class="bg_white">
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td class="bg_AAA_x">&nbsp;</td>
-                <td colspan="2" align="center" class="bg_<?php if($limit_block=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
-                <td colspan="2" align="center" class="bg_<?php if($limit_block=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
-                <td colspan="2" align="center" class="bg_<?php if($limit_block=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
-                <td colspan="2" align="center" class="bg_<?php if($limit_block=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
-                <td colspan="2" align="center" class="bg_<?php if($limit_block=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
-                </tr>
-              <?php } ?>
-              </table></td>
-            </tr>
           </table>
           <?php } ?></td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
       </tr>
 <tr>
   <td><?php if($command=="xsingle" || $command=="xglobal"){ ?>
@@ -1222,50 +1287,50 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
           <tr>
             <td class="bg_black"><strong>Diamonds</strong></td>
             <?php
-$limit_block = "diamond";
+$sortby_column_name = "diamond_ratio";
 for ($col = 0; $col <= 10 ; $col++)
 { ?>
-            <td class="bg_G_<?php echo $col;?><?php if($col == $color[$limit_block]){ echo " border_black_thick"; }?>"><?php echo  number_format($limits[$limit_block][$col], 2); ?></td>
+            <td class="bg_G_<?php echo $col;?><?php if($col == $color[$sortby_column_name]){ echo " border_black_thick"; }?>"><?php echo  number_format($colorbins[$sortby_column_name][$col], 2); ?></td>
             <?php
 } ?>
             </tr>
           <tr>
             <td class="bg_black"><strong>Lapis</strong></td>
             <?php
-$limit_block = "lapis";
+$sortby_column_name = "lapis_ratio";
 for ($col = 0; $col <= 10 ; $col++)
 { ?>
-            <td class="bg_G_<?php echo $col;?><?php if($col == $color[$limit_block]){ echo " border_black_thick"; }?>"><?php echo  number_format($limits[$limit_block][$col], 2); ?></td>
+            <td class="bg_G_<?php echo $col;?><?php if($col == $color[$sortby_column_name]){ echo " border_black_thick"; }?>"><?php echo  number_format($colorbins[$sortby_column_name][$col], 2); ?></td>
             <?php
 } ?>
             </tr>
           <tr>
             <td class="bg_black"><strong>Gold</strong></td>
             <?php
-$limit_block = "gold";
+$sortby_column_name = "gold_ratio";
 for ($col = 0; $col <= 10 ; $col++)
 { ?>
-            <td class="bg_G_<?php echo $col;?><?php if($col == $color[$limit_block]){ echo " border_black_thick"; }?>"><?php echo  number_format($limits[$limit_block][$col], 2); ?></td>
+            <td class="bg_G_<?php echo $col;?><?php if($col == $color[$sortby_column_name]){ echo " border_black_thick"; }?>"><?php echo  number_format($colorbins[$sortby_column_name][$col], 2); ?></td>
             <?php
 } ?>
             </tr>
           <tr>
             <td class="bg_black"><strong>Mossy</strong></td>
             <?php
-$limit_block = "mossy";
+$sortby_column_name = "mossy_ratio";
 for ($col = 0; $col <= 10 ; $col++)
 { ?>
-            <td class="bg_G_<?php echo $col;?><?php if($col == $color[$limit_block]){ echo " border_black_thick"; }?>"><?php echo  number_format($limits[$limit_block][$col], 2); ?></td>
+            <td class="bg_G_<?php echo $col;?><?php if($col == $color[$sortby_column_name]){ echo " border_black_thick"; }?>"><?php echo  number_format($colorbins[$sortby_column_name][$col], 2); ?></td>
             <?php
 } ?>
             </tr>
           <tr>
             <td class="bg_black"><strong>Iron</strong></td>
             <?php
-$limit_block = "iron";
+$sortby_column_name = "iron_ratio";
 for ($col = 0; $col <= 10 ; $col++)
 { ?>
-            <td class="bg_G_<?php echo $col;?><?php if($col == $color[$limit_block]){ echo " border_black_thick"; }?>"><?php echo  number_format($limits[$limit_block][$col], 2); ?></td>
+            <td class="bg_G_<?php echo $col;?><?php if($col == $color[$sortby_column_name]){ echo " border_black_thick"; }?>"><?php echo  number_format($colorbins[$sortby_column_name][$col], 2); ?></td>
             <?php
 } ?>
             </tr>
