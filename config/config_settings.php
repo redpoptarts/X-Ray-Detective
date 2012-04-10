@@ -44,7 +44,7 @@ failsafe_ips =
 ; "password" - Anyone may login to the script if they enter the correct password.
 ; "none"     - Everyone is granted USER status. No one may make changes at all. You must modify the config files manually to change settings.
 
-mode = username
+mode = password
 
 ; If AUTH_MODE is set to USERNAME
 ; List the usernames of all users who will be granted access rights. They will not require a password.
@@ -110,6 +110,6 @@ autowatch_stop = 6
 ; ABOVE SETTINGS ARE NOT YET IMPLEMENTED
 
 
-first_setup = yes
+first_setup = no
 ; DO NOT EDIT BELOW THIS LINE */
 ;?>

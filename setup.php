@@ -242,7 +242,7 @@ if($_POST['form']!="")
 	{
 		$setup_stage_tab = 2;
 		
-		$Worlds_all_array = GetWorlds_All();
+		$Worlds_all_array = Get_Worlds_All();
 		$Worlds_update_array = array();
 
 		foreach($Worlds_all_array as $world_index => $world_item)
@@ -328,8 +328,8 @@ if(!$_SESSION['first_setup'] || $setup_stage_tab == 2)
 {
 	// Attempt to populate the X-Ray Worlds table before loading the Worlds configuration page
 	$Find_Worlds_array = Find_WorldTables_Valid();
-	$Worlds_all_array = GetWorlds_All();
-	$Worlds_enabled_array = GetWorlds_Enabled();
+	$Worlds_all_array = Get_Worlds_All();
+	$Worlds_enabled_array = Get_Worlds_Enabled();
 	foreach($Find_Worlds_array as $new_world_index => &$new_world_item)
 	{
 		$new_world_item["table_name"] = preg_replace('/^' . $GLOBALS['db']['s_prefix'] . '/', '', $new_world_item["table_name"]);
