@@ -230,6 +230,22 @@ function Get_Player_WorldRatios($playerid)
 	return false;
 }
 
+function Get_Player_Stats_General($playerid)
+{
+	// Get ID of players whose names partially match the search parameter
+	Use_DB("xray");
+	$sql_PlayerStats  = "SELECT * FROM `x-stats`";
+	$sql_PlayerStats .= "    WHERE `playerid` = $playerid AND `worldid` = $worldid";
+	//echo "SQL QUERY: <BR>" . $sql_PlayerIDexists . "<BR>";
+	$res_PlayerStats = mysql_query($sql_PlayerStats) or die("Get_Player_Stats_ByWorld: " . mysql_error());
+	while(($PlayerStatsArray[] = mysql_fetch_assoc($res_PlayerStats)) || array_pop($PlayerStatsArray)); 
+
+	if( mysql_num_rows($res_PlayerStats) > 0 )
+		{ return $PlayerStatsArray; }
+	else
+		{ return false; }
+}
+
 function Get_Player_Stats_ByWorld($playerid, $worldid)
 {
 	// Get ID of players whose names partially match the search parameter

@@ -148,7 +148,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 			}
 			$color[$limit_type] = $tempcolor;
 		}
-	} elseif ($command == 'xGet_Ratios_ByWorldID')
+	} elseif ($command == 'xtoplist')
 	{
 		$world_id = array_key_exists('worldid', $_GET) ? $_GET["worldid"] : $GLOBALS['worlds'][0]["worldid"];
 		
@@ -180,6 +180,10 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		$msg_confirmation = "You are about to delete all collected x-ray statistics (block counts) for all users!";
 	} elseif ($command == 'xworlds')
 	{
+		
+	} else
+	{
+		echo "ERROR: Unrecognized command: [$command]";
 		
 	}
 }
@@ -264,6 +268,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 
 <body>
 <?php //echo "FIRST SETUP: [".$GLOBALS['config_settings']['settings']['first_setup']."][".FixOutput_Bool($_SESSION['first_setup'],"YES","NO","EMPTY")."]";?>
+<?php //echo "AUTH_IS_VALID: [".FixOutput_Bool($_SESSION['auth_is_valid'],"YES","NO","UNDEFINED")."]"; ?>
 <?php if(!$_SESSION["auth_is_valid"] || $_SESSION["first_setup"]){ ?>
 <table width="800" border="0" class="borderblack_greybg_light_thick ui-corner-all">
   <tr>
@@ -528,7 +533,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
               <tr>
                 <td align="center" valign="middle">
 					<?php if($player_name!=""){ ?>[ <a href="xray.php?command=xsingle&player=<?php echo $player_name; ?>">Player's Stats</a> ] <?php } ?>
-                    <?php if($command=="xupdate"){ ?>[ <a href="xray.php?command=xGet_Ratios_ByWorldID">Top List</a> ] <?php } ?>
+                    <?php if($command=="xupdate"){ ?>[ <a href="xray.php?command=xtoplist">Top List</a> ] <?php } ?>
                     [ <a href="xray.php">Home</a> ]</td>
               </tr>
             </table>
@@ -548,7 +553,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
   </tr>
 </table>
 <br />
-<?php } elseif($_SESSION["auth_is_valid"] && !$_SESSION["first_setup"] && array_search($command, array("", "xGet_Ratios_ByWorldID", "xsingle", "xglobal", "xworlds"))!==false ) { ?>
+<?php } elseif($_SESSION["auth_is_valid"] && !$_SESSION["first_setup"] && array_search($command, array("", "xtoplist", "xsingle", "xglobal", "xworlds"))!==false ) { ?>
 <table width="800" border="0" class="borderblack_greybg_light_thick ui-corner-all">
   <tr>
     <td><table width="100%" border="0">
@@ -589,7 +594,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                 <td><h3><strong>Administrators</strong></h3></td>
               </tr>
               <tr class="bg_white">
-                <td><strong><a href="xray.php?command=xGet_Ratios_ByWorldID" style="color:#000000">Top User Statistics</a><a href="xray.php?command=xclear" style="color:#000000"></a></strong></td>
+                <td><strong><a href="xray.php?command=xtoplist" style="color:#000000">Top User Statistics</a><a href="xray.php?command=xclear" style="color:#000000"></a></strong></td>
                 <td><a href="xray.php?command=xupdate" style="color:#000000"><strong>Update  X-Ray Stats</strong></a></td>
                 <td><a href="setup.php" style="color:#000000"><strong>Change X-Ray Settings</strong></a></td>
               </tr>
@@ -623,7 +628,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
         </table></td>
       </tr>
       <tr>
-        <td><?php if($command=="xGet_Ratios_ByWorldID"){ ?>
+        <td><?php if($command=="xtoplist"){ ?>
           <form id="Get_Ratios_ByWorldID_form" name="Get_Ratios_ByWorldID_form" method="post" action="xray.php">
             <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
               <tr>
@@ -646,7 +651,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                       </select>
                         <input type="submit" name="top_go" id="top_go" value="Go" />
                         <input name="form" type="hidden" id="form" value="form_Get_Ratios_ByWorldID" />
-                        <input name="command" type="hidden" id="command" value="xGet_Ratios_ByWorldID" /></td>
+                        <input name="command" type="hidden" id="command" value="xtoplist" /></td>
                     </tr>
                     <tr>
                       <td><strong>World</strong></td>
