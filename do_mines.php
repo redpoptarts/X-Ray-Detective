@@ -8,24 +8,28 @@ $player_list = Get_Player_ListAll(); ?>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Untitled Document</title>
+<link href="styles/style_weblinks_global.css" rel="stylesheet" type="text/css" />
+<link href="styles/style_borders.css" rel="stylesheet" type="text/css" />
+<link href="styles/style_backgrounds.css" rel="stylesheet" type="text/css" />
+<link href="styles/style_xray.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 <?php 
 foreach($player_list as $player_index => $player_item)
 {
+	if( $player_item['stone_count'] > 0 && ( $player_item['diamond_count'] > 5 || $player_item['gold_count'] > 5 || $player_item['iron_count'] > 20) )
+	{
+	
 ?>
-<table width="100%" border="0">
+<table width="800" border="0" class="borderblack_greybg_light_thick">
   <tr>
-    <th scope="row"><?php echo $player_item['playerid']; ?></th>
+    <td align="left"><h2>User #<?php echo $player_item['playerid']; ?>...</th>
+    </h2>
   </tr>
   <tr>
-    <th scope="row"><?php Add_Player_Mines($player_item['playerid']); ?></th>
+    <td align="left"><?php Add_Player_Mines($player_item['playerid']); ?></th>
   </tr>
-</table>
-<?php } ?>
-
-
-
-?>
+</table><BR />
+<?php } } ?>
 </body>
 </html>
