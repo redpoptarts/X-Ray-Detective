@@ -74,9 +74,11 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		$colorbins["mossy_ratio"] =   array(0 => 0,	3 => "5",   	6 => "10",		9 => "15");
 		$colorbins["iron_ratio"] =    array(0 => 0,	3 => "15",  	6 => "20",		9 => "30");
 		/////////////////////////////////////////[   ]///////////[    ]//////////[   ]/////	
-		$colorbins["slope_before|-"] =array(0 => 0,	3 => "-0.21", 	6 => "-0.35",	9 => "-0.45");
-		$colorbins["slope_before|+"] =array(0 => 0,	3 => "0.1", 	6 => "0.20",	9 => "0.30");
-		$colorbins["spread_before"] =	array(0 => 0, 	3 => "1",		6 => "2.1", 		9 => "4");
+		$colorbins["slope_before_neg"] =array(0 => "-0.17",	3 => "-0.20", 	6 => "-0.25",	9 => "-0.30");
+		$colorbins["slope_before_pos"] =array(0 =>  "0.17",	3 =>  "0.20", 	6 =>  "0.25",	9 =>  "0.30");
+		$colorbins["slope_after_neg"] =array(0 => "-0.17",	3 => "-0.20", 	6 => "-0.25",	9 => "-0.30");
+		$colorbins["slope_after_pos"] =array(0 =>  "0.17",	3 =>  "0.20", 	6 =>  "0.25",	9 =>  "0.30");
+		$colorbins["spread_before"] =	array(0 => 0, 		3 => "1",		6 => "2.1", 		9 => "4");
 	}
 	/////////////////////////////////////////[   ]///////////[    ]//////////[   ]/////
 	
@@ -104,96 +106,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 //		echo "XCHECK";
 		if($_GET['xr_submit']=="Check" || $_GET['xr_submit']=="")
 		{
-			// Check user's totals from stats table
-			$player_world_stats = Get_Player_WorldRatios($player_id);
-			$player_mines_all = Get_Player_Mines_InWorld($player_id, $GLOBALS['worlds'][0]['worldid']);
-			foreach($GLOBALS['worlds'] as $world_index => $world_item)
-			{
-				$player_clusters_world[$world_index] = Get_Player_Clusters_InWorld($player_id, $world_item['worldid']);
-			}
 
-
-			foreach($player_world_stats as $dataset_rownum => &$dataset_row)
-			{
-				//echo "INDEX: $dataset_rownum <br>";
-				foreach($colorbins as $color_column_name => $bins)
-				{
-					//echo "COLOR_SEARCH: $color_column_name <br>";					
-					foreach($dataset_row as $row_column_name => &$row_column_value)
-					{
-						if(array_key_exists($color_column_name, $dataset_row) && $color_column_name == $row_column_name)
-						{
-							//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
-							$tempcolor = 10;
-							$dataset_row["color_" . $row_column_name] = -3;
-							while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
-							{
-								//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-								$tempcolor--;	
-							}
-							$dataset_row["color_" . $row_column_name] = $tempcolor;
-						}
-					}
-				}
-				$dataset_row["color_max"] = 
-					max(	$dataset_row["color_diamond_ratio"],
-							$dataset_row["color_lapis_ratio"],
-							$dataset_row["color_gold_ratio"],
-							$dataset_row["color_mossy_ratio"],
-							$dataset_row["color_iron_ratio"]);
-			}
-			
-			foreach($GLOBALS['worlds'] as $world_index => $world_item)
-			{
-				foreach($player_clusters_world[$world_index] as $dataset_rownum => &$dataset_row)
-				{
-					//echo "INDEX: $dataset_rownum <br>";
-					foreach($colorbins as $color_column_name => $bins)
-					{
-						//echo "COLOR_SEARCH: $color_column_name <br>";
-						$column_name_suffix = "";
-						foreach($dataset_row as $row_column_name => &$row_column_value)
-						{
-							if($row_column_name == "slope_before" && $row_column_value >= 0){$column_name_suffix = "|+";}
-							elseif($row_column_name == "slope_before" && $row_column_value < 0){$column_name_suffix = "|-";}
-							else {$column_name_suffix = "";}
-							$truncated_column_name = str_replace(mysql_real_escape_string($column_name_suffix), '', $color_column_name);
-							
-							//echo "Match? [". $truncated_column_name . "]<BR>";
-							if(array_key_exists($truncated_column_name, $dataset_row) && $truncated_column_name == $row_column_name)
-							{
-								//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
-								$dataset_row["color_" . $row_column_name] = -3;
-								$compare_value = ($colorbins[$color_column_name][9] < 0) ? abs($row_column_value) : $row_column_value;
-								if($colorbins[$color_column_name][9] > 0)
-								{
-									$tempcolor = 10;									
-									while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
-									{
-										//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-										$tempcolor--;	
-									}
-								}
-								else
-								{
-									$tempcolor = 0;
-									while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor < 10)
-									{
-										//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-										$tempcolor++;	
-									}	
-								}
-								
-								$dataset_row["color_" . $row_column_name] = $tempcolor;
-							}
-						}
-						//echo "<BR>";
-					}
-					$dataset_row["color_max"] = 
-						max(	$dataset_row["color_slope_before"],
-								$dataset_row["color_spread_before"]);
-				}
-			}
 		}
 		if($_GET['xr_submit']=="Analyze")
 		{
@@ -202,28 +115,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 	}
 	elseif ($command == 'xglobal')
 	{
-		// Check average ratios from stats table
 
-		// Calculate a ratio based on totals
-		if ($dias > 0) { $findrate["diamond"] = number_format($dias * 100 / $stones,2); } else { $findrate["diamond"] = number_format(0,4); }
-		if ($mossy > 0) { $findrate["mossy"] = number_format($mossy * 100 / $stones,2); } else { $findrate["mossy"] = number_format(0,4); }
-		if ($lapis > 0) { $findrate["lapis"] = number_format($lapis * 100 / $stones,2); } else { $findrate["lapis"] = number_format(0,4); }
-		if ($gold > 0) { $findrate["gold"] = number_format($gold * 100 / $stones,2); } else { $findrate["gold"] = number_format(0,4); }
-		if ($iron > 0) { $findrate["iron"] = number_format($iron * 100 / $stones,2); } else { $findrate["iron"] = number_format(0,4); }
-
-		foreach($colorbins as $column_name => $bins)
-		{
-			//echo "BLOCK: "; print_r($column_name); echo "<br>";
-			//echo "ARRAY: "; print_r($limt_array); echo "<br>";
-			$tempcolor = 10;
-			$color[$column_name] = -3;
-			while($findrate[$column_name] < $colorbins[$column_name][$tempcolor] && $tempcolor > 0)
-			{
-				//echo "$column_name >> " . $colorbins[$column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-				$tempcolor--;	
-			}
-			$color[$column_name] = $tempcolor;
-		}
 	}
 	elseif ($command == 'xtoplist')
 	{
@@ -248,15 +140,18 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 					p.playername,
 					x.stone_count,
 					x.diamond_ratio,
-					format(AVG(ABS(slope_before)),2) AS slope_before,
-					format(AVG(ABS(slope_after)),2) AS slope_after,
-					format(AVG(spread_before),2) AS spread_before,
-					format( AVG(spread_after),2) AS spread_after,
-					avg_slope_before_pos,
-					avg_slope_before_neg,
+					#format(AVG(ABS(slope_before)),2) AS slope_before,
+					#format(AVG(ABS(slope_after)),2) AS slope_after,
+					#format(AVG(spread_before),2) AS spread_before,
+					#format( AVG(spread_after),2) AS spread_after,
+					avg_slope_before_pos AS slope_before_pos,
+					avg_slope_before_neg AS slope_before_neg,
+					format( (count_slope_before_neg / (count_slope_before_pos + count_slope_before_neg)), 2) AS slope_before_preference,
+					avg_slope_after_pos AS slope_after_pos,
+					avg_slope_after_neg AS slope_after_neg,
+					format( (count_slope_after_neg / (count_slope_after_pos + count_slope_after_neg)), 2) AS slope_after_preference,
 					count_slope_before_pos,
-					count_slope_before_neg,
-					format( (count_slope_before_neg / (count_slope_before_pos + count_slope_before_neg)), 2) AS slope_neg_preference
+					count_slope_before_neg    
 				FROM `x-clusters` AS c
 				
 				LEFT JOIN
@@ -288,12 +183,35 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 				
 				LEFT JOIN
 				(
-					SELECT playerid, SUM(stone_count) AS stone_count, SUM(diamond_count) AS diamond_count, AVG(diamond_ratio) AS diamond_ratio  FROM `x-stats`
-					WHERE diamond_count > 20
+					SELECT
+						playerid,
+						format(AVG(slope_after),2) AS avg_slope_after_pos,
+						count(playerid) AS count_slope_after_pos
+					FROM `x-clusters`
+					WHERE slope_after >= 0
+					GROUP BY playerid
+				) AS s_a_pos ON p.playerid = s_a_pos.playerid
+				
+				LEFT JOIN
+				(
+					SELECT
+						playerid,
+						format(AVG(slope_after),2) AS avg_slope_after_neg,
+						count(playerid) AS count_slope_after_neg
+					FROM `x-clusters`
+					WHERE slope_after < 0
+					GROUP BY playerid
+				) AS s_a_neg ON p.playerid = s_a_neg.playerid
+				
+				LEFT JOIN
+				(
+					SELECT playerid, SUM(stone_count) AS stone_count, SUM(diamond_count) AS diamond_count, AVG(diamond_ratio) AS diamond_ratio
+					FROM `x-stats`
+					#WHERE diamond_count > 20
 					GROUP BY playerid
 				) AS x ON x.playerid = c.playerid
 				
-				WHERE x.stone_count > 500
+				#WHERE x.stone_count > 500
 				
 				GROUP BY playerid
 				
@@ -302,7 +220,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		$res_PlayerStats = mysql_query($sql_PlayerStats) or die("Get_Player_Stats_ByWorld: " . mysql_error());
 		while(($PlayerStatsArray[] = mysql_fetch_assoc($res_PlayerStats)) || array_pop($PlayerStatsArray)); 
 	
-		$TopArray = $PlayerStatsArray;	
+		$TopArray = $PlayerStatsArray;
 //		$TopArray = Get_Ratios_ByWorldID($world_id, $limit_results, $block_type, $stone_threshold);
 
 		foreach($TopArray as $dataset_rownum => &$dataset_row)
@@ -310,48 +228,56 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 			//echo "INDEX: $dataset_rownum <br>";
 			foreach($colorbins as $color_column_name => $bins)
 			{
-				//echo "COLOR_SEARCH: $color_column_name <br>";
-				$column_name_suffix = "";
+				//echo "COLOR_SEARCH: $color_column_name <br>";					
 				foreach($dataset_row as $row_column_name => &$row_column_value)
 				{
-					if($row_column_name == "slope_before" && $row_column_value >= 0){$column_name_suffix = "|+";}
-					elseif($row_column_name == "slope_before" && $row_column_value < 0){$column_name_suffix = "|-";}
-					else {$column_name_suffix = "";}
-					$truncated_column_name = str_replace(mysql_real_escape_string($column_name_suffix), '', $color_column_name);
-					
-					//echo "Match? [". $truncated_column_name . "]<BR>";
-					if(array_key_exists($truncated_column_name, $dataset_row) && $truncated_column_name == $row_column_name)
+					if(array_key_exists($color_column_name, $dataset_row) && $color_column_name == $row_column_name)
 					{
-						//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
 						$dataset_row["color_" . $row_column_name] = -3;
+						//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
 						$compare_value = ($colorbins[$color_column_name][9] < 0) ? abs($row_column_value) : $row_column_value;
-						if($colorbins[$color_column_name][9] > 0)
+						
+						if(isset($row_column_value) && $row_column_value != "")
 						{
-							$tempcolor = 10;									
-							while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
+							if($colorbins[$color_column_name][9] > 0)
 							{
-								//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-								$tempcolor--;	
+								$tempcolor = 10;									
+								while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
+								{
+									//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+									$tempcolor--;	
+								}
+							}
+							else
+							{
+								$tempcolor = 0;
+								while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor < 10)
+								{
+									//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+									$tempcolor++;	
+								}	
 							}
 						}
 						else
 						{
-							$tempcolor = 0;
-							while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor < 10)
-							{
-								//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-								$tempcolor++;	
-							}	
+							$dataset_row["color_" . $row_column_name] = -3;
 						}
+
 						
 						$dataset_row["color_" . $row_column_name] = $tempcolor;
 					}
 				}
 				//echo "<BR>";
 			}
-			$dataset_row["color_max"] = 
-				max(	$dataset_row["color_slope_before"],
-						$dataset_row["color_spread_before"]);
+			$color_stats = array();
+			$color_stats = array(
+									$dataset_row["color_diamond_ratio"],
+									$dataset_row["color_slope_before_neg"],
+									$dataset_row["color_slope_after_neg"]
+								);
+			
+			$dataset_row["color_max"] = max($color_stats);
+			$dataset_row["color_avg"] = number_format(array_sum($color_stats) / count($color_stats),0);
 		}
 
 	}
@@ -907,10 +833,11 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td class="bg_AAA_x"><strong>Username</strong></td>
                     <td class="bg_AAA_x"><strong>Stones</strong></td>
                     <td align="center" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond Ratio</strong></td>
-                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
-                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
-                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
-                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>SB +</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>SB -</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>SA +</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>SA -</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>1st Ore</strong></td>
                     </tr>
                   <?php 
 				  
@@ -920,25 +847,27 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 				  		{
 							//$top["firstlogin"] = date_create_from_format("Y-m-d H:i:s", $top["firstlogin"]);
 ?>
-                  <tr class="bg_I_<?php echo $top["color_" . $sortby_column_name];?>">
+                  <tr class="bg_I_<?php echo $top["color_max"];?>">
 <!--                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_" . $sortby_column_name];?>"><strong><?php echo $top["playername"]; ?></strong></td> -->
-                <td nowrap="nowrap" class="bg_I_<?php echo $top["color_" . $sortby_column_name];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
-                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_" . $sortby_column_name];?>"><strong><?php echo $top["stone_count"]; ?></strong></td>
+                <td nowrap="nowrap" class="bg_I_<?php echo $top["color_max"];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
+                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_avg"];?>"><strong><?php echo $top["stone_count"]; ?></strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"E";}else{echo"I";}?>_<?php echo $top["color_diamond_ratio"];?>"><?php echo $top["diamond_ratio"]; ?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before"){echo"E";}else{echo"I";}?>_<?php echo $top["color_slope_before"];?>"><?php echo $top["slope_before"]; ?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="spread_before"){echo"E";}else{echo"I";}?>_<?php echo $top["color_spread_before"];?>"><?php echo $top["spread_before"]; ?></td>
-                    <td nowrap="nowrap" class="bg_I_0"><?php echo $top["slope_after"]; ?></td>
-                    <td nowrap="nowrap" class="bg_I_0"><?php echo $top["spread_after"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_pos"){echo"E";}else{echo"I";}?>_<?php echo $top["color_slope_before_pos"];?>"><?php echo $top["slope_before_pos"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_neg"){echo"E";}else{echo"I";}?>_<?php echo $top["color_slope_before_neg"];?>"><?php echo $top["slope_before_neg"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_pos"){echo"E";}else{echo"I";}?>_<?php echo $top["color_slope_after_pos"];?>"><?php echo $top["slope_after_pos"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_neg"){echo"E";}else{echo"I";}?>_<?php echo $top["color_slope_after_neg"];?>"><?php echo $top["slope_after_neg"]; ?></td>
+                    <td nowrap="nowrap" class="bg_I_0">&nbsp;</td>
                     </tr>
                   <?php if(!(($key+1) % 25) ){ ?>
                   <tr class="bg_white">
                     <td class="bg_AAA_x"><strong>Username</strong></td>
                     <td class="bg_AAA_x"><strong>Stones</strong></td>
                     <td align="center" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond Ratio</strong></td>
-                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
-                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
-                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
-                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>SB +</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>SB -</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>SA +</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>SA -</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>1st Ore</strong></td>
                   </tr>
                   <?php } } // End For Loop
 				  if( (($key+1) % 25) ){ ?>
@@ -946,10 +875,11 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td class="bg_AAA_x"><strong>Username</strong></td>
                     <td class="bg_AAA_x"><strong>Stones</strong></td>
                     <td align="center" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond Ratio</strong></td>
-                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
-                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
-                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
-                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>SB +</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>SB -</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>SA +</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>SA -</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>1st Ore</strong></td>
                   </tr>
                   <?php } ?>
                 </table>
@@ -1173,9 +1103,14 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                       <tr class="bg_white">
                         <td class="bg_I_x"><strong>World</strong></td>
                         <td class="bg_I_x"><strong>Stones</strong></td>
-                        <td align="center" class="bg_AAA_x"><strong>Diamonds</strong></td>
-                        <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
+                        <td align="center" class="bg_AAA_x"><strong>D%</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>SB+</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>SB-</strong></td>
                         <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
                         <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
                         <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
                         </tr>
@@ -1184,8 +1119,13 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_max"];?>"><?php echo $pw_item["worldalias"]; ?></td>
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_max"];?>"><?php echo $pw_item["stone_count"];?></td>
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_diamond_ratio"];?>"><?php echo $pw_item["diamond_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_slope_before"];?>"><?php echo $pw_item["slope_before"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_slope_before_pos"];?>"><?php echo $pw_item["slope_before_pos"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_slope_before_neg"];?>"><?php echo $pw_item["slope_before_neg"];?></td>
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_spread_before"];?>"><?php echo $pw_item["spread_before"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_spread_before"];?>">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_spread_before"];?>">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_spread_before"];?>">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_spread_before"];?>">&nbsp;</td>
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_slope_after"];?>"><?php echo $pw_item["slope_after"];?></td>
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_spread_after"];?>"><?php echo $pw_item["spread_after"];?></td>
                         </tr>
@@ -1193,9 +1133,14 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                       <tr class="bg_white">
                         <td class="bg_I_x"><strong>World</strong></td>
                         <td class="bg_I_x"><strong>Stones</strong></td>
-                        <td align="center" class="bg_AAA_x"><strong>Diamonds</strong></td>
-                        <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
+                        <td align="center" class="bg_AAA_x"><strong>D%</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>SB+</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>SB-</strong></td>
                         <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
                         <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
                         <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
                         </tr>
