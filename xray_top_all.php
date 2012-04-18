@@ -251,13 +251,40 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 					format(AVG(ABS(slope_before)),2) AS slope_before,
 					format(AVG(ABS(slope_after)),2) AS slope_after,
 					format(AVG(spread_before),2) AS spread_before,
-					format( AVG(spread_after),2) AS spread_after
+					format( AVG(spread_after),2) AS spread_after,
+					avg_slope_before_pos,
+					avg_slope_before_neg,
+					count_slope_before_pos,
+					count_slope_before_neg,
+					format( (count_slope_before_neg / (count_slope_before_pos + count_slope_before_neg)), 2) AS slope_neg_preference
 				FROM `x-clusters` AS c
 				
 				LEFT JOIN
 				(
 					SELECT * FROM `lb-players`
 				) AS p ON p.playerid = c.playerid
+				
+				LEFT JOIN
+				(
+					SELECT
+						playerid,
+						format(AVG(slope_before),2) AS avg_slope_before_pos,
+						count(playerid) AS count_slope_before_pos
+					FROM `x-clusters`
+					WHERE slope_before >= 0
+					GROUP BY playerid
+				) AS s_b_pos ON p.playerid = s_b_pos.playerid
+				
+				LEFT JOIN
+				(
+					SELECT
+						playerid,
+						format(AVG(slope_before),2) AS avg_slope_before_neg,
+						count(playerid) AS count_slope_before_neg
+					FROM `x-clusters`
+					WHERE slope_before < 0
+					GROUP BY playerid
+				) AS s_b_neg ON p.playerid = s_b_neg.playerid
 				
 				LEFT JOIN
 				(
