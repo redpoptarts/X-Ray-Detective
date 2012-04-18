@@ -263,6 +263,10 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 	{
 		
 	}
+	elseif ($command == '')
+	{
+		
+	}
 	else
 	{
 		echo "ERROR: Unrecognized command: [$command]";

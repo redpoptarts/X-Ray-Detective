@@ -65,6 +65,7 @@ function Do_Auth($ip_only=false)
 				{
 					// VALIDATE IP
 					$ip_valid = false;
+					$_SESSION["auth_admin"] = false; $_SESSION["auth_mod"] = false;	$_SESSION["auth_user"] = false;
 					
 					if( $totalRows_IP_Users > 0 )
 					{
@@ -171,6 +172,7 @@ function Do_Auth($ip_only=false)
 
 	if(!isset($_SESSION['auth_is_valid']) || !$_SESSION['auth_is_valid'] || $ip_only)
 	{
+		$_SESSION['auth_is_valid'] = false;
 		$auth_failsafe_ips_exploded = explode(",", $GLOBALS['config']['auth']['failsafe_ips']);
 		foreach($auth_failsafe_ips_exploded as &$input_fix_item){ $input_fix_item = trim($input_fix_item); }
 		array_push($auth_failsafe_ips_exploded, "127.0.0.1","::1");
