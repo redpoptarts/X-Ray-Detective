@@ -514,8 +514,9 @@ function Add_Player_Mines($playerid)
 						{
 							//echo "(Ore Length + ".($blocks_since_ore + 1).")";
 							$current_cluster["ore_length"] += $blocks_since_ore + 1; // Add current ore to count, plus additional recent non-ores
-							if($current_cluster["ore_length"] > 1)
+							if($current_cluster["ore_length"] > 1 && $blocks_since_ore <= $GLOBALS['config']['settings']['postbreak_check'])
 							{
+								//echo "(PB: [".$current_mine["stats"]["postbreak_possible"]."][".$current_mine["stats"]["postbreak_total"]."][".$blocks_since_ore."])";
 								$current_mine["stats"]["postbreak_possible"] -= $blocks_since_ore-1;
 								$current_mine["stats"]["postbreak_total"] -= $blocks_since_ore-1;
 								//echo "(PB: [".$current_mine["stats"]["postbreak_possible"]."][".$current_mine["stats"]["postbreak_total"]."][".$blocks_since_ore."])";
@@ -536,6 +537,7 @@ function Add_Player_Mines($playerid)
 						{
 							$current_mine["stats"]["postbreak_possible"]++; $postbreak_check_count++;
 							$ore_distance_ok = false;
+							//echo "PB COUNT: $postbreak_check_count<BR>";
 							foreach(array_slice($current_mine["ores"],-2 ) as $block_index => $block_compare)
 							{
 								$distance = sqrt( max(	pow($fullbreaks_item["x"] - $block_compare["x"] , 2),
@@ -587,7 +589,6 @@ function Add_Player_Mines($playerid)
 				
 				$current_mine["stats"]["depth_total"] += $fullbreaks_item["y"];
 				
-			
 				if($adjacent || count($current_mine["breaks"]) == 0) // New break is part of current mine
 				{
 					//echo "=";
@@ -601,6 +602,7 @@ function Add_Player_Mines($playerid)
 						while($postbreak_check_count < $GLOBALS['config']['settings']['postbreak_check']){ $current_mine["stats"]["postbreak_possible"]++;	$postbreak_check_count++; }
 					}
 					$postbreak_checking = false; $postbreak_check_count = 0;
+					if($current_mine["stats"]["postbreak_total"]<0 || $current_mine["stats"]["postbreak_possible"]<0){ echo "BAD POSTBREAK!! TOTAL [".$current_mine["stats"]["postbreak_total"]."] ~ POSSIBLE [".$current_mine["stats"]["postbreak_possible"]."]<BR>"; }
 					
 					echo "--End Of Mine Detected [".count($Mine_Array)."] ... (Volume: ".$current_mine["stats"]["total_volume"]." , Adjusted: ".$current_mine["stats"]["adjusted_volume"].")<BR>";
 					//echo "(PB Possible: ".$current_mine["stats"]["postbreak_possible"].", PB Actual: ".$current_mine["stats"]["postbreak_total"].")";
@@ -787,19 +789,16 @@ function Add_Player_Mines($playerid)
 				
 				//echo "...Adding Mine ($mine_index of ".count($Mine_Array).")...";
 				$sql_newmine = "INSERT INTO `x-mines` ";
-				$sql_newmine .= " 	( `playerid`, `worldid`, `volume`, `first_block_ore`, `last_break_date`, `diamond_ratio`, `lapis_ratio`, `iron_ratio`, `gold_ratio`, `mossy_ratio`) ";
+				$sql_newmine .= " 	( `playerid`, `worldid`, `volume`, `first_block_ore`, `last_break_date`, `postbreak_possible`, `postbreak_total`) ";
 				$sql_newmine .= " VALUES ";
-				$sql_newmine .= sprintf(" 	( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ",
+				$sql_newmine .= sprintf(" 	( %s, %s, %s, %s, %s, %s, %s); ",
 										GetSQLValueString($playerid,"int"),
 										GetSQLValueString($world_item['worldid'],"int"),
 										GetSQLValueString($mine_item["stats"]["total_volume"],"int"),
 										GetSQLValueString($mine_item["stats"]["first_block_ore"],"defined",1,0),
 										GetSQLValueString($mine_item["stats"]["last_break_date"],"date"),
-										GetSQLValueString(NULL,"int"),
-										GetSQLValueString(NULL,"int"),
-										GetSQLValueString(NULL,"int"),
-										GetSQLValueString(NULL,"int"),
-										GetSQLValueString(NULL,"int") );
+										GetSQLValueString($mine_item["stats"]["postbreak_possible"],"int"),
+										GetSQLValueString($mine_item["stats"]["postbreak_total"],"int") );
 				$sql_newmine .= "  ";
 				//echo "SQL NEWMINE[$mine_index]: <BR> $sql_newmine <BR><BR>";
 				$res_newbreaks = mysql_query($sql_newmine) or die("SQL_QUERY[newmine - $mine_index]: " . $sql_newmine . "<BR> " . mysql_error() . "<BR>");
@@ -914,7 +913,7 @@ function Update_Player_MinesStats($playerid)
 		$sql_updatemine .= " ) AS c6 ";
 		$sql_updatemine .= " WHERE `playerid` = $playerid ";
 		$sql_updatemine .= " ON DUPLICATE KEY UPDATE ";
-		$sql_updatemine .= " `volume`=c6.volume, `first_block_ore`=TRUNCATE(c6.first_block_ore,2), `slope_before_neg`=TRUNCATE(c1.slope_before_neg,2), `slope_before_pos`=TRUNCATE(c2.slope_before_pos,2), `slope_after_pos`=TRUNCATE(c3.slope_after_neg,2), `slope_after_pos`=TRUNCATE(c4.slope_after_pos,2), `spread_before`=c5.spread_before, `spread_after`=c5.spread_after, `ore_begin`=c5.ore_begin, `ore_length`=c5.ore_length ";
+		$sql_updatemine .= " `volume`=c6.volume, `first_block_ore`=TRUNCATE(c6.first_block_ore,2), `slope_before_neg`=TRUNCATE(c1.slope_before_neg,2), `slope_before_pos`=TRUNCATE(c2.slope_before_pos,2), `slope_after_neg`=TRUNCATE(c3.slope_after_neg,2), `slope_after_pos`=TRUNCATE(c4.slope_after_pos,2), `spread_before`=c5.spread_before, `spread_after`=c5.spread_after, `ore_begin`=c5.ore_begin, `ore_length`=c5.ore_length ";
 				
 		$res_updatemine = mysql_query($sql_updatemine);
 		if(mysql_errno())
