@@ -44,7 +44,7 @@ failsafe_ips =
 ; "password" - Anyone may login to the script if they enter the correct password.
 ; "none"     - Everyone is granted USER status. No one may make changes at all. You must modify the config files manually to change settings.
 
-mode = password
+mode = username
 
 ; If AUTH_MODE is set to USERNAME
 ; List the usernames of all users who will be granted access rights. They will not require a password.
@@ -86,30 +86,7 @@ mine_max_distance = 5 ; A block must be within __ blocks of all previous blocks 
 ; Recommended 1 to 10, 1 will cause more fragmented statistics, 10 will lump more stats together
 postbreak_check = 3 ; How many breaks to check for after last ore in a cluster
 
-; BELOW SETTINGS ARE NOT YET IMPLEMENTED
-;=============================
-; Auto-watch settings
-;=============================
-; Users stats can be automatically tracked over time
-;
-;
-;
-; Minimum number of stone that must be broken before a user can be automatically flagged as Watching (for snapshots)
-autowatch_threshold = 100
 
-; Which resource types are capable of flagging a user
-autowatch_triggers = all
-
-; Players that have any stat hit this level are autowatched
-; Must be 0 thru 10 (0 is no ratio, 1 is low ratio, 10 is very high)
-autowatch_start = 7
-
-; Players whose max stat returns to this level are cleared from Watched status
-; Must be 0 thru 10 (0 is no ratio, 1 is low ratio, 10 is very high)
-autowatch_stop = 6
-; ABOVE SETTINGS ARE NOT YET IMPLEMENTED
-
-
-first_setup = no
+first_setup = yes
 ; DO NOT EDIT BELOW THIS LINE */
 ;?>
