@@ -16,7 +16,7 @@ function Do_Auth($ip_only=false)
 	}
 	else
 	{
-		session_start();
+		if(!isset($_SESSION)){ session_start(); }
 		$_SESSION['first_setup'] = false;
 	}
 	
