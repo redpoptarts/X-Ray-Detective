@@ -7,7 +7,6 @@ Global_Init();
 //echo "Global Init Complete...<BR>";
 $auth = Do_Auth();
 
-//if(array_key_exists('command', $_POST)){ $_GET = $_POST; }
 if(array_key_exists('Submit', $_POST)){ $_GET = $_POST; }
 if(array_key_exists('command', $_POST)){ $_GET = $_POST; }
 $command = array_key_exists('command', $_GET) ? $_GET['command'] : "";
