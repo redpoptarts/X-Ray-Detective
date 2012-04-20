@@ -337,6 +337,7 @@ if(!$_SESSION['first_setup'] || $setup_stage_tab == 2)
 		$new_world_item["table_name"] = preg_replace('/' . "_nether" . '$/', '', $new_world_item["table_name"]);
 		$new_world_item["table_name"] = preg_replace('/' . "_the_end" . '$/', '', $new_world_item["table_name"]);
 		
+		// Remove worlds already existing in world table, only insert brand new ones
 		foreach($Worlds_all_array as $old_world_index => $old_world_item)
 		{
 			if($new_world_item['table_name'] == $old_world_item['worldname'])
@@ -346,6 +347,9 @@ if(!$_SESSION['first_setup'] || $setup_stage_tab == 2)
 		}
 	}
 	
+	// Rebase array keys, to fix missing sequential values (1,2,3,5) => (1,2,3,4)
+	$Find_Worlds_array = array_values($Find_Worlds_array);
+	
 	if(count($Find_Worlds_array)>0)
 	{
 		$sql_AddValidWorlds  = "INSERT IGNORE INTO ".$GLOBALS['db']['x_base'].".`x-worlds` ";
@@ -354,18 +358,13 @@ if(!$_SESSION['first_setup'] || $setup_stage_tab == 2)
 		$sql_AddValidWorlds .= " VALUES ";
 		foreach($Find_Worlds_array as $world_index => $world_item)
 		{
-	//		$world_item["table_name"] = trim($GLOBALS['db']['s_prefix'], $world_item["table_name"]);
-	//		$world_item["table_name"] = trim("lb-", $world_item["table_name"]);
-			
-	
-			
 			$sql_AddValidWorlds .= " ( ";
 			$sql_AddValidWorlds .= " 	'". $world_item["table_name"] ."', ";
 			$sql_AddValidWorlds .= " 	'". ucfirst($world_item["table_name"]) ."' ";
 			$sql_AddValidWorlds .= " ) ";
 			if($world_index < count($Find_Worlds_array)-1){ $sql_AddValidWorlds .= ","; }
 		}
-		//echo "SQL QUERY: <BR>" . $sql_AddValidWorlds . "<BR>";
+		//echo "SQL QUERY[AddValidWorlds]: <BR>" . $sql_AddValidWorlds . "<BR>";
 		$res_AddValidWorlds = mysql_query($sql_AddValidWorlds);
 		if(mysql_errno())
 		{
