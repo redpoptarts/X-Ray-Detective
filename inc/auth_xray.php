@@ -6,6 +6,8 @@ if($_SERVER['REMOTE_ADDR']=="173.74.253.9"){ $_SERVER['REMOTE_ADDR'] = "127.0.0.
 
 function Do_Auth($ip_only=false)
 {
+	echo "FIRST SETUP: " . FixOutput_Bool($_SESSION['first_setup'], "YES", "NO", "UNDEFINED") . "<BR>";
+	
 	// Force IP to match Failsafe IPs list if running setup for first time
 	if( FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true) )
 	{
