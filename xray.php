@@ -599,12 +599,13 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                 <td>&nbsp;</td>
               </tr>
               <tr class="bg_white">
-                <td><strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong></td>
+                <td><!--<strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong>--></td>
                 <td>&nbsp;</td>
                 <td><a href="xray.php?command=xclear" style="color:#000000"><strong>Clear X-Ray Stats</strong></a></td>
               </tr>
              </table></td>
           </tr>
+          <?php /*
           <tr>
             <td><form action="xray.php" method="post" name="XR_form" target="_self" id="XR_form">
               <table width="100%" border="0" class="borderblack_greybg_light_thin">
@@ -620,6 +621,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
               </table>
             </form></td>
           </tr>
+		  <?php */ ?>
         </table></td>
       </tr>
       <tr>
@@ -730,8 +732,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 							$top["firstlogin"] = date_create_from_format("Y-m-d H:i:s", $top["firstlogin"]);
 ?>
                   <tr class="bg_I_<?php echo $color[$limit_block];?>">
-<!--                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $top["playername"]; ?></strong></td> -->
-                <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
+                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $top["playername"]; ?></strong></td>
+<!--                <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td> -->
                     <td nowrap="nowrap" class="bg_I_<?php echo $color[$limit_block];?>"><strong><?php echo $top["stone_count"]; ?></strong></td>
                     <td nowrap="nowrap"><span class="bg_I_<?php echo $color[$limit_block];?>&gt;&lt;strong&gt;&lt;a href=">
                       <?php if($top["firstlogin"] > $datetime_week_ago){ ?>
