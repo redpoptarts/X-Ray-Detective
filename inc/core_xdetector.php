@@ -322,7 +322,7 @@ function Update_Stats_RatioTotals()
 
 function Update_Playerinfo($player_id="ALL")
 {
-	$sql_Update_Playerinfo  = " INSERT INTO `minecraft`.`x-playerinfo` ";
+	$sql_Update_Playerinfo  = " INSERT INTO `".$GLOBALS['db']['x_base']."`.`x-playerinfo` ";
 	$sql_Update_Playerinfo .= " ( ";
 	$sql_Update_Playerinfo .= "     `playerid`, ";
 	$sql_Update_Playerinfo .= "     `watch`, ";
