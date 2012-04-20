@@ -241,7 +241,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 //		$TopArray = Get_Ratios_ByWorldID($world_id, $limit_results, $block_type, $stone_threshold);
 */
 		$TopArray = Get_Playerinfo("ALL",50,"max_ratio_diamond");
-		$color_important_columns = array("diamond_ratio", "gold_ratio", "slope_before_neg", "slope_after_neg");
+		$color_important_columns = array("max_ratio_diamond", "max_ratio_gold", "avg_slope_before_neg", "avg_slope_after_neg");
 
 		foreach($TopArray as $dataset_rownum => &$dataset_row)
 		{
