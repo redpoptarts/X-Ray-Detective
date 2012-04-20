@@ -30,6 +30,8 @@ foreach($player_list as $player_index => $player_item)
     <td align="left"><?php Add_Player_Mines($player_item['playerid']); ?></th>
   </tr>
 </table><BR />
-<?php } } ?>
+<?php } } 
+Update_Playerinfo();
+?>
 </body>
 </html>
