@@ -197,7 +197,7 @@ function write_ini_file($path, $assoc_arr) {
 
 function is__writeable($path)
 {	
-	clearstatcache($path);
+	clearstatcache(true,$path);
 	if ($path{strlen($path)-1}=='/')
 		return is__writeable($path.uniqid(mt_rand()).'.tmp');
 	
