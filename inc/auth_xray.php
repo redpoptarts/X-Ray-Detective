@@ -6,6 +6,7 @@ if($_SERVER['REMOTE_ADDR']=="173.74.253.9"){ $_SERVER['REMOTE_ADDR'] = "127.0.0.
 
 function Do_Auth($ip_only=false)
 {
+	//echo "FIRST SETUP (Config): " . FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], "YES", "NO", "UNDEFINED") . "<BR>";
 	// Force IP to match Failsafe IPs list if running setup for first time
 	if( FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true) )
 	{
@@ -15,9 +16,10 @@ function Do_Auth($ip_only=false)
 	}
 	else
 	{
+		session_start();
 		$_SESSION['first_setup'] = false;
 	}
-
+	
 	// Initialize variables
 	if(count($_GET) > 0){ $_POST = $_GET; }
 	if(!isset($_POST['form'])){$_POST['form']="";}
@@ -26,9 +28,9 @@ function Do_Auth($ip_only=false)
 	$_SESSION['auth_is_valid'] = false;
 	$_SESSION['first_setup'] = FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true);
 	
-
 	if(!$ip_only)
 	{
+		//echo "IP-Only Authentication is OFF.<BR>";
 		if($_SESSION['auth_is_valid']==true)
 		{
 			/*
@@ -40,7 +42,6 @@ function Do_Auth($ip_only=false)
 		}
 		else
 		{
-			session_start();
 			Use_DB("source");
 			//mysql_select_db($GLOBALS['db']['db_source']['base'], $GLOBALS['db']['s_resource']);
 			$query_IP_Users = sprintf("SELECT * FROM `".DB_Type_PlayersTable($GLOBALS['db']['type'])."` WHERE ip LIKE %s ORDER BY playername ASC", GetSQLValueString("%" . $_SERVER['REMOTE_ADDR'] . "%", "text"));
@@ -61,6 +62,7 @@ function Do_Auth($ip_only=false)
 			
 			if($_POST['form']=="loginform")
 			{
+				//echo "Login form detected...<BR>";
 				if($GLOBALS['config_settings']['auth']['mode'] == "username")
 				{
 					// VALIDATE IP
@@ -168,7 +170,7 @@ function Do_Auth($ip_only=false)
 			}
 		}
 	}
-
+	
 	if(!isset($_SESSION['auth_is_valid']) || !$_SESSION['auth_is_valid'] || $ip_only)
 	{
 		$auth_failsafe_ips_exploded = explode(",", $GLOBALS['config']['auth']['failsafe_ips']);
@@ -200,6 +202,9 @@ function Do_Auth($ip_only=false)
 	
 	$GLOBALS['auth']['IP_Users_list'] = $IP_Users_list;
 	
+	//echo "FIRST SETUP (Session - Final): " . FixOutput_Bool($_SESSION['first_setup'], "YES", "NO", "UNDEFINED") . "<BR>";
+	//echo "AUTH VALID (Session - Final): " . FixOutput_Bool($_SESSION['auth_is_valid'], "YES", "NO", "UNDEFINED") . "<BR>";
+		
 	return array("valid_ips" => $IP_Users_list, "login_error"=> $login_error, "logout_success"=>$logout_success);
 }
 
