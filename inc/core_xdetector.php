@@ -423,6 +423,7 @@ function Update_Playerinfo($player_id="ALL")
 	$sql_Update_Playerinfo .= " LEFT JOIN ";
 	$sql_Update_Playerinfo .= " ( ";
 	$sql_Update_Playerinfo .= "     SELECT * FROM `lb-players` ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	WHERE `playerid` = ".$player_id." "; }
 	$sql_Update_Playerinfo .= " ) AS p ON p.playerid = c.playerid ";
 	$sql_Update_Playerinfo .= "  ";
 	$sql_Update_Playerinfo .= " LEFT JOIN ";
@@ -434,6 +435,7 @@ function Update_Playerinfo($player_id="ALL")
 	$sql_Update_Playerinfo .= "         count(playerid) AS count_slope_before_pos ";
 	$sql_Update_Playerinfo .= "     FROM `x-clusters` ";
 	$sql_Update_Playerinfo .= "     WHERE slope_before >= 0 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	AND `playerid` = ".$player_id." "; }
 	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
 	$sql_Update_Playerinfo .= " ) AS s_b_pos ON p.playerid = s_b_pos.playerid ";
 	$sql_Update_Playerinfo .= "  ";
@@ -446,6 +448,7 @@ function Update_Playerinfo($player_id="ALL")
 	$sql_Update_Playerinfo .= "         count(playerid) AS count_slope_before_neg ";
 	$sql_Update_Playerinfo .= "     FROM `x-clusters` ";
 	$sql_Update_Playerinfo .= "     WHERE slope_before < 0 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	AND `playerid` = ".$player_id." "; }
 	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
 	$sql_Update_Playerinfo .= " ) AS s_b_neg ON p.playerid = s_b_neg.playerid ";
 	$sql_Update_Playerinfo .= "  ";
@@ -458,6 +461,7 @@ function Update_Playerinfo($player_id="ALL")
 	$sql_Update_Playerinfo .= "         count(playerid) AS count_slope_after_pos ";
 	$sql_Update_Playerinfo .= "     FROM `x-clusters` ";
 	$sql_Update_Playerinfo .= "     WHERE slope_after >= 0 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	AND `playerid` = ".$player_id." "; }
 	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
 	$sql_Update_Playerinfo .= " ) AS s_a_pos ON p.playerid = s_a_pos.playerid ";
 	$sql_Update_Playerinfo .= "  ";
@@ -470,6 +474,7 @@ function Update_Playerinfo($player_id="ALL")
 	$sql_Update_Playerinfo .= "         count(playerid) AS count_slope_after_neg ";
 	$sql_Update_Playerinfo .= "     FROM `x-clusters` ";
 	$sql_Update_Playerinfo .= "     WHERE slope_after < 0 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	AND `playerid` = ".$player_id." "; }
 	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
 	$sql_Update_Playerinfo .= " ) AS s_a_neg ON p.playerid = s_a_neg.playerid ";
 	$sql_Update_Playerinfo .= "  ";
@@ -495,6 +500,7 @@ function Update_Playerinfo($player_id="ALL")
 	$sql_Update_Playerinfo .= "         AVG(iron_ratio) AS avg_iron_ratio ";
 	$sql_Update_Playerinfo .= "     FROM `x-stats` ";
 	$sql_Update_Playerinfo .= "     #WHERE diamond_count > 20 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	WHERE `playerid` = ".$player_id." "; }
 	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
 	$sql_Update_Playerinfo .= " ) AS x ON x.playerid = p.playerid ";
 	$sql_Update_Playerinfo .= "  ";
@@ -506,6 +512,7 @@ function Update_Playerinfo($player_id="ALL")
 	$sql_Update_Playerinfo .= "         watch, ";
 	$sql_Update_Playerinfo .= "         punish ";
 	$sql_Update_Playerinfo .= "     FROM `x-playerinfo` ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	WHERE `playerid` = ".$player_id." "; }
 	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
 	$sql_Update_Playerinfo .= " ) AS xp ON xp.playerid = p.playerid ";
 	$sql_Update_Playerinfo .= "  ";
@@ -517,10 +524,12 @@ function Update_Playerinfo($player_id="ALL")
 	$sql_Update_Playerinfo .= "         SUM(postbreak_possible) AS postbreak_possible, ";
 	$sql_Update_Playerinfo .= "         AVG(volume) AS avg_mine_volume ";
 	$sql_Update_Playerinfo .= "     FROM `x-mines` ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	WHERE `playerid` = ".$player_id." "; }
 	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
 	$sql_Update_Playerinfo .= " ) AS m ON m.playerid = p.playerid ";
 	$sql_Update_Playerinfo .= "  ";
 	$sql_Update_Playerinfo .= " #WHERE x.stone_count > 500 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	WHERE c.`playerid` = ".$player_id." "; }
 	$sql_Update_Playerinfo .= "  ";
 	$sql_Update_Playerinfo .= " GROUP BY playerid ";
 	$sql_Update_Playerinfo .= "  ";
