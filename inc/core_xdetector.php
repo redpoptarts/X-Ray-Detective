@@ -264,7 +264,6 @@ function Get_Player_Stats_ByWorld($playerid, $worldid)
 
 function Get_Player_ListAll()
 {
-	// Get ID of players whose names partially match the search parameter
 	Use_DB("xray");
 	$sql_PlayerList  = "SELECT * FROM `x-stats`";
 	//echo "SQL QUERY: <BR>" . $sql_PlayerList . "<BR>";
@@ -581,6 +580,30 @@ function Update_Playerinfo($player_id="ALL")
 	
 	//echo "SQL QUERY: <BR>" . $sql_Update_Playerinfo . "<BR>";
 	return $res_Update_Playerinfo = mysql_query($sql_Update_Playerinfo) or die("Update_Playerinfo: " . mysql_error());
+}
+
+function Get_Playerinfo($player_id="ALL", $limit_results="50", $sort_by="max_ratio_diamond")
+{
+	Use_DB("xray");
+	$sql_Get_Playerinfo  = " SELECT * FROM `x-playerinfo` AS x";
+	if($player_id!="ALL"){$sql_Get_Playerinfo .= " WHERE `playerid` = ".$playerid." ";}
+	$sql_Get_Playerinfo .= " LEFT JOIN ";
+	$sql_Get_Playerinfo .= " (";
+	$sql_Get_Playerinfo .= " 	SELECT playerid, playername";
+	$sql_Get_Playerinfo .= " 	FROM `lb-players`";
+	if($player_id!="ALL"){$sql_Get_Playerinfo .= " WHERE `playerid` = ".$playerid." ";}
+	$sql_Get_Playerinfo .= " ) AS p ON p.playerid = x.playerid";
+
+	$sql_Get_Playerinfo .= " ORDER BY `" . $sort_by. "` ";
+	$sql_Get_Playerinfo .= " LIMIT ". $limit_results. " ";
+	//echo "SQL QUERY: <BR>" . $sql_Get_Playerinfo . "<BR>";
+	$res_Get_Playerinfo = mysql_query($sql_Get_Playerinfo) or die("Get_Playerinfo: " . mysql_error());
+	while(($PlayerInfo_Array[] = mysql_fetch_assoc($res_Get_Playerinfo)) || array_pop($PlayerInfo_Array)); 
+
+	if( mysql_num_rows($res_Get_Playerinfo) > 0 )
+		{ return $PlayerInfo_Array; }
+	else
+		{ return false; }
 }
 
 function Add_Player_Mines($playerid)
@@ -1266,6 +1289,11 @@ function Clear_XStats()
 
 }
 
-
+// Column names must be an associative array, where each key is the column name in the array you want to add the map to, and each value is the name of the colormap template that you want to apply.
+// Example $column_names = array("TableColumnA1"=>"ColorMap_Template_A", "TableColumnA2"=>"ColorMap_Template_A", "TableColumnB"=>"ColorMap_Template_B");
+function Array_Apply_ColorMap(&$array, $column_names)
+{
+	
+}
 
 ?>
