@@ -64,31 +64,38 @@ function FixInput_Bool($input_item)
 
 }
 
-function FixOutput_Bool($input_item, $yes_output, $no_output)
+function FixOutput_Bool(&$input_item, $yes_output, $no_output, $undefined_output="undefined")
 {
-	if($input_item === true){ return $yes_output; } else
-	if($input_item === false){ return $no_output; }
-	switch( trim( strtolower($input_item) ) )
+	if(isset($input_item))
 	{
-		case "enabled":
-		case "enable":
-		case "yes":
-		case "on":
-		case "true":
-		case "1":
-			return $yes_output;
-			break;
-		case "disabled":
-		case "disable":
-		case "no":
-		case "off":
-		case "false":
-		case "0":
-		default:
-			return $no_output;
-			break;
-	}
+		if($input_item === true){ return $yes_output; } else
+		if($input_item === false){ return $no_output; }
+		switch( trim( strtolower($input_item) ) )
+		{
+			case "enabled":
+			case "enable":
+			case "yes":
+			case "on":
+			case "true":
+			case "1":
+				return $yes_output;
+				break;
+			case "disabled":
+			case "disable":
+			case "no":
+			case "off":
+			case "false":
+			case "0":
+			default:
+				return $no_output;
+				break;
+		}
 
+	}
+	else
+	{
+		return $undefined_output;
+	}
 }
 
 function DB_Type_Name($db_type)
