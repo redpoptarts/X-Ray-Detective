@@ -1,3 +1,9 @@
+v0.03.01 a:
+    Check for unconfigured timezone in PHP.ini
+    Omit LogBlockStats table (lb-main) from 'valid' Worlds on Setup page
+    Fix INSERT error for AddValidWorlds on Setup page
+    Fix clearstatcache error?
+    Fix session initialization
 v0.03.00 a:
 		Check for correct PHP version and a writeable config directory before setup
 		Fix most Notice/Warning messages, for servers with display_errors = on (Declare variables properly)

@@ -64,31 +64,38 @@ function FixInput_Bool($input_item)
 
 }
 
-function FixOutput_Bool($input_item, $yes_output, $no_output)
+function FixOutput_Bool(&$input_item, $yes_output, $no_output, $undefined_output="undefined")
 {
-	if($input_item === true){ return $yes_output; } else
-	if($input_item === false){ return $no_output; }
-	switch( trim( strtolower($input_item) ) )
+	if(isset($input_item))
 	{
-		case "enabled":
-		case "enable":
-		case "yes":
-		case "on":
-		case "true":
-		case "1":
-			return $yes_output;
-			break;
-		case "disabled":
-		case "disable":
-		case "no":
-		case "off":
-		case "false":
-		case "0":
-		default:
-			return $no_output;
-			break;
-	}
+		if($input_item === true){ return $yes_output; } else
+		if($input_item === false){ return $no_output; }
+		switch( trim( strtolower($input_item) ) )
+		{
+			case "enabled":
+			case "enable":
+			case "yes":
+			case "on":
+			case "true":
+			case "1":
+				return $yes_output;
+				break;
+			case "disabled":
+			case "disable":
+			case "no":
+			case "off":
+			case "false":
+			case "0":
+			default:
+				return $no_output;
+				break;
+		}
 
+	}
+	else
+	{
+		return $undefined_output;
+	}
 }
 
 function DB_Type_Name($db_type)
@@ -257,8 +264,9 @@ switch($GLOBALS['db']['type'])
 			// search for tables that contain column_name = 'replaced'. This should find all LB world tables
 			$sql_Find_WorldTables  = "SELECT `table_name` ";
 			$sql_Find_WorldTables .= "	FROM `information_schema`.`columns` ";
-			$sql_Find_WorldTables .= " 		WHERE `table_schema` = '".$GLOBALS['db']['s_base']."' AND ";
-			$sql_Find_WorldTables .= " 			(`column_name` = 'replaced') ";
+			$sql_Find_WorldTables .= " 		WHERE `table_schema` = '".$GLOBALS['db']['s_base']."' ";
+			$sql_Find_WorldTables .= " 			AND (`column_name` = 'replaced') ";
+			$sql_Find_WorldTables .= " 			AND (`table_name` != 'lb-main') "; // Omit LogBlockStats table
 			$sql_Find_WorldTables .= " GROUP BY `table_name`";
 			$sql_Find_WorldTables .= " ";
 			$sql_Find_WorldTables .= " ";
@@ -269,7 +277,6 @@ switch($GLOBALS['db']['type'])
 			while(($WorldsArray[] = mysql_fetch_assoc($res_Find_WorldTables)) || array_pop($WorldsArray));
 			return $WorldsArray;		
 			break;
-			
 		case "GD": return false; break; // Guardian lists the worlds in a separate table (gd_worlds by default)
 		case "HE": return false; break; // Hawkeye lists the worlds in a separate table (hawk_worlds by default)
 		case "BB": return false; break; // Hawkeye lists the worlds in a separate table (bbworlds by default)

@@ -1,5 +1,5 @@
 <?php
-function PlayerExists($playerid)
+function Check_Player_Exists($playerid)
 {
 	// Get ID of players whose names partially match the search parameter
 	$sql_PlayerIDexists  = "SELECT `playerid` FROM `lb-players`";
@@ -24,23 +24,7 @@ function World_IsValid($worldname)
 		{ return false; }	
 }
 
-function get_PlayerStats($playerid, $worldid)
-{
-	// Get ID of players whose names partially match the search parameter
-	Use_DB("xray");
-	$sql_PlayerStats  = "SELECT * FROM `x-stats`";
-	$sql_PlayerStats .= "    WHERE `playerid` = $playerid AND `worldid` = $worldid";
-	//echo "SQL QUERY: <BR>" . $sql_PlayerIDexists . "<BR>";
-	$res_PlayerStats = mysql_query($sql_PlayerStats) or die("get_PlayerStats: " . mysql_error());
-	while(($PlayerStatsArray[] = mysql_fetch_assoc($res_PlayerStats)) || array_pop($PlayerStatsArray)); 
-
-	if( mysql_num_rows($res_PlayerStats) > 0 )
-		{ return $PlayerStatsArray; }
-	else
-		{ return false; }
-}
-
-function AddNewBreaks()
+function Add_NewBreaks()
 {
 	// Detect datetime of most recent break
 	// This prevents omitting any breaks that occurr during this script
@@ -151,7 +135,7 @@ function AddNewBreaks()
 			}
 		}
 	}
-	UpdateTotals();
+	Update_Stats_RatioTotals();
 }
 
 ?>

@@ -11,7 +11,7 @@ require_once( dirname(__FILE__) . '/core_config_handler.php');
 //
 // IRC Channel: (irc.esper.net) #xray
 //
-// Version: v0.03.00a
+// Version: v0.03.01a
 //
 //=====================================================
 //
@@ -35,6 +35,12 @@ function Check_Env_OK()
 		if ( !is__writeable("config/config_database.php") ){$error .= "ERROR: The config file /config/config_database.php is not writeable.<BR>"; }
 		if ( !is__writeable("config/config_settings.php") ){$error .= "ERROR: The config file /config/config_settings.php is not writeable.<BR>"; }
 	}
+	$php_config_timezone = ini_get('date.timezone');
+	if ( empty($php_config_timezone) )
+	{
+      	$error .= "ERROR: Your timezone has not been configured in your PHP.ini file<BR>(Yours is located in ".$_SERVER['PHPRC'].")<BR><BR>List of <a href='http://us2.php.net/manual/en/timezones.php'>supported timezones</a>.<BR>";
+    }
+	
 	return $error;
 }
 
@@ -85,7 +91,7 @@ function Global_Init()
 	
 	if(!FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true))
 	{
-		$GLOBALS['worlds'] = GetWorlds_Enabled();
+		$GLOBALS['worlds'] = Get_Worlds_Enabled();
 	}
 	
 }
@@ -125,7 +131,7 @@ function GetSQLValueString($theValue, $theType, $theDefinedValue = "", $theNotDe
 
 
 
-function GetPlayerID_ByName(&$player_name)
+function Get_Player_IDByName(&$player_name)
 {
 	// Get ID of players whose names partially match the search parameter
 	$sql_getPlayerID  = "SELECT `playerid` FROM `lb-players`";
@@ -150,7 +156,7 @@ function GetPlayerID_ByName(&$player_name)
 	return $playerid;
 }
 
-function GetPlayerName_ByID(&$playerid)
+function Get_Player_NameByID(&$playerid)
 {
 	// Get Username of player whose ID matches the search parameter
 	$sql_getPlayerName  = "SELECT `playername` FROM `lb-players`";
@@ -174,43 +180,49 @@ function GetPlayerName_ByID(&$playerid)
 	return $playername;
 }
 
-// TODO: GetWorlds_All and GetWorlds_Enabled can be merged into a single function, with a option to specify 'enabled' such as GetWorlds("enabled");
-function GetWorlds_All()
+// TODO: Get_Worlds_All and Get_Worlds_Enabled can be merged into a single function, with a option to specify 'enabled' such as GetWorlds("enabled");
+function Get_Worlds_All()
 {
 	Use_DB("xray");
 	$sql_getWorlds  = "SELECT * FROM `".$GLOBALS['db']['x_base']."`.`x-worlds`";
 	//echo "SQL QUERY: <BR>" . $sql_getWorlds . "<BR>";
-	$res_getWorlds = mysql_query($sql_getWorlds) or die("GetWorlds_All: " . mysql_error());
+	$res_getWorlds = mysql_query($sql_getWorlds) or die("Get_Worlds_All: " . mysql_error());
 	while(($WorldsArray[] = mysql_fetch_assoc($res_getWorlds)) || array_pop($WorldsArray));
 	
 	return $WorldsArray;
 }
 
-function GetWorlds_Enabled()
+function Get_Worlds_Enabled()
 {
 	Use_DB("xray");
 	$sql_getWorlds  = "SELECT * FROM `".$GLOBALS['db']['x_base']."`.`x-worlds`";
 	$sql_getWorlds .= " WHERE `enabled` = 1";
 	//echo "SQL QUERY: <BR>" . $sql_getWorlds . "<BR>";
-	$res_getWorlds = mysql_query($sql_getWorlds) or die("GetWorlds_Enabled: " . mysql_error());
+	$res_getWorlds = mysql_query($sql_getWorlds) or die("Get_Worlds_Enabled: " . mysql_error());
 	while(($WorldsArray[] = mysql_fetch_assoc($res_getWorlds)) || array_pop($WorldsArray));
 	
 	return $WorldsArray;
 }
 
-function GetSingleStats($playerid)
+function Get_Player_WorldRatios($playerid)
 {
-	if(!PlayerExists($playerid))
+	if(!Check_Player_Exists($playerid))
 	{
 		echo "ERROR: The player you specified does not exist. (Player ID: '$playerid')<BR>";
 	} else
 	{
-		$sql_getSingleStats  = "SELECT * FROM `x-worlds` AS w ";
-		$sql_getSingleStats .= " LEFT JOIN (SELECT * FROM `x-stats` ";
-		$sql_getSingleStats .= "	WHERE `playerid` = $playerid) AS p ON p.worldid = w.worldid ";
-		//echo "SQL QUERY: <BR>" . $sql_getSingleStats . "<BR>";
-		$res_getSingleStats = mysql_query($sql_getSingleStats) or die("GetSingleStats: " . mysql_error());
-		while(($SingleStatsArray[] = mysql_fetch_assoc($res_getSingleStats)) || array_pop($SingleStatsArray));
+		$sql_Get_Player_WorldRatios  = "SELECT * FROM `x-worlds` AS w ";
+		$sql_Get_Player_WorldRatios .= " LEFT JOIN ";
+		$sql_Get_Player_WorldRatios .= " ( ";
+		$sql_Get_Player_WorldRatios .= "	SELECT * FROM `x-stats` ";
+		$sql_Get_Player_WorldRatios .= "	WHERE `playerid` = $playerid";
+		$sql_Get_Player_WorldRatios .= " )";
+		$sql_Get_Player_WorldRatios .= " AS p ";
+		$sql_Get_Player_WorldRatios .= " ON p.worldid = w.worldid ";
+		$sql_Get_Player_WorldRatios .= " WHERE `enabled` = '1' ";
+		//echo "SQL QUERY: <BR>" . $sql_Get_Player_WorldRatios . "<BR>";
+		$res_Get_Player_WorldRatios = mysql_query($sql_Get_Player_WorldRatios) or die("Get_Player_WorldRatios: " . mysql_error());
+		while(($SingleStatsArray[] = mysql_fetch_assoc($res_Get_Player_WorldRatios)) || array_pop($SingleStatsArray));
 		
 		return $SingleStatsArray;
 	}
@@ -218,25 +230,23 @@ function GetSingleStats($playerid)
 	return false;
 }
 
-/*
-function PlayerExists($playerid)
+function Get_Player_Stats_ByWorld($playerid, $worldid)
 {
 	// Get ID of players whose names partially match the search parameter
-	$sql_PlayerIDexists  = "SELECT `playerid` FROM `lb-players`";
-	$sql_PlayerIDexists .= " WHERE `playerid` = '$playerid'";
+	Use_DB("xray");
+	$sql_PlayerStats  = "SELECT * FROM `x-stats`";
+	$sql_PlayerStats .= "    WHERE `playerid` = $playerid AND `worldid` = $worldid";
 	//echo "SQL QUERY: <BR>" . $sql_PlayerIDexists . "<BR>";
-	$res_PlayerIDexists = mysql_query($sql_PlayerIDexists) or die("PlayerIDexists: " . mysql_error());
-	if( mysql_num_rows($res_PlayerIDexists) > 0 )
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}	
-}*/
+	$res_PlayerStats = mysql_query($sql_PlayerStats) or die("Get_Player_Stats_ByWorld: " . mysql_error());
+	while(($PlayerStatsArray[] = mysql_fetch_assoc($res_PlayerStats)) || array_pop($PlayerStatsArray)); 
 
-function TopList($world_id, $limit_results, &$block_type, &$stone_threshold)
+	if( mysql_num_rows($res_PlayerStats) > 0 )
+		{ return $PlayerStatsArray; }
+	else
+		{ return false; }
+}
+
+function Get_Ratios_ByWorldID($world_id, $limit_results, &$block_type, &$stone_threshold)
 {
 	if($stone_threshold==""){$stone_threshold = 500;}
 	if($world_id=="")
@@ -271,17 +281,17 @@ function TopList($world_id, $limit_results, &$block_type, &$stone_threshold)
 }
 
 
-function UpdateTotals()
+function Update_Stats_RatioTotals()
 {
-	$sql_UpdateTotals = file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']). "/inc/sql/update_totals.sql");
-	//echo "SQL QUERY: <BR>" . $sql_UpdateTotals . "<BR>";
-	return $res_UpdateTotals = mysql_query($sql_UpdateTotals) or die("UpdateTotals: " . mysql_error());
+	$sql_Update_Stats_RatioTotals = file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']). "/inc/sql/update_totals.sql");
+	//echo "SQL QUERY: <BR>" . $sql_Update_Stats_RatioTotals . "<BR>";
+	return $res_Update_Stats_RatioTotals = mysql_query($sql_Update_Stats_RatioTotals) or die("Update_Stats_RatioTotals: " . mysql_error());
 }
 
-function AddPlayerMines($playerid)
+function Add_Player_Mines($playerid)
 {
 	// Check to make sure player exists
-	if(!PlayerExists($playerid))
+	if(!Check_Player_Exists($playerid))
 	{
 		echo "ERROR: The player you specified does not exist. (Player ID: '$playerid')<BR>";
 	} else
@@ -294,7 +304,7 @@ function AddPlayerMines($playerid)
 		foreach($GLOBALS['worlds'] as $world_index => $world_item)
 		{
 				
-			$latest_mine_date = GetLatestMine($playerid, $world_item['worldid']);
+			$latest_mine_date = Get_Mine_Latest($playerid, $world_item['worldid']);
 			
 			
 			// Get all breaks after date
@@ -323,7 +333,7 @@ function AddPlayerMines($playerid)
 			// Process all breaks into chunks
 			// ------------------------------
 			echo "<BR><BR>[========================[WORLD ".$world_item["worldalias"]."]========================]<BR>";
-			echo "Analyzing mining behavior of player [".GetPlayerName_ByID($playerid)."] in World [".$world_item["worldalias"]."]...<br>";
+			echo "Analyzing mining behavior of player [".Get_Player_NameByID($playerid)."] in World [".$world_item["worldalias"]."]...<br>";
 			echo "<BR><BR>[------------------------PROCESS------------------------]<BR>";
 			// Initiate statistic arrays and variables
 			$init_prev_break = array("replaced"=>"0", "beforeblock"=>"0", "x"=>"0","y"=>"64","z"=>"0");
@@ -821,9 +831,9 @@ function AddPlayerMines($playerid)
 	
 }
 
-function UpdatePlayerMinesStats($playerid)
+function Update_Player_MinesStats($playerid)
 {
-	if(!PlayerExists($playerid))
+	if(!Check_Player_Exists($playerid))
 	{
 		echo "ERROR: The player you specified does not exist. (Player ID: '$playerid')<BR>";
 	} else
@@ -877,14 +887,14 @@ function UpdatePlayerMinesStats($playerid)
 	}
 }
 
-function GetLatestMine($playerid, $worldid)
+function Get_Mine_Latest($playerid, $worldid)
 {
 	// Get ID of players whose names partially match the search parameter
-	$sql_GetLatestMine  = "SELECT MAX(`last_break_date`) as latest_mine FROM `x-mines`";
-	$sql_GetLatestMine .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
+	$sql_Get_Mine_Latest  = "SELECT MAX(`last_break_date`) as latest_mine FROM `x-mines`";
+	$sql_Get_Mine_Latest .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
 	//echo "SQL QUERY: <BR>" . $sql_getWorlds . "<BR>";
-	$res_GetLatestMine = mysql_query($sql_GetLatestMine) or die("GetLatestMine: " . mysql_error());
-	while(($LatestMine_result[] = mysql_fetch_assoc($res_GetLatestMine)) || array_pop($LatestMine_result));
+	$res_Get_Mine_Latest = mysql_query($sql_Get_Mine_Latest) or die("Get_Mine_Latest: " . mysql_error());
+	while(($LatestMine_result[] = mysql_fetch_assoc($res_Get_Mine_Latest)) || array_pop($LatestMine_result));
 
 	$latest_mine_date = $LatestMine_result[0]["latest_mine"];
 	
@@ -899,14 +909,14 @@ function GetLatestMine($playerid, $worldid)
 	return $latest_mine_date;
 }
 
-function GetAllMines($playerid, $worldid)
+function Get_Mine_All($playerid, $worldid)
 {
 	// Get ID of players whose names partially match the search parameter
-	$sql_GetLatestMine  = "SELECT MAX(`last_break_date`) as latest_mine FROM `x-mines`";
-	$sql_GetLatestMine .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
+	$sql_Get_Mine_Latest  = "SELECT MAX(`last_break_date`) as latest_mine FROM `x-mines`";
+	$sql_Get_Mine_Latest .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
 	//echo "SQL QUERY: <BR>" . $sql_getWorlds . "<BR>";
-	$res_GetLatestMine = mysql_query($sql_GetLatestMine) or die("GetLatestMine: " . mysql_error());
-	while(($LatestMine_result[] = mysql_fetch_assoc($res_GetLatestMine)) || array_pop($LatestMine_result));
+	$res_Get_Mine_Latest = mysql_query($sql_Get_Mine_Latest) or die("Get_Mine_Latest: " . mysql_error());
+	while(($LatestMine_result[] = mysql_fetch_assoc($res_Get_Mine_Latest)) || array_pop($LatestMine_result));
 
 	$latest_mine_date = $LatestMine_result[0]["latest_mine"];
 	
