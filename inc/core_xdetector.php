@@ -594,7 +594,7 @@ function Get_Playerinfo($player_id="ALL", $limit_results="50", $sort_by="max_rat
 	if($player_id!="ALL"){$sql_Get_Playerinfo .= " WHERE `playerid` = ".$playerid." ";}
 	$sql_Get_Playerinfo .= " ) AS p ON p.playerid = x.playerid";
 
-	$sql_Get_Playerinfo .= " ORDER BY `" . $sort_by. "` ";
+	$sql_Get_Playerinfo .= " ORDER BY `" . $sort_by. "` DESC ";
 	$sql_Get_Playerinfo .= " LIMIT ". $limit_results. " ";
 	//echo "SQL QUERY: <BR>" . $sql_Get_Playerinfo . "<BR>";
 	$res_Get_Playerinfo = mysql_query($sql_Get_Playerinfo) or die("Get_Playerinfo: " . mysql_error());
