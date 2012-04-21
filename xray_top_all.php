@@ -904,7 +904,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td nowrap="nowrap" class="bg_I_<?php echo $top["color_avg"];?>"><?php echo $top["color_avg"];?></td>
                     <td nowrap="nowrap" class="bg_I_<?php echo $top["color_avg_top2"];?>"><?php echo $top["color_avg_top2"];?></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"E";}else{echo"I";}?>_<?php echo $top["color_max_ratio_diamond"];?>"><?php echo $top["max_ratio_diamond"]; ?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_gold_diamond"){echo"E";}else{echo"I";}?>_<?php echo $top["color_max_gold_diamond"];?>"><?php echo $top["max_ratio_gold"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_ratio_gold"){echo"E";}else{echo"I";}?>_<?php echo $top["color_max_ratio_gold"];?>"><?php echo $top["max_ratio_gold"]; ?></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_before_pos"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_before_pos"];?>"><?php echo $top["avg_slope_before_pos"]; ?></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_before_neg"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_before_neg"];?>"><?php echo $top["avg_slope_before_neg"]; ?></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_after_pos"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_after_pos"];?>"><?php echo $top["avg_slope_after_pos"]; ?></td>
