@@ -498,8 +498,8 @@ function Update_Playerinfo($player_id="ALL")
 	$sql_Update_Playerinfo .= "         AVG(mossy_ratio) AS avg_mossy_ratio, ";
 	$sql_Update_Playerinfo .= "         AVG(iron_ratio) AS avg_iron_ratio ";
 	$sql_Update_Playerinfo .= "     FROM `x-stats` ";
-//	$sql_Update_Playerinfo .= "     WHERE diamond_count > 20 ";
-	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	WHERE `playerid` = ".$player_id." "; }
+	$sql_Update_Playerinfo .= "     WHERE stone_count > 500 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	AND `playerid` = ".$player_id." "; }
 	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
 	$sql_Update_Playerinfo .= " ) AS x ON x.playerid = p.playerid ";
 	$sql_Update_Playerinfo .= "  ";
@@ -586,16 +586,18 @@ function Get_Playerinfo($player_id="ALL", $limit_results="50", $sort_by="max_rat
 {
 	Use_DB("xray");
 	$sql_Get_Playerinfo  = " SELECT * FROM `x-playerinfo` AS x";
-	if($player_id!="ALL"){$sql_Get_Playerinfo .= " WHERE `playerid` = ".$playerid." ";}
 	$sql_Get_Playerinfo .= " LEFT JOIN ";
 	$sql_Get_Playerinfo .= " (";
-	$sql_Get_Playerinfo .= " 	SELECT playerid, playername";
-	$sql_Get_Playerinfo .= " 	FROM `lb-players`";
-	if($player_id!="ALL"){$sql_Get_Playerinfo .= " WHERE `playerid` = ".$playerid." ";}
+	$sql_Get_Playerinfo .= " 	SELECT `playerid`, `playername` ";
+	$sql_Get_Playerinfo .= " 	FROM `lb-players` ";
+	if($player_id!="ALL"){$sql_Get_Playerinfo .= " WHERE `playerid` = '".$player_id."' ";}
 	$sql_Get_Playerinfo .= " ) AS p ON p.playerid = x.playerid";
+	if($player_id!="ALL"){$sql_Get_Playerinfo .= " WHERE x.`playerid` = '".$player_id."' ";}
+	if($player_id=="ALL"){
 	$sql_Get_Playerinfo .= " WHERE `total_stone` > $min_stones AND `total_clusters` > $min_clusters ";
 	$sql_Get_Playerinfo .= " ORDER BY `" . $sort_by. "` DESC, `playername` DESC ";
 	$sql_Get_Playerinfo .= " LIMIT ". $limit_results. " ";
+	}
 	//echo "SQL QUERY: <BR>" . $sql_Get_Playerinfo . "<BR>";
 	$res_Get_Playerinfo = mysql_query($sql_Get_Playerinfo) or die("Get_Playerinfo: " . mysql_error());
 	while(($PlayerInfo_Array[] = mysql_fetch_assoc($res_Get_Playerinfo)) || array_pop($PlayerInfo_Array)); 
@@ -1437,24 +1439,19 @@ function Calc_Playerinfo_SuspicionLevel(&$playerinfo_array)
 		
 		if($dataset_row["total_stone"]>=1500 && $dataset_row["total_clusters"]>=20)
 		{
-			array_merge($info_array,array("type"=>"disclaimer","message"=>"The information about this player is almost certainly accurate."));
+			array_push($info_array,array("type"=>"disclaimer","message"=>"The information about this player is almost certainly accurate."));
 		}
 		elseif($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
 		{
-			array_merge($info_array,array("type"=>"disclaimer","message"=>"The information about this player is probably accurate."));
+			array_push($info_array,array("type"=>"disclaimer","message"=>"The information about this player is probably accurate."));
 		}
 		elseif($dataset_row["total_stone"]>=300 && $dataset_row["total_clusters"]>=2)
 		{
-			array_merge($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate."));
+			array_push($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate."));
 		}
 		else
 		{
-			array_merge($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any conclusions."));
-		}
-
-		if($dataset_row["total_stone"]>=200)
-		{
-			array_merge($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate."));
+			array_push($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any conclusions."));
 		}
 
 		$dataset_row["color_method_A"] = min( 10, round( (	
@@ -1463,6 +1460,67 @@ function Calc_Playerinfo_SuspicionLevel(&$playerinfo_array)
 										+ 	($dataset_row["color_max_ratio_mossy"] * 1)
 										+ 	($dataset_row["color_max_ratio_iron"] * 1)
 										 ) / 7, 0));
+		if($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
+		{
+			if($dataset_row["color_max_ratio_diamond"]>=9)
+				{ array_push($info_array,array("type"=>"bad","message"=>"User's Diamond ratio is extremely high.")); }
+			elseif($dataset_row["color_max_ratio_diamond"]>=6)
+				{ array_push($info_array,array("type"=>"neutral","message"=>"User's Diamond ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
+			else
+				{ array_push($info_array,array("type"=>"good","message"=>"User's Diamond ratio is normal.")); }
+				
+			if($dataset_row["color_max_ratio_lapis"]>=9)
+				{ array_push($info_array,array("type"=>"bad","message"=>"User's Lapis ratio is extremely high.")); }
+			elseif($dataset_row["color_max_ratio_lapis"]>=6)
+				{ array_push($info_array,array("type"=>"neutral","message"=>"User's Lapis ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
+			else
+				{ array_push($info_array,array("type"=>"good","message"=>"User's Lapis ratio is normal.")); }
+				
+			if($dataset_row["color_max_ratio_gold"]>=9)
+				{ array_push($info_array,array("type"=>"bad","message"=>"User's Gold ratio is extremely high")); }
+			elseif($dataset_row["color_max_ratio_gold"]>=6)
+				{ array_push($info_array,array("type"=>"neutral","message"=>"User's Gold ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
+			else
+				{ array_push($info_array,array("type"=>"good","message"=>"User's Gold ratio is normal.")); }
+			
+			if($dataset_row["color_max_ratio_mossy"]>=9)
+				{ array_push($info_array,array("type"=>"bad","message"=>"User's Mossy ratio is extremely high.")); }
+			elseif($dataset_row["color_max_ratio_mossy"]>=6)
+				{ array_push($info_array,array("type"=>"neutral","message"=>"User's Mossy ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
+			else
+				{ array_push($info_array,array("type"=>"good","message"=>"User's Mossy ratio is normal.")); }
+			
+			if($dataset_row["color_max_ratio_iron"]>=9)
+				{ array_push($info_array,array("type"=>"bad","message"=>"User's Iron ratio is extremely high.")); }
+			elseif($dataset_row["color_max_ratio_iron"]>=6)
+				{ array_push($info_array,array("type"=>"neutral","message"=>"User's Iron ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
+			else
+				{ array_push($info_array,array("type"=>"good","message"=>"User's Iron ratio is normal.")); }
+
+		}
+							 
+/*
+Bad Attribute 	
+Bad Attribute 	
+Bad Attribute 	.
+Bad Attribute 	
+Bad Attribute 	
+Neutral Attribute 	
+Neutral Attribute 	
+Neutral Attribute 	
+Neutral Attribute 	
+Neutral Attribute 	
+Good Attribute 	
+Good Attribute 	
+Good Attribute 	
+Good Attribute 	
+Good Attribute 	
+Bad Attribute 	User often stops mining nearby after finding ores.
+Good Attribute 	User continues mining nearby after finding ores.
+Bad Attribute 	User frequently mines only ores that are visible. This could suggest an x-ray texture pack, but could also simply indicate a preference to mine in exposed caverns.
+*/									 
+										 
+										 
 		///////////
 		//$dataset_row[""];
 		
@@ -1478,6 +1536,8 @@ function Calc_Playerinfo_SuspicionLevel(&$playerinfo_array)
 
 
 	}
+	//print_r($info_array);
+	return $info_array;
 }
 
 ?>
