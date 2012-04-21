@@ -105,6 +105,13 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 			// Check user's totals from stats table
 			$player_world_stats = Get_Player_WorldRatios($player_id);
 			$player_mines_all = Get_Player_Mines_InWorld($player_id, $GLOBALS['worlds'][0]['worldid']);
+			$player_info = Get_Playerinfo($player_id);
+			$color_template_list = array("max_ratio_diamond" => "diamond_ratio", "max_ratio_gold" => "gold_ratio", "max_ratio_lapis" => "lapis_ratio", "max_ratio_mossy" => "mossy_ratio", "max_ratio_iron" => "iron_ratio",
+				 "avg_slope_before_pos" => "slope_before_pos", "avg_slope_before_neg" => "slope_before_neg", "avg_slope_after_pos" => "slope_after_pos", "avg_slope_after_neg" => "slope_after_neg", "ratio_first_block_ore"=>"first_block_ore");
+			$color_important_columns = array("max_ratio_diamond", "max_ratio_gold", "avg_slope_before_neg", "avg_slope_after_neg");	
+			Array_Apply_ColorMap($player_info, $color_template_list, $color_important_columns);
+			$player_suspicion_info = Calc_Playerinfo_SuspicionLevel($player_info);
+			
 			foreach($GLOBALS['worlds'] as $world_index => $world_item)
 			{
 				$player_clusters_world[$world_index] = Get_Player_Clusters_InWorld($player_id, $world_item['worldid']);
@@ -943,6 +950,31 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td><table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
                       <tr>
                         <td><table width="100%" border="0">
+                          <tr>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td><table width="100%" border="0">
+                   	<?php if(isset($player_suspicion_info) && count($player_suspicion_info)>0){ foreach($player_suspicion_info as $info_index => $info_item)
+						  { ?>
+                              <tr>
+                                <td><?php
+                                	switch($info_item["type"])
+									{
+										case "disclaimer": ?><img src="img/report.png" width="15" height="15" alt="Disclaimer" /><?php break;
+										case "bad": ?><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /><?php break;
+										case "neutral": ?><img src="img/grey.png" width="15" height="15" alt="Neutral Attribute" /><?php break;
+										case "good": ?><img src="img/add.png" width="15" height="15" alt="Good Attribute" /><?php break;
+										default: ?><img src="img/null15.png" width="15" height="15" alt="Undefined Attribute" /><?php break;
+									}?>
+                                </td>
+                                <td><strong><?php echo $info_item["message"];?></strong></td>
+                              </tr>
+                    <?php } } ?>
+                            </table></td>
+                          </tr>
+                        </table>
+                          <table width="100%" border="0">
                           <tr>
                             <td width="11%"><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
                             <td width="89%">User's Diamond ratio is extremely high.</td>
