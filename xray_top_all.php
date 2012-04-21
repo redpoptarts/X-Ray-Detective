@@ -240,9 +240,14 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		$TopArray = $PlayerStatsArray;
 //		$TopArray = Get_Ratios_ByWorldID($world_id, $limit_results, $block_type, $stone_threshold);
 */
-		$TopArray = Get_Playerinfo("ALL",50,"max_ratio_diamond");
-		$color_important_columns = array("max_ratio_diamond", "max_ratio_gold", "avg_slope_before_neg", "avg_slope_after_neg");
+		$color_template_list = array("max_ratio_diamond" => "diamond_ratio", "max_ratio_gold" => "gold_ratio", "avg_slope_before_pos" => "slope_before_pos", "avg_slope_before_neg" => "slope_before_neg", "avg_slope_after_pos" => "slope_after_pos", "avg_slope_after_neg" => "slope_after_neg", "ratio_first_block_ore"=>"first_block_ore");
+		$color_important_columns = array("max_ratio_diamond", "max_ratio_gold", "avg_slope_before_neg", "avg_slope_after_neg");	
 
+		$TopArray = Get_Playerinfo("ALL",9999,"max_ratio_diamond");
+		Array_Apply_ColorMap($TopArray, $color_template_list, $color_important_columns);
+		//Calc_Playerinfo_ColorSummary($TopArray, $color_important_columns);
+		//Array_Calc_Playerinfo_SuspicionLevel($TopArray);
+/*
 		foreach($TopArray as $dataset_rownum => &$dataset_row)
 		{
 			//echo "INDEX: $dataset_rownum <br>";
@@ -317,7 +322,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 				$dataset_row["color_avg_top2"] = -3;
 			}
 		}
-
+*/
 	}
 	elseif ($command == 'xscan')
 	{
@@ -873,8 +878,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td align="center" class="bg_AAA_x"><strong>Max</strong></td>
                     <td align="center" class="bg_AAA_x"><strong>A</strong></td>
                     <td align="center" class="bg_AAA_x"><strong>B</strong></td>
-                    <td align="center" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond</strong></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="gold_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
+                    <td align="center" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_ratio_gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SB +</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_neg"){echo"I";}else{echo"AAA";}?>_x"><strong>SB -</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SA +</strong></td>
@@ -886,7 +891,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                   <?php 
 				  
 				  
-				  		$sortby_column_name = "diamond_ratio";
+				  		$sortby_column_name = "max_ratio_diamond";
 				  		foreach($TopArray as $key => $top)
 				  		{
 							//$top["firstlogin"] = date_create_from_format("Y-m-d H:i:s", $top["firstlogin"]);
@@ -898,13 +903,13 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td nowrap="nowrap" class="bg_I_<?php echo $top["color_max"];?>"><?php echo $top["color_max"];?></td>
                     <td nowrap="nowrap" class="bg_I_<?php echo $top["color_avg"];?>"><?php echo $top["color_avg"];?></td>
                     <td nowrap="nowrap" class="bg_I_<?php echo $top["color_avg_top2"];?>"><?php echo $top["color_avg_top2"];?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"E";}else{echo"I";}?>_<?php echo $top["color_diamond_ratio"];?>"><?php echo $top["max_ratio_diamond"]; ?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="gold_ratio"){echo"E";}else{echo"I";}?>_<?php echo $top["color_gold_ratio"];?>"><?php echo $top["max_ratio_gold"]; ?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_pos"){echo"E";}else{echo"I";}?>_<?php echo $top["color_slope_before_pos"];?>"><?php echo $top["avg_slope_before_pos"]; ?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_neg"){echo"E";}else{echo"I";}?>_<?php echo $top["color_slope_before_neg"];?>"><?php echo $top["avg_slope_before_neg"]; ?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_pos"){echo"E";}else{echo"I";}?>_<?php echo $top["color_slope_after_pos"];?>"><?php echo $top["avg_slope_after_pos"]; ?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_neg"){echo"E";}else{echo"I";}?>_<?php echo $top["color_slope_after_neg"];?>"><?php echo $top["avg_slope_after_neg"]; ?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="first_block_ore"){echo"E";}else{echo"I";}?>_<?php echo $top["color_first_block_ore"];?>"><?php echo $top["ratio_first_block_ore"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"E";}else{echo"I";}?>_<?php echo $top["color_max_ratio_diamond"];?>"><?php echo $top["max_ratio_diamond"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_gold_diamond"){echo"E";}else{echo"I";}?>_<?php echo $top["color_max_gold_diamond"];?>"><?php echo $top["max_ratio_gold"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_before_pos"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_before_pos"];?>"><?php echo $top["avg_slope_before_pos"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_before_neg"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_before_neg"];?>"><?php echo $top["avg_slope_before_neg"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_after_pos"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_after_pos"];?>"><?php echo $top["avg_slope_after_pos"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_after_neg"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_after_neg"];?>"><?php echo $top["avg_slope_after_neg"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="ratio_first_block_ore"){echo"E";}else{echo"I";}?>_<?php echo $top["color_ratio_first_block_ore"];?>"><?php echo $top["ratio_first_block_ore"]; ?></td>
                     <td nowrap="nowrap" class="bg_I_0"><?php echo $top["total_ores"]; ?></td>
                     <td nowrap="nowrap" class="bg_I_0"><?php echo $top["total_clusters"]; ?></td>
                     </tr>
@@ -915,8 +920,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td align="center" class="bg_AAA_x"><strong>Max</strong></td>
                     <td align="center" class="bg_AAA_x"><strong>A</strong></td>
                     <td align="center" class="bg_AAA_x"><strong>B</strong></td>
-                    <td align="center" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond</strong></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="gold_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
+                    <td align="center" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_gold_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SB +</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_neg"){echo"I";}else{echo"AAA";}?>_x"><strong>SB -</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SA +</strong></td>
@@ -933,8 +938,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td align="center" class="bg_AAA_x"><strong>Max</strong></td>
                     <td align="center" class="bg_AAA_x"><strong>A</strong></td>
                     <td align="center" class="bg_AAA_x"><strong>B</strong></td>
-                    <td align="center" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond</strong></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="gold_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
+                    <td align="center" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_gold_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SB +</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_neg"){echo"I";}else{echo"AAA";}?>_x"><strong>SB -</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SA +</strong></td>
