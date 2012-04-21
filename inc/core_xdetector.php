@@ -498,7 +498,7 @@ function Update_Playerinfo($player_id="ALL")
 	$sql_Update_Playerinfo .= "         AVG(mossy_ratio) AS avg_mossy_ratio, ";
 	$sql_Update_Playerinfo .= "         AVG(iron_ratio) AS avg_iron_ratio ";
 	$sql_Update_Playerinfo .= "     FROM `x-stats` ";
-	$sql_Update_Playerinfo .= "     #WHERE diamond_count > 20 ";
+//	$sql_Update_Playerinfo .= "     WHERE diamond_count > 20 ";
 	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	WHERE `playerid` = ".$player_id." "; }
 	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
 	$sql_Update_Playerinfo .= " ) AS x ON x.playerid = p.playerid ";
@@ -527,12 +527,12 @@ function Update_Playerinfo($player_id="ALL")
 	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
 	$sql_Update_Playerinfo .= " ) AS m ON m.playerid = p.playerid ";
 	$sql_Update_Playerinfo .= "  ";
-	$sql_Update_Playerinfo .= " #WHERE x.stone_count > 500 ";
+//	$sql_Update_Playerinfo .= " WHERE x.stone_count > 500 ";
 	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	WHERE c.`playerid` = ".$player_id." "; }
 	$sql_Update_Playerinfo .= "  ";
 	$sql_Update_Playerinfo .= " GROUP BY playerid ";
 	$sql_Update_Playerinfo .= "  ";
-	$sql_Update_Playerinfo .= " #HAVING total_clusters > 1 ";
+//	$sql_Update_Playerinfo .= " HAVING total_clusters > 1 ";
 	$sql_Update_Playerinfo .= "  ";
 	$sql_Update_Playerinfo .= " ORDER BY avg_ratio_diamond DESC ";
 	$sql_Update_Playerinfo .= "  ";
@@ -594,7 +594,7 @@ function Get_Playerinfo($player_id="ALL", $limit_results="50", $sort_by="max_rat
 	if($player_id!="ALL"){$sql_Get_Playerinfo .= " WHERE `playerid` = ".$playerid." ";}
 	$sql_Get_Playerinfo .= " ) AS p ON p.playerid = x.playerid";
 	$sql_Get_Playerinfo .= " WHERE `total_stone` > $min_stones AND `total_clusters` > $min_clusters ";
-	$sql_Get_Playerinfo .= " ORDER BY `" . $sort_by. "` DESC ";
+	$sql_Get_Playerinfo .= " ORDER BY `" . $sort_by. "` DESC, `playername` DESC ";
 	$sql_Get_Playerinfo .= " LIMIT ". $limit_results. " ";
 	//echo "SQL QUERY: <BR>" . $sql_Get_Playerinfo . "<BR>";
 	$res_Get_Playerinfo = mysql_query($sql_Get_Playerinfo) or die("Get_Playerinfo: " . mysql_error());
@@ -640,8 +640,8 @@ function Add_Player_Mines($playerid)
 			$sql_getPlayerBreaks .= "	    OR replaced = 15";
 			$sql_getPlayerBreaks .= "	    OR replaced = 14";
 			$sql_getPlayerBreaks .= "	    OR replaced = 56";
-			$sql_getPlayerBreaks .= "	    OR replaced = 25";
-			$sql_getPlayerBreaks .= "	    OR replaced = 48 ) ";
+//			$sql_getPlayerBreaks .= "	    OR replaced = 48 "; // Ignore mossy cobblestone when calculating mines
+			$sql_getPlayerBreaks .= "	    OR replaced = 25 )";
 			$sql_getPlayerBreaks .= "	    AND type = 0 ";
 			$sql_getPlayerBreaks .= "	    AND y <= 50 ";
 			$sql_getPlayerBreaks .= "	    AND date > '$latest_mine_date' ";
@@ -1336,7 +1336,7 @@ function Array_Apply_ColorMap(&$input_array, $column_uses_template, $summary_col
 			if(array_key_exists($input_template_name,$colormap_template))
 			{
 				$colormap_list[$input_column_name] = $colormap_template[$input_template_name];
-				echo "Mapping color map template [$input_template_name] to column name [$input_column_name].<BR>";
+				//echo "Mapping color map template [$input_template_name] to column name [$input_column_name].<BR>";
 			}
 		}
 	}
