@@ -582,7 +582,7 @@ function Update_Playerinfo($player_id="ALL")
 	return $res_Update_Playerinfo = mysql_query($sql_Update_Playerinfo) or die("Update_Playerinfo: " . mysql_error());
 }
 
-function Get_Playerinfo($player_id="ALL", $limit_results="50", $sort_by="max_ratio_diamond")
+function Get_Playerinfo($player_id="ALL", $limit_results="50", $sort_by="max_ratio_diamond", $min_stones = "500", $min_clusters = "2")
 {
 	Use_DB("xray");
 	$sql_Get_Playerinfo  = " SELECT * FROM `x-playerinfo` AS x";
@@ -593,7 +593,7 @@ function Get_Playerinfo($player_id="ALL", $limit_results="50", $sort_by="max_rat
 	$sql_Get_Playerinfo .= " 	FROM `lb-players`";
 	if($player_id!="ALL"){$sql_Get_Playerinfo .= " WHERE `playerid` = ".$playerid." ";}
 	$sql_Get_Playerinfo .= " ) AS p ON p.playerid = x.playerid";
-
+	$sql_Get_Playerinfo .= " WHERE `total_stone` > $min_stones AND `total_clusters` > $min_clusters ";
 	$sql_Get_Playerinfo .= " ORDER BY `" . $sort_by. "` DESC ";
 	$sql_Get_Playerinfo .= " LIMIT ". $limit_results. " ";
 	//echo "SQL QUERY: <BR>" . $sql_Get_Playerinfo . "<BR>";
@@ -1290,10 +1290,166 @@ function Clear_XStats()
 }
 
 // Column names must be an associative array, where each key is the column name in the array you want to add the map to, and each value is the name of the colormap template that you want to apply.
-// Example $column_names = array("TableColumnA1"=>"ColorMap_Template_A", "TableColumnA2"=>"ColorMap_Template_A", "TableColumnB"=>"ColorMap_Template_B");
-function Array_Apply_ColorMap(&$array, $column_names)
+// Example $column_uses_template = array("TableColumnA1"=>"ColorMap_Template_A", "TableColumnA2"=>"ColorMap_Template_A", "TableColumnB"=>"ColorMap_Template_B");
+function Array_Apply_ColorMap(&$input_array, $column_uses_template, $summary_columns)
 {
+	$colorbins["diamond_ratio"] = array_fill(0, 10, 0); $colorbins["lapis_ratio"] = array_fill(0, 10, 0); $colorbins["gold_ratio"] = array_fill(0, 10, 0); $colorbins["mossy_ratio"] = array_fill(0, 10, 0); $colorbins["iron_ratio"] = array_fill(0, 10, 0);
 	
+	$colormap_template["diamond_ratio"]		= array(0 => 0,			3 => "0.5", 	6 => "1.25",	9 => "2");
+	$colormap_template["lapis_ratio"]		= array(0 => 0,			3 => "1",		6 => "2",   	9 => "3");
+	$colormap_template["gold_ratio"]		= array(0 => 0,			3 => "2.5",		6 => "4", 		9 => "6");
+	$colormap_template["mossy_ratio"]		= array(0 => 0,			3 => "5",   	6 => "10",		9 => "15");
+	$colormap_template["iron_ratio"]		= array(0 => 0,			3 => "15",  	6 => "20",		9 => "30");
+	$colormap_template["first_block_ore"] 	= array(0 =>  0,		3 =>  "0.20", 	6 =>  "0.40",	9 =>  "0.60");
+	$colormap_template["slope_before_neg"]	= array(0 => "-0.17",	3 => "-0.20", 	6 => "-0.25",	9 => "-0.30");
+	$colormap_template["slope_before_pos"]	= array(0 =>  "0.17",	3 =>  "0.20", 	6 =>  "0.25",	9 =>  "0.30");
+	$colormap_template["slope_after_neg"]	= array(0 => "-0.17",	3 => "-0.20", 	6 => "-0.25",	9 => "-0.30");
+	$colormap_template["slope_after_pos"]	= array(0 =>  "0.17",	3 =>  "0.20", 	6 =>  "0.25",	9 =>  "0.30");
+	$colormap_template["spread_before"]		= array(0 => 0, 		3 => "1",		6 => "2.1", 	9 => "4");
+	
+	//echo "COLOR TEMPLATES: "; print_r($colormap_template); echo "<BR><BR>";
+	
+	foreach($colormap_template as $column_name => $bins)
+	{
+		$colormap_template[$column_name][1] = $colormap_template[$column_name][3] * 0.33;
+		$colormap_template[$column_name][2] = $colormap_template[$column_name][3] * 0.66;
+		$colormap_template[$column_name][4] = $colormap_template[$column_name][3] + ($colormap_template[$column_name][6] - $colormap_template[$column_name][3]) * 0.33;
+		$colormap_template[$column_name][5] = $colormap_template[$column_name][3] + ($colormap_template[$column_name][6] - $colormap_template[$column_name][3]) * 0.66;
+		$colormap_template[$column_name][7] = $colormap_template[$column_name][6] + ($colormap_template[$column_name][9] - $colormap_template[$column_name][6]) * 0.33;
+		$colormap_template[$column_name][8] = $colormap_template[$column_name][6] + ($colormap_template[$column_name][9] - $colormap_template[$column_name][6]) * 0.66;
+		$colormap_template[$column_name][10] = $colormap_template[$column_name][9] + ($colormap_template[$column_name][9] - $colormap_template[$column_name][6]) * 1.33;
+		asort($colormap_template[$column_name]);
+		//echo "[" . $column_name . "]<br>"; print_r($colormap_template[$column_name]); echo "<br>";
+	}
+	
+	$colormap_list = array();
+	
+	if(count($column_uses_template)<1)
+	{
+		return false;
+	}
+	else
+	{
+		
+		foreach($column_uses_template as $input_column_name => $input_template_name)
+		{
+			if(array_key_exists($input_template_name,$colormap_template))
+			{
+				$colormap_list[$input_column_name] = $colormap_template[$input_template_name];
+				echo "Mapping color map template [$input_template_name] to column name [$input_column_name].<BR>";
+			}
+		}
+	}
+
+	if(count($input_array)<1 && count($colormap_list))
+	{
+		return false;
+	}
+	foreach($input_array as $dataset_rownum => &$dataset_row)
+	{
+		//echo "INDEX: $dataset_rownum <br>";
+		foreach($colormap_list as $color_column_name => $bins)
+		{
+			//echo "COLOR_SEARCH: $color_column_name <br>";					
+			foreach($dataset_row as $row_column_name => &$row_column_value)
+			{
+				if(array_key_exists($color_column_name, $dataset_row) && $color_column_name == $row_column_name)
+				{
+					$tempcolor = -3;
+					$dataset_row["color_" . $row_column_name] = -3;
+					//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
+					$compare_value = ($colormap_list[$color_column_name][9] < 0) ? abs($row_column_value) : $row_column_value;
+					
+					if(isset($row_column_value) && $row_column_value != "")
+					{
+						if($colormap_list[$color_column_name][9] > 0)
+						{
+							$tempcolor = 10;									
+							while($row_column_value < $colormap_list[$color_column_name][$tempcolor] && $tempcolor > 0)
+							{
+								//echo "$color_column_name >> " . $colormap_list[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+								$tempcolor--;	
+							}
+						}
+						else
+						{
+							$tempcolor = 0;
+							while($row_column_value < $colormap_list[$color_column_name][$tempcolor] && $tempcolor < 10)
+							{
+								//echo "$color_column_name >> " . $colormap_list[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+								$tempcolor++;	
+							}	
+						}
+						$dataset_row["color_" . $row_column_name] = $tempcolor;
+					}
+					else
+					{
+						$dataset_row["color_" . $row_column_name] = -3;
+					}
+				}
+			}
+			//echo "<BR>";
+		}
+	}
+
+	foreach($input_array as $dataset_rownum => &$dataset_row)
+	{
+		$row_color_stats_full = array();
+		$row_color_stats_top2 = array();
+		foreach($summary_columns as $column_name)
+		{
+			if(isset($dataset_row["color_" . $column_name]) && $dataset_row["color_" . $column_name] >= 0)
+			{
+				array_push($row_color_stats_full, $dataset_row["color_" . $column_name]);
+			}
+		}
+		
+		arsort($row_color_stats_full);
+		$row_color_stats_top2 = array_slice($row_color_stats_full,0,2);
+		
+		if(count($row_color_stats_full) > 0)
+		{
+			$dataset_row["color_max"] = max($row_color_stats_full);
+			$dataset_row["color_avg"] = number_format(array_sum($row_color_stats_full) / count($row_color_stats_full),0);
+		}
+		if(count($row_color_stats_top2) > 0)
+		{
+			$dataset_row["color_avg_top2"] = number_format(array_sum($row_color_stats_top2) / count($row_color_stats_top2),0);
+		}
+		else
+		{
+			$dataset_row["color_max"] = -3;
+			$dataset_row["color_avg"] = -3;
+			$dataset_row["color_avg_top2"] = -3;
+		}
+	}
+	
+	//echo "COLOR MAPS: "; print_r($colormap_list); echo "<BR><BR>";
+
+	return true;
+}
+
+function Calc_Playerinfo_SuspicionLevel(&$playerinfo_array)
+{
+	foreach($playerinfo_array as $dataset_rownum => &$dataset_row)
+	{
+
+		
+		///////////
+		//$dataset_row[""];
+		
+		if( max($dataset_row["max_ratio_diamond"],$dataset_row["max_ratio_gold"]) >= 6)
+		{
+			
+			
+		}
+		else
+		{
+			$dataset_row["color_method_A"] = max($dataset_row["max_ratio_diamond"],$dataset_row["max_ratio_gold"]);
+		}
+
+
+	}
 }
 
 ?>
