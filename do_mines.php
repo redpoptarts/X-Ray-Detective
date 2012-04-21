@@ -15,6 +15,7 @@ $player_list = Get_Player_ListAll(); ?>
 </head>
 <body>
 <?php 
+Update_Playerinfo();
 foreach($player_list as $player_index => $player_item)
 {
 	if( $player_item['stone_count'] > 0 && ( $player_item['diamond_count'] > 5 || $player_item['gold_count'] > 5 || $player_item['iron_count'] > 20) )
