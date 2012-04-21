@@ -240,11 +240,13 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		$TopArray = $PlayerStatsArray;
 //		$TopArray = Get_Ratios_ByWorldID($world_id, $limit_results, $block_type, $stone_threshold);
 */
-		$color_template_list = array("max_ratio_diamond" => "diamond_ratio", "max_ratio_gold" => "gold_ratio", "avg_slope_before_pos" => "slope_before_pos", "avg_slope_before_neg" => "slope_before_neg", "avg_slope_after_pos" => "slope_after_pos", "avg_slope_after_neg" => "slope_after_neg", "ratio_first_block_ore"=>"first_block_ore");
+		$color_template_list = array("max_ratio_diamond" => "diamond_ratio", "max_ratio_gold" => "gold_ratio", "max_ratio_lapis" => "lapis_ratio", "max_ratio_mossy" => "mossy_ratio", "max_ratio_iron" => "iron_ratio",
+			 "avg_slope_before_pos" => "slope_before_pos", "avg_slope_before_neg" => "slope_before_neg", "avg_slope_after_pos" => "slope_after_pos", "avg_slope_after_neg" => "slope_after_neg", "ratio_first_block_ore"=>"first_block_ore");
 		$color_important_columns = array("max_ratio_diamond", "max_ratio_gold", "avg_slope_before_neg", "avg_slope_after_neg");	
 
 		$TopArray = Get_Playerinfo("ALL",9999,"max_ratio_diamond");
 		Array_Apply_ColorMap($TopArray, $color_template_list, $color_important_columns);
+		Calc_Playerinfo_SuspicionLevel($TopArray);
 		//Calc_Playerinfo_ColorSummary($TopArray, $color_important_columns);
 		//Array_Calc_Playerinfo_SuspicionLevel($TopArray);
 /*
@@ -899,7 +901,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                   <tr class="bg_I_-3">
 <!--                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_" . $sortby_column_name];?>"><strong><?php echo $top["playername"]; ?></strong></td> -->
                 <td nowrap="nowrap" class="bg_I_<?php echo $top["color_max"];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
-                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_max"];?>"><strong><?php echo $top["total_stone"]; ?></strong></td>
+                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_method_A"];?>"><strong><?php echo $top["total_stone"]; ?></strong></td>
                     <td nowrap="nowrap" class="bg_I_<?php echo $top["color_max"];?>"><?php echo $top["color_max"];?></td>
                     <td nowrap="nowrap" class="bg_I_<?php echo $top["color_avg"];?>"><?php echo $top["color_avg"];?></td>
                     <td nowrap="nowrap" class="bg_I_<?php echo $top["color_avg_top2"];?>"><?php echo $top["color_avg_top2"];?></td>
@@ -1184,7 +1186,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                       <?php foreach($player_world_stats as $pw_index => $pw_item) {?>
                       <tr class="bg_I_<?php echo $color[$sortby_column_name];?>">
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_max"];?>"><?php echo $pw_item["worldalias"]; ?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_max"];?>"><?php echo $pw_item["stone_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_method_A"];?>"><?php echo $pw_item["stone_count"];?></td>
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_diamond_ratio"];?>"><?php echo $pw_item["diamond_ratio"];?></td>
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_slope_before_pos"];?>"><?php echo $pw_item["slope_before_pos"];?></td>
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_slope_before_neg"];?>"><?php echo $pw_item["slope_before_neg"];?></td>

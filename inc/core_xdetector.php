@@ -1431,10 +1431,38 @@ function Array_Apply_ColorMap(&$input_array, $column_uses_template, $summary_col
 
 function Calc_Playerinfo_SuspicionLevel(&$playerinfo_array)
 {
+	$info_array = array();
 	foreach($playerinfo_array as $dataset_rownum => &$dataset_row)
 	{
-
 		
+		if($dataset_row["total_stone"]>=1500 && $dataset_row["total_clusters"]>=20)
+		{
+			array_merge($info_array,array("type"=>"disclaimer","message"=>"The information about this player is almost certainly accurate."));
+		}
+		elseif($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
+		{
+			array_merge($info_array,array("type"=>"disclaimer","message"=>"The information about this player is probably accurate."));
+		}
+		elseif($dataset_row["total_stone"]>=300 && $dataset_row["total_clusters"]>=2)
+		{
+			array_merge($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate."));
+		}
+		else
+		{
+			array_merge($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any conclusions."));
+		}
+
+		if($dataset_row["total_stone"]>=200)
+		{
+			array_merge($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate."));
+		}
+
+		$dataset_row["color_method_A"] = min( 10, round( (	
+											( max($dataset_row["color_max_ratio_diamond"], $dataset_row["color_max_ratio_gold"]) * 5)
+										+ 	($dataset_row["color_max_ratio_lapis"] * 2)
+										+ 	($dataset_row["color_max_ratio_mossy"] * 1)
+										+ 	($dataset_row["color_max_ratio_iron"] * 1)
+										 ) / 7, 0));
 		///////////
 		//$dataset_row[""];
 		
@@ -1445,7 +1473,7 @@ function Calc_Playerinfo_SuspicionLevel(&$playerinfo_array)
 		}
 		else
 		{
-			$dataset_row["color_method_A"] = max($dataset_row["max_ratio_diamond"],$dataset_row["max_ratio_gold"]);
+			$dataset_row["color_method_B"] = max($dataset_row["max_ratio_diamond"],$dataset_row["max_ratio_gold"]);
 		}
 
 
