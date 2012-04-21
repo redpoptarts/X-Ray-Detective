@@ -887,6 +887,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SA +</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_neg"){echo"I";}else{echo"AAA";}?>_x"><strong>SA -</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="first_block_ore"){echo"I";}else{echo"AAA";}?>_x"><strong>1st Ore</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>PB</strong></td>
                     <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
                     <td nowrap="nowrap" class="bg_AAA_x"><strong>Clusters</strong></td>
                     </tr>
@@ -912,6 +913,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_after_pos"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_after_pos"];?>"><?php echo $top["avg_slope_after_pos"]; ?></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_after_neg"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_after_neg"];?>"><?php echo $top["avg_slope_after_neg"]; ?></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="ratio_first_block_ore"){echo"E";}else{echo"I";}?>_<?php echo $top["color_ratio_first_block_ore"];?>"><?php echo $top["ratio_first_block_ore"]; ?></td>
+                    <td nowrap="nowrap" class="bg_I_0"><?php echo $top["postbreak_ratio"]; ?></td>
                     <td nowrap="nowrap" class="bg_I_0"><?php echo $top["total_ores"]; ?></td>
                     <td nowrap="nowrap" class="bg_I_0"><?php echo $top["total_clusters"]; ?></td>
                     </tr>
@@ -929,6 +931,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SA +</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_neg"){echo"I";}else{echo"AAA";}?>_x"><strong>SA -</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="first_block_ore"){echo"I";}else{echo"AAA";}?>_x"><strong>1st Ore</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
                     <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
                     <td nowrap="nowrap" class="bg_AAA_x"><strong>Clusters</strong></td>
                     </tr>
@@ -947,6 +950,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SA +</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_neg"){echo"I";}else{echo"AAA";}?>_x"><strong>SA -</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="first_block_ore"){echo"I";}else{echo"AAA";}?>_x"><strong>1st Ore</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
                     <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
                     <td nowrap="nowrap" class="bg_AAA_x"><strong>Clusters</strong></td>
                     </tr>
