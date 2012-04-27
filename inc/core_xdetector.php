@@ -1439,19 +1439,23 @@ function Calc_Playerinfo_SuspicionLevel(&$playerinfo_array)
 		
 		if($dataset_row["total_stone"]>=1500 && $dataset_row["total_clusters"]>=20)
 		{
-			array_push($info_array,array("type"=>"disclaimer","message"=>"The information about this player is almost certainly accurate."));
+			$info_array["accuracy"] = "high";
+			//array_push($info_array,array("type"=>"disclaimer","message"=>"The information about this player is almost certainly accurate."));
 		}
 		elseif($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
 		{
-			array_push($info_array,array("type"=>"disclaimer","message"=>"The information about this player is probably accurate."));
+			$info_array["accuracy"] = "med";
+			//array_push($info_array,array("type"=>"disclaimer","message"=>"The information about this player is probably accurate."));
 		}
 		elseif($dataset_row["total_stone"]>=300 && $dataset_row["total_clusters"]>=2)
 		{
-			array_push($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate."));
+			$info_array["accuracy"] = "low";
+			//array_push($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate."));
 		}
 		else
 		{
-			array_push($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any conclusions."));
+			$info_array["accuracy"] = "none";
+			//array_push($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any conclusions."));
 		}
 
 		$dataset_row["color_method_A"] = min( 10, round( (	
@@ -1463,39 +1467,69 @@ function Calc_Playerinfo_SuspicionLevel(&$playerinfo_array)
 		if($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
 		{
 			if($dataset_row["color_max_ratio_diamond"]>=9)
-				{ array_push($info_array,array("type"=>"bad","message"=>"User's Diamond ratio is extremely high.")); }
+				{ 
+				array_push($info_array["trait"],"diamond_extreme"); }
+				//array_push($info_array,array("type"=>"bad","message"=>"User's Diamond ratio is extremely high.")); }
 			elseif($dataset_row["color_max_ratio_diamond"]>=6)
-				{ array_push($info_array,array("type"=>"neutral","message"=>"User's Diamond ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
+				{ 
+				array_push($info_array["trait"],"diamond_high"); }
+				//array_push($info_array,array("type"=>"neutral","message"=>"User's Diamond ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
 			else
-				{ array_push($info_array,array("type"=>"good","message"=>"User's Diamond ratio is normal.")); }
+				{ 
+				array_push($info_array["trait"],"diamond_normal"); }
+				//array_push($info_array,array("type"=>"good","message"=>"User's Diamond ratio is normal.")); }
 				
 			if($dataset_row["color_max_ratio_lapis"]>=9)
-				{ array_push($info_array,array("type"=>"bad","message"=>"User's Lapis ratio is extremely high.")); }
+				{ 
+				array_push($info_array["trait"],"lapis_extreme"); }
+				//array_push($info_array,array("type"=>"bad","message"=>"User's Lapis ratio is extremely high.")); }
 			elseif($dataset_row["color_max_ratio_lapis"]>=6)
-				{ array_push($info_array,array("type"=>"neutral","message"=>"User's Lapis ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
+				{ 
+				array_push($info_array["trait"],"lapis_high"); }
+				//array_push($info_array,array("type"=>"neutral","message"=>"User's Lapis ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
 			else
-				{ array_push($info_array,array("type"=>"good","message"=>"User's Lapis ratio is normal.")); }
+				{ 
+				array_push($info_array["trait"],"lapis_normal"); }
+				//array_push($info_array,array("type"=>"good","message"=>"User's Lapis ratio is normal.")); }
 				
 			if($dataset_row["color_max_ratio_gold"]>=9)
-				{ array_push($info_array,array("type"=>"bad","message"=>"User's Gold ratio is extremely high")); }
+				{ 
+				array_push($info_array["trait"],"gold_extreme"); }
+				//array_push($info_array,array("type"=>"bad","message"=>"User's Gold ratio is extremely high")); }
 			elseif($dataset_row["color_max_ratio_gold"]>=6)
-				{ array_push($info_array,array("type"=>"neutral","message"=>"User's Gold ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
+				{ 
+				array_push($info_array["trait"],"gold_high"); }
+				//array_push($info_array,array("type"=>"neutral","message"=>"User's Gold ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
 			else
-				{ array_push($info_array,array("type"=>"good","message"=>"User's Gold ratio is normal.")); }
+				{ 
+				array_push($info_array["trait"],"gold_normal"); }
+				//array_push($info_array,array("type"=>"good","message"=>"User's Gold ratio is normal.")); }
 			
 			if($dataset_row["color_max_ratio_mossy"]>=9)
-				{ array_push($info_array,array("type"=>"bad","message"=>"User's Mossy ratio is extremely high.")); }
+				{ 
+				array_push($info_array["trait"],"mossy_extreme"); }
+				//array_push($info_array,array("type"=>"bad","message"=>"User's Mossy ratio is extremely high.")); }
 			elseif($dataset_row["color_max_ratio_mossy"]>=6)
-				{ array_push($info_array,array("type"=>"neutral","message"=>"User's Mossy ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
+				{ 
+				array_push($info_array["trait"],"mossy_high"); }
+				//array_push($info_array,array("type"=>"neutral","message"=>"User's Mossy ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
 			else
-				{ array_push($info_array,array("type"=>"good","message"=>"User's Mossy ratio is normal.")); }
+				{ 
+				array_push($info_array["trait"],"mossy_normal"); }
+				//array_push($info_array,array("type"=>"good","message"=>"User's Mossy ratio is normal.")); }
 			
 			if($dataset_row["color_max_ratio_iron"]>=9)
-				{ array_push($info_array,array("type"=>"bad","message"=>"User's Iron ratio is extremely high.")); }
+				{ 
+				array_push($info_array["trait"],"iron_extreme"); }
+				//array_push($info_array,array("type"=>"bad","message"=>"User's Iron ratio is extremely high.")); }
 			elseif($dataset_row["color_max_ratio_iron"]>=6)
-				{ array_push($info_array,array("type"=>"neutral","message"=>"User's Iron ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
+				{ 
+				array_push($info_array["trait"],"iron_high"); }
+				//array_push($info_array,array("type"=>"neutral","message"=>"User's Iron ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
 			else
-				{ array_push($info_array,array("type"=>"good","message"=>"User's Iron ratio is normal.")); }
+				{ 
+				array_push($info_array["trait"],"iron_normal"); }
+				//array_push($info_array,array("type"=>"good","message"=>"User's Iron ratio is normal.")); }
 
 		}
 							 

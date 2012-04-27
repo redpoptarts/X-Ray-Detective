@@ -110,7 +110,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 				 "avg_slope_before_pos" => "slope_before_pos", "avg_slope_before_neg" => "slope_before_neg", "avg_slope_after_pos" => "slope_after_pos", "avg_slope_after_neg" => "slope_after_neg", "ratio_first_block_ore"=>"first_block_ore");
 			$color_important_columns = array("max_ratio_diamond", "max_ratio_gold", "avg_slope_before_neg", "avg_slope_after_neg");	
 			Array_Apply_ColorMap($player_info, $color_template_list, $color_important_columns);
-			$player_suspicion_info = Calc_Playerinfo_SuspicionLevel($player_info);
+			$player_traits = Calc_Playerinfo_SuspicionLevel($player_info);
 			
 			foreach($GLOBALS['worlds'] as $world_index => $world_item)
 			{
@@ -955,11 +955,11 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                           </tr>
                           <tr>
                             <td><table width="100%" border="0">
-                   	<?php if(isset($player_suspicion_info) && count($player_suspicion_info)>0){ foreach($player_suspicion_info as $info_index => $info_item)
+                   	<?php if(isset($player_traits) && count($player_traits)>0){ foreach($player_traits as $trait_index => $trait_item)
 						  { ?>
                               <tr>
                                 <td><?php
-                                	switch($info_item["type"])
+                                	switch($trait_item["type"])
 									{
 										case "disclaimer": ?><img src="img/report.png" width="15" height="15" alt="Disclaimer" /><?php break;
 										case "bad": ?><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /><?php break;
