@@ -880,6 +880,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td align="center" class="bg_AAA_x"><strong>Max</strong></td>
                     <td align="center" class="bg_AAA_x"><strong>A</strong></td>
                     <td align="center" class="bg_AAA_x"><strong>B</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>C</strong></td>
                     <td align="center" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_ratio_gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SB +</strong></td>
@@ -901,9 +902,10 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 ?>
                   <tr class="bg_I_-3">
 <!--                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_" . $sortby_column_name];?>"><strong><?php echo $top["playername"]; ?></strong></td> -->
-                <td nowrap="nowrap" class="bg_I_<?php echo $top["color_max"];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
+                <td nowrap="nowrap" class="bg_I_<?php echo $top["color_method_A"];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
                     <td nowrap="nowrap" class="bg_I_<?php echo $top["color_method_A"];?>"><strong><?php echo $top["total_stone"]; ?></strong></td>
                     <td nowrap="nowrap" class="bg_I_<?php echo $top["color_max"];?>"><?php echo $top["color_max"];?></td>
+                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_method_A"];?>"><?php echo $top["color_method_A"];?></td>
                     <td nowrap="nowrap" class="bg_I_<?php echo $top["color_avg"];?>"><?php echo $top["color_avg"];?></td>
                     <td nowrap="nowrap" class="bg_I_<?php echo $top["color_avg_top2"];?>"><?php echo $top["color_avg_top2"];?></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"E";}else{echo"I";}?>_<?php echo $top["color_max_ratio_diamond"];?>"><?php echo $top["max_ratio_diamond"]; ?></td>
@@ -924,6 +926,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td align="center" class="bg_AAA_x"><strong>Max</strong></td>
                     <td align="center" class="bg_AAA_x"><strong>A</strong></td>
                     <td align="center" class="bg_AAA_x"><strong>B</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>C</strong></td>
                     <td align="center" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_gold_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SB +</strong></td>
@@ -943,6 +946,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                     <td align="center" class="bg_AAA_x"><strong>Max</strong></td>
                     <td align="center" class="bg_AAA_x"><strong>A</strong></td>
                     <td align="center" class="bg_AAA_x"><strong>B</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>C</strong></td>
                     <td align="center" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_gold_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
                     <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SB +</strong></td>
