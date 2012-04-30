@@ -110,7 +110,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 				 "avg_slope_before_pos" => "slope_before_pos", "avg_slope_before_neg" => "slope_before_neg", "avg_slope_after_pos" => "slope_after_pos", "avg_slope_after_neg" => "slope_after_neg", "ratio_first_block_ore"=>"first_block_ore");
 			$color_important_columns = array("max_ratio_diamond", "max_ratio_gold", "avg_slope_before_neg", "avg_slope_after_neg");	
 			Array_Apply_ColorMap($player_info, $color_template_list, $color_important_columns);
-			$player_traits = Calc_Playerinfo_SuspicionLevel($player_info);
+			$player_info = Calc_Playerinfo_SuspicionLevel($player_info);
 			
 			foreach($GLOBALS['worlds'] as $world_index => $world_item)
 			{
@@ -332,6 +332,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 <script type="text/javascript" src="styles/ui/jquery.effects.core.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.effects.blind.js"></script>
 <script type="text/javascript" src="inc/jquery.form.js"></script>
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
 	<style type="text/css">
 
 	</style>
@@ -347,6 +348,97 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 			$( "#tabs" ).tabs();
 		});
 	</script>
+<script type="text/javascript">
+  google.load('visualization', '1', {packages: ['gauge']});
+</script>
+<script type="text/javascript">
+$(function()
+{
+	var Accuracy_data = google.visualization.arrayToDataTable([
+	  ['Label', 'Value'],
+	  ['Accuracy', 0],
+	]);
+	
+	var Suspicion_data = google.visualization.arrayToDataTable([
+	  ['Label', 'Value'],
+	  ['Suspicion', 0],
+	]);
+	
+	// Create and populate the data table.
+	var Accuracy_options = {
+	  width: 180, height: 180,
+	  greenFrom: 2.5, greenTo: 3,
+	  yellowFrom:1.5, yellowTo: 2.5,
+	  redFrom: 0, redTo: 1.5,
+	  majorTicks: ['','','','','','','','','',''],
+	  minorTicks: 0,
+	  max: 3
+	};
+	
+	var Suspicion_options = {
+	  width: 180, height: 180,
+	  greenFrom: 0, greenTo: 5,
+	  yellowFrom:5, yellowTo: 8,
+	  redFrom: 8, redTo: 10,
+	  majorTicks: ['','','','','','','','','','',''],
+	  minorTicks: 0,
+	  max: 10
+	};
+  
+
+	// Create and draw the visualization.
+	Accuracy_gauge = new google.visualization.Gauge(document.getElementById('accuracy_gauge'));
+	Accuracy_gauge.draw(Accuracy_data, Accuracy_options);
+	Suspicion_gague = new google.visualization.Gauge(document.getElementById('suspicion_gauge'));
+	Suspicion_gague.draw(Suspicion_data, Suspicion_options);
+	
+/*	Accuracy_gauge.draw(Accuracy_data, Accuracy_options);
+	Suspicion_gague.draw(Suspicion_data, Suspicion_options);*/
+});
+
+function LoadGauges()
+{
+	var Accuracy_data = google.visualization.arrayToDataTable([
+	  ['Label', 'Value'],
+	  ['Accuracy', 3],
+	]);
+	
+	var Suspicion_data = google.visualization.arrayToDataTable([
+	  ['Label', 'Value'],
+	  ['Suspicion', 6],
+	]);
+	
+	var Accuracy_options = {
+	  width: 180, height: 180,
+	  greenFrom: 2.5, greenTo: 3,
+	  yellowFrom:1.5, yellowTo: 2.5,
+	  redFrom: 0, redTo: 1.5,
+	  majorTicks: ['','','','','','','','','',''],
+	  minorTicks: 0,
+	  max: 3
+	};
+	
+	var Suspicion_options = {
+	  width: 180, height: 180,
+	  greenFrom: 0, greenTo: 5,
+	  yellowFrom:5, yellowTo: 8,
+	  redFrom: 8, redTo: 10,
+	  majorTicks: ['','','','','','','','','','',''],
+	  minorTicks: 0,
+	  max: 10
+	};
+	
+	Accuracy_gauge.draw(Accuracy_data, Accuracy_options);
+	Suspicion_gague.draw(Suspicion_data, Suspicion_options);
+	Accuracy_gauge.draw(Accuracy_data, Accuracy_options);
+	Suspicion_gague.draw(Suspicion_data, Suspicion_options);
+}
+
+google.setOnLoadCallback(LoadGauges);
+
+
+</script>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -951,11 +1043,12 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                       <tr>
                         <td><table width="100%" border="0">
                           <tr>
-                            <td>&nbsp;</td>
+                            <td><div id="accuracy_gauge" style="width: 600px; height: 300px;"></div><BR />
+                            <div id="suspicion_gauge" style="width: 600px; height: 300px;"></div></td>
                           </tr>
                           <tr>
                             <td><table width="100%" border="0">
-                   	<?php if(isset($player_traits) && count($player_traits)>0){ foreach($player_traits as $trait_index => $trait_item)
+                   	<?php if(isset($player_info["traits"]) && count($player_info["traits"])>0){ foreach($player_info["traits"] as $trait_index => $trait_item)
 						  { ?>
                               <tr>
                                 <td><?php
@@ -968,7 +1061,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 										default: ?><img src="img/null15.png" width="15" height="15" alt="Undefined Attribute" /><?php break;
 									}?>
                                 </td>
-                                <td><strong><?php echo $info_item["message"];?></strong></td>
+                                <td><strong><?php echo $trait_item["message"];?></strong></td>
                               </tr>
                     <?php } } ?>
                             </table></td>
@@ -977,67 +1070,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
                           <table width="100%" border="0">
                           <tr>
                             <td width="11%"><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                            <td width="89%">User's Diamond ratio is extremely high.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                            <td>User's Lapis ratio is extremely high.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                            <td>User's Gold ratio is extremely high.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                            <td>User's Mossy ratio is extremely high.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                            <td>User's Iron ratio is extremely high.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                            <td>User's Diamond ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                            <td>User's Lapis ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                            <td>User's Gold ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                            <td>User's Mossy ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                            <td>User's Iron ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                            <td>User's Diamond ratio is normal.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                            <td>User's Lapis ratio is normal.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                            <td>User's Gold ratio is normal.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                            <td>User's Mossy ratio is normal.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                            <td>User's Iron ratio is normal.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                            <td>User often  stops mining nearby after finding ores.</td>
+                            <td width="89%">User often  stops mining nearby after finding ores.</td>
                           </tr>
                           <tr>
                             <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
