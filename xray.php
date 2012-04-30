@@ -313,9 +313,9 @@ body {
 body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 </style>
 <link type="text/css" href="styles/css/xray-default/jquery-ui-1.8.18.custom.css" rel="stylesheet">
-<link type="text/css" href="styles/css/xray-dark/jquery-ui-1.8.18.custom.css" rel="stylesheet">	
-<link type="text/css" href="styles/css/xray-light/jquery-ui-1.8.18.custom.css" rel="stylesheet">	
-<link type="text/css" href="styles/css/xray-whiteborder/jquery-ui-1.8.18.custom.css" rel="stylesheet">
+<link type="text/css" href="styles/css/xray-dark/jquery-ui-1.8.19.custom.css" rel="stylesheet">	
+<link type="text/css" href="styles/css/xray-light/jquery-ui-1.8.19.custom.css" rel="stylesheet">	
+<link type="text/css" href="styles/css/xray-whiteborder/jquery-ui-1.8.19.custom.css" rel="stylesheet">
 <script type="text/javascript" src="styles/jquery-1.7.1.js"></script>
 <script type="text/javascript" src="styles/external/jquery.bgiframe-2.1.2.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.core.js"></script>
@@ -352,7 +352,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
   google.load('visualization', '1', {packages: ['gauge']});
 </script>
 <script type="text/javascript">
-$(function()
+
+function Draw_Gauges(A_Value, S_Value)
 {
 	var Accuracy_data = google.visualization.arrayToDataTable([
 	  ['Label', 'Value'],
@@ -361,7 +362,7 @@ $(function()
 	
 	var Suspicion_data = google.visualization.arrayToDataTable([
 	  ['Label', 'Value'],
-	  ['Suspicion', 0],
+	  ['Suspicion', 3],
 	]);
 	
 	// Create and populate the data table.
@@ -385,57 +386,39 @@ $(function()
 	  max: 10
 	};
   
-
 	// Create and draw the visualization.
-	Accuracy_gauge = new google.visualization.Gauge(document.getElementById('accuracy_gauge'));
-	Accuracy_gauge.draw(Accuracy_data, Accuracy_options);
-	Suspicion_gague = new google.visualization.Gauge(document.getElementById('suspicion_gauge'));
-	Suspicion_gague.draw(Suspicion_data, Suspicion_options);
-	
-/*	Accuracy_gauge.draw(Accuracy_data, Accuracy_options);
-	Suspicion_gague.draw(Suspicion_data, Suspicion_options);*/
-});
 
-function LoadGauges()
-{
-	var Accuracy_data = google.visualization.arrayToDataTable([
-	  ['Label', 'Value'],
-	  ['Accuracy', 3],
-	]);
-	
-	var Suspicion_data = google.visualization.arrayToDataTable([
-	  ['Label', 'Value'],
-	  ['Suspicion', 6],
-	]);
-	
-	var Accuracy_options = {
-	  width: 180, height: 180,
-	  greenFrom: 2.5, greenTo: 3,
-	  yellowFrom:1.5, yellowTo: 2.5,
-	  redFrom: 0, redTo: 1.5,
-	  majorTicks: ['','','','','','','','','',''],
-	  minorTicks: 0,
-	  max: 3
-	};
-	
-	var Suspicion_options = {
-	  width: 180, height: 180,
-	  greenFrom: 0, greenTo: 5,
-	  yellowFrom:5, yellowTo: 8,
-	  redFrom: 8, redTo: 10,
-	  majorTicks: ['','','','','','','','','','',''],
-	  minorTicks: 0,
-	  max: 10
-	};
-	
-	Accuracy_gauge.draw(Accuracy_data, Accuracy_options);
-	Suspicion_gague.draw(Suspicion_data, Suspicion_options);
-	Accuracy_gauge.draw(Accuracy_data, Accuracy_options);
-	Suspicion_gague.draw(Suspicion_data, Suspicion_options);
+	vis_accuracy_g = new google.visualization.Gauge(document.getElementById('accuracy_gauge'));
+	vis_suspicion_g = new google.visualization.Gauge(document.getElementById('suspicion_gauge'));
+
+	vis_accuracy_g.draw(Accuracy_data, Accuracy_options);
+	vis_suspicion_g.draw(Suspicion_data, Suspicion_options);
 }
 
-google.setOnLoadCallback(LoadGauges);
+google.setOnLoadCallback(Draw_Gauges(1,8));
 
+<?php if(isset($player_info["accuracy"]) )
+{ 
+
+?>//google.setOnLoadCallback(Draw_Gauges(<?php echo $player_info["accuracy"]; ?>,8));<?php
+/*	switch($player_info["accuracy"])
+	{
+		case "high": ?>
+			google.setOnLoadCallback(A_Gauge_Set(3));
+	  <?php break;
+		case "med": ?>
+			google.setOnLoadCallback(A_Gauge_Set(2));
+	  <?php break;
+		case "low": ?>
+			google.setOnLoadCallback(A_Gauge_Set(1));
+	  <?php break;
+		case "none": ?>
+			google.setOnLoadCallback(A_Gauge_Set(0));
+	  <?php break;
+		default:
+			break;
+	}*/
+} ?>
 
 </script>
 
@@ -620,7 +603,7 @@ google.setOnLoadCallback(LoadGauges);
             <td><a href="xray.php" target="_self"><img src="img/null15.gif" alt="" width="500" height="80" hspace="0" vspace="0" border="0" /></a></td>
             <td align="right"><table width="100%" border="0">
               <tr>
-                <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>ADMIN IP OVERRIDE";} ?><br />
+                <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>IP Failsafe Login";} ?><br />
                   </strong>
                   <form id="logoutform" name="logoutform" method="post" action="xray.php">
                     <strong>
@@ -746,7 +729,7 @@ google.setOnLoadCallback(LoadGauges);
             <td><a href="xray.php" target="_self"><img src="img/null15.gif" alt="" width="500" height="80" hspace="0" vspace="0" border="0" /></a></td>
             <td align="right"><table width="100%" border="0">
               <tr>
-                <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>ADMIN IP OVERRIDE";} ?><br />
+                <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>IP Failsafe Login";} ?><br />
                 </strong>
                   <form id="logoutform" name="logoutform" method="post" action="xray.php">
                     <strong>
@@ -1043,48 +1026,122 @@ google.setOnLoadCallback(LoadGauges);
                       <tr>
                         <td><table width="100%" border="0">
                           <tr>
-                            <td><div id="accuracy_gauge" style="width: 600px; height: 300px;"></div><BR />
-                            <div id="suspicion_gauge" style="width: 600px; height: 300px;"></div></td>
+                            <td><table width="100%" border="0" class="borderblack_greybg_dark_thin ui-corner-all">
+                              <tr>
+                                <td><div id="accuracy_gauge" style="width: 180px; height: 180px;"></div></td>
+                                <td><table width="100%" border="0">
+                                  <?php if(isset($player_info["accuracy"]) )
+								  { ?>
+                                  <tr>
+                                    <td><?php
+                                	switch($player_info["accuracy"])
+									{
+										case "3": ?>
+										<div class="ui-widget-content ui-corner-all" style="padding: 10">
+											<div style="float:left" class="ui-icon ui-icon-info"></div>
+                                            <img src="img/null15.gif" width="15" height="15" />
+                                          The information about this player is almost certainly accurate.
+										</div>
+                                      <?php break;
+										case "2": ?>
+										<div class="ui-widget-content ui-corner-all" style="padding: 10; float:left">
+											<div style="float:left" class="ui-icon ui-icon-info"></div>
+                                            <img src="img/null15.gif" width="15" height="15" />
+                                            The information about this player is probably accurate.
+										</div>
+                                      <?php break;
+										case "1": ?>
+										<div class="ui-widget-content ui-corner-all" style="padding: 10">
+											<div style="float:left" class="ui-icon ui-icon-info"></div>
+                                            <img src="img/null15.gif" width="15" height="15" />
+                                          This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate.
+										</div>
+                                      <?php break;
+										case "0": ?>
+										<div class="ui-widget-content ui-corner-all" style="padding: 10">
+											<div style="float:left" class="ui-icon ui-icon-info"></div>
+                                            <img src="img/null15.gif" width="15" height="15" />
+                                          This user does not have enough mining data to come to any conclusions.
+										</div>
+                                      <?php break;
+										default: ?>
+										<div class="ui-state-error ui-corner-all" style="padding: 10">
+											<div style="float:left" class="ui-icon ui-icon-info"></div>
+                                            <img src="img/null15.gif" width="15" height="15" />
+                                          ERROR: Accuracy value undefined
+										</div>
+                                      <?php break;
+									}?></td>
+                                    </tr>
+                                  <?php } ?>
+                                  </table></td>
+                                </tr>
+                              </table></td>
                           </tr>
                           <tr>
-                            <td><table width="100%" border="0">
-                   	<?php if(isset($player_info["traits"]) && count($player_info["traits"])>0){ foreach($player_info["traits"] as $trait_index => $trait_item)
-						  { ?>
+                            <td><table width="100%" border="0" class="borderblack_greybg_dark_thin ui-corner-all">
                               <tr>
-                                <td><?php
+                                <td>
+                                  <div id="suspicion_gauge" style="width: 180px; height: 180px;"></div>
+                                  </td>
+                                <td><table width="100%" border="0">
+                                  <tr>
+                                    <td>
+                                      <?php if(isset($player_info["traits"]) && count($player_info["traits"])>0){ foreach($player_info["traits"] as $trait_index => $trait_item)
+						 			 { ?>
+                                      <table width="100%" border="0">
+                                        <tr>
+                                          <td><?php
                                 	switch($trait_item["type"])
 									{
-										case "disclaimer": ?><img src="img/report.png" width="15" height="15" alt="Disclaimer" /><?php break;
-										case "bad": ?><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /><?php break;
-										case "neutral": ?><img src="img/grey.png" width="15" height="15" alt="Neutral Attribute" /><?php break;
-										case "good": ?><img src="img/add.png" width="15" height="15" alt="Good Attribute" /><?php break;
-										default: ?><img src="img/null15.png" width="15" height="15" alt="Undefined Attribute" /><?php break;
-									}?>
-                                </td>
-                                <td><strong><?php echo $trait_item["message"];?></strong></td>
-                              </tr>
-                    <?php } } ?>
-                            </table></td>
+										case "disclaimer": ?>
+                                            <div class="ui-widget-content ui-corner-all xray-dark" style="padding: 10">
+                                              <div style="float:left" class="ui-icon ui-icon-info"></div>
+                                              <img src="img/null15.gif" width="15" height="15" />
+                                              <strong><?php echo $trait_item["message"];?></strong>
+                                              </div>
+                                            <?php break;
+										case "bad": ?>
+                                            <div class="ui-state-error ui-corner-all" style="padding: 10">
+                                              <div style="float:left" class="ui-icon ui-icon-info"></div>
+                                              <img src="img/null15.gif" width="15" height="15" />
+                                              <strong><?php echo $trait_item["message"];?></strong>
+                                              </div>
+                                            <?php break;
+										case "neutral": ?>
+                                            <div class="ui-widget-content ui-corner-all" style="padding: 10">
+                                              <div style="float:left" class="ui-icon ui-icon-info"></div>
+                                              <img src="img/null15.gif" width="15" height="15" />
+                                              <strong><?php echo $trait_item["message"];?></strong>
+                                              </div>
+                                            <?php break;
+										case "good": ?>
+                                            <div class="ui-state-highlight ui-corner-all" style="padding: 10">
+                                              <div style="float:left" class="ui-icon ui-icon-info"></div>
+                                              <img src="img/null15.gif" width="15" height="15" />
+                                              <strong><?php echo $trait_item["message"];?></strong>
+                                              </div>
+                                            <?php break;
+										default: ?>
+                                            <div class="ui-widget-content ui-corner-all" style="padding: 10">
+                                              <div style="float:left" class="ui-icon ui-icon-info"></div>
+                                              <img src="img/null15.gif" width="15" height="15" />
+                                              <strong><?php echo $trait_item["message"];?></strong>
+                                              </div>
+                                            <?php break;
+									}?></td>
+                                          <td></td>
+                                          </tr>
+                                        <?php } ?>
+                                        </table>
+                                      <?php } ?>
+                                      </td>
+                                    </tr>
+                                  </table></td>
+                                </tr>
+                              </table></td>
                           </tr>
-                        </table>
-                          <table width="100%" border="0">
-                          <tr>
-                            <td width="11%"><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                            <td width="89%">User often  stops mining nearby after finding ores.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
-                            <td>User continues mining nearby after finding ores.</td>
-                          </tr>
-                          <tr>
-                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
-                            <td>User frequently mines only ores that are visible. This could suggest an x-ray texture pack, but could also simply indicate a preference to mine in exposed caverns.</td>
-                          </tr>
-                          <tr>
-                            <td>&nbsp;</td>
-                            <td>&nbsp;</td>
-                          </tr>
-                        </table></td>
+                          </table></td>
                       </tr>
                     </table></td>
                     </tr>
@@ -1407,10 +1464,7 @@ for ($col = 0; $col <= 10 ; $col++)
       </table>
     <?php } ?></td>
 </tr>
-</table></td>
-  </tr>
 </table>
 <br />
-<p>
   <?php } ?>
 </body>
