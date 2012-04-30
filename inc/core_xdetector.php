@@ -1424,6 +1424,7 @@ function Array_Apply_ColorMap(&$input_array, $column_uses_template, $summary_col
 			$dataset_row["color_avg"] = -3;
 			$dataset_row["color_avg_top2"] = -3;
 		}
+		
 	}
 	
 	//echo "COLOR MAPS: "; print_r($colormap_list); echo "<BR><BR>";
@@ -1440,98 +1441,140 @@ function Calc_Playerinfo_SuspicionLevel(&$playerinfo_array)
 		if($dataset_row["total_stone"]>=1500 && $dataset_row["total_clusters"]>=20)
 		{
 			$info_array["accuracy"] = "high";
-			//array_push($info_array,array("type"=>"disclaimer","message"=>"The information about this player is almost certainly accurate."));
+			//array_push($info_array,array("type"=>"disclaimer","trait"=>"TRAITNAME","message"=>"The information about this player is almost certainly accurate."));
 		}
 		elseif($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
 		{
 			$info_array["accuracy"] = "med";
-			//array_push($info_array,array("type"=>"disclaimer","message"=>"The information about this player is probably accurate."));
+			//array_push($info_array,array("type"=>"disclaimer","trait"=>"TRAITNAME","message"=>"The information about this player is probably accurate."));
 		}
 		elseif($dataset_row["total_stone"]>=300 && $dataset_row["total_clusters"]>=2)
 		{
 			$info_array["accuracy"] = "low";
-			//array_push($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate."));
+			//array_push($info_array,array("type"=>"disclaimer","trait"=>"TRAITNAME","message"=>"This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate."));
 		}
 		else
 		{
 			$info_array["accuracy"] = "none";
-			//array_push($info_array,array("type"=>"disclaimer","message"=>"This user does not have enough mining data to come to any conclusions."));
+			//array_push($info_array,array("type"=>"disclaimer","trait"=>"TRAITNAME","message"=>"This user does not have enough mining data to come to any conclusions."));
 		}
 
 		$dataset_row["color_method_A"] = min( 10, round( (	
-											( max($dataset_row["color_max_ratio_diamond"], $dataset_row["color_max_ratio_gold"]) * 5)
+											( max($dataset_row["color_max_ratio_diamond"], $dataset_row["color_max_ratio_gold"]) * 6)
 										+ 	($dataset_row["color_max_ratio_lapis"] * 2)
 										+ 	($dataset_row["color_max_ratio_mossy"] * 1)
 										+ 	($dataset_row["color_max_ratio_iron"] * 1)
+										+ 	($dataset_row["color_avg_slope_before_neg"] * 2)
 										 ) / 7, 0));
-		if($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
+			
+		/*							 
+		if($dataset_row["total_stone"]>=1500 && $dataset_row["total_clusters"]>=20)
 		{
-			if($dataset_row["color_max_ratio_diamond"]>=9)
-				{ 
-				array_push($info_array["trait"],"diamond_extreme"); }
-				//array_push($info_array,array("type"=>"bad","message"=>"User's Diamond ratio is extremely high.")); }
-			elseif($dataset_row["color_max_ratio_diamond"]>=6)
-				{ 
-				array_push($info_array["trait"],"diamond_high"); }
-				//array_push($info_array,array("type"=>"neutral","message"=>"User's Diamond ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
-			else
-				{ 
-				array_push($info_array["trait"],"diamond_normal"); }
-				//array_push($info_array,array("type"=>"good","message"=>"User's Diamond ratio is normal.")); }
-				
-			if($dataset_row["color_max_ratio_lapis"]>=9)
-				{ 
-				array_push($info_array["trait"],"lapis_extreme"); }
-				//array_push($info_array,array("type"=>"bad","message"=>"User's Lapis ratio is extremely high.")); }
-			elseif($dataset_row["color_max_ratio_lapis"]>=6)
-				{ 
-				array_push($info_array["trait"],"lapis_high"); }
-				//array_push($info_array,array("type"=>"neutral","message"=>"User's Lapis ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
-			else
-				{ 
-				array_push($info_array["trait"],"lapis_normal"); }
-				//array_push($info_array,array("type"=>"good","message"=>"User's Lapis ratio is normal.")); }
-				
-			if($dataset_row["color_max_ratio_gold"]>=9)
-				{ 
-				array_push($info_array["trait"],"gold_extreme"); }
-				//array_push($info_array,array("type"=>"bad","message"=>"User's Gold ratio is extremely high")); }
-			elseif($dataset_row["color_max_ratio_gold"]>=6)
-				{ 
-				array_push($info_array["trait"],"gold_high"); }
-				//array_push($info_array,array("type"=>"neutral","message"=>"User's Gold ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
-			else
-				{ 
-				array_push($info_array["trait"],"gold_normal"); }
-				//array_push($info_array,array("type"=>"good","message"=>"User's Gold ratio is normal.")); }
-			
-			if($dataset_row["color_max_ratio_mossy"]>=9)
-				{ 
-				array_push($info_array["trait"],"mossy_extreme"); }
-				//array_push($info_array,array("type"=>"bad","message"=>"User's Mossy ratio is extremely high.")); }
-			elseif($dataset_row["color_max_ratio_mossy"]>=6)
-				{ 
-				array_push($info_array["trait"],"mossy_high"); }
-				//array_push($info_array,array("type"=>"neutral","message"=>"User's Mossy ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
-			else
-				{ 
-				array_push($info_array["trait"],"mossy_normal"); }
-				//array_push($info_array,array("type"=>"good","message"=>"User's Mossy ratio is normal.")); }
-			
-			if($dataset_row["color_max_ratio_iron"]>=9)
-				{ 
-				array_push($info_array["trait"],"iron_extreme"); }
-				//array_push($info_array,array("type"=>"bad","message"=>"User's Iron ratio is extremely high.")); }
-			elseif($dataset_row["color_max_ratio_iron"]>=6)
-				{ 
-				array_push($info_array["trait"],"iron_high"); }
-				//array_push($info_array,array("type"=>"neutral","message"=>"User's Iron ratio is unusually high, but this alone does not necessarily prove use of X-Ray.")); }
-			else
-				{ 
-				array_push($info_array["trait"],"iron_normal"); }
-				//array_push($info_array,array("type"=>"good","message"=>"User's Iron ratio is normal.")); }
+			if($dataset_row["color_"
+			$dataset_row["color_method_A"] = ;
+		}
+		elseif($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
+		{
 
 		}
+		elseif($dataset_row["total_stone"]>=300 && $dataset_row["total_clusters"]>=2)
+		{
+
+		}
+		else
+		{
+
+		}
+		*/
+
+		$info_array["traits"]=array();
+		if($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
+		{
+			// Diamond ratio
+			if($dataset_row["color_max_ratio_diamond"]>=9)
+			{ 
+				array_push($info_array["traits"],array("type"=>"bad","trait"=>"diamond_extreme","message"=>"User's Diamond ratio is extremely high."));
+			}
+			elseif($dataset_row["color_max_ratio_diamond"]>=6)
+			{ 
+				array_push($info_array["traits"],array("type"=>"neutral","trait"=>"diamond_high","message"=>"User's Diamond ratio is unusually high, but this alone does not necessarily prove use of X-Ray."));
+			}
+			else
+			{ 
+				array_push($info_array["traits"],array("type"=>"good","trait"=>"diamond_normal","message"=>"User's Diamond ratio is normal."));
+			}
+				
+			// Lapis ratio
+			if($dataset_row["color_max_ratio_lapis"]>=9)
+			{ 
+				array_push($info_array["traits"],array("type"=>"bad","trait"=>"lapis_extreme","message"=>"User's Lapis ratio is extremely high."));
+			}
+			elseif($dataset_row["color_max_ratio_lapis"]>=6)
+			{ 
+				array_push($info_array["traits"],array("type"=>"neutral","trait"=>"lapis_high","message"=>"User's Lapis ratio is unusually high, but this alone does not necessarily prove use of X-Ray."));
+			}
+			else
+			{ 
+				array_push($info_array["traits"],array("type"=>"good","trait"=>"lapis_normal","message"=>"User's Lapis ratio is normal."));
+			}
+				
+			// Gold Ratio
+			if($dataset_row["color_max_ratio_gold"]>=9)
+			{ 
+				array_push($info_array["traits"],array("type"=>"bad","trait"=>"gold_extreme","message"=>"User's Gold ratio is extremely high"));
+			}
+			elseif($dataset_row["color_max_ratio_gold"]>=6)
+			{ 
+				array_push($info_array["traits"],array("type"=>"neutral","trait"=>"gold_high","message"=>"User's Gold ratio is unusually high, but this alone does not necessarily prove use of X-Ray."));
+			}
+			else
+			{ 
+				array_push($info_array["traits"],array("type"=>"good","trait"=>"gold_normal","message"=>"User's Gold ratio is normal."));
+			}
+			
+			// Mossy ratio
+			if($dataset_row["color_max_ratio_mossy"]>=9)
+			{ 
+				array_push($info_array["traits"],array("type"=>"bad","trait"=>"mossy_extreme","message"=>"User's Mossy ratio is extremely high."));
+			}
+			elseif($dataset_row["color_max_ratio_mossy"]>=6)
+			{ 
+				array_push($info_array["traits"],array("type"=>"neutral","trait"=>"mossy_high","message"=>"User's Mossy ratio is unusually high, but this alone does not necessarily prove use of X-Ray."));
+			}
+			else
+			{ 
+				array_push($info_array["traits"],array("type"=>"good","trait"=>"mossy_normal","message"=>"User's Mossy ratio is normal."));
+			}
+			
+			// Iron ratio
+			if($dataset_row["color_max_ratio_iron"]>=9)
+			{ 
+				array_push($info_array["traits"],array("type"=>"bad","trait"=>"iron_extreme","message"=>"User's Iron ratio is extremely high."));
+			}
+			elseif($dataset_row["color_max_ratio_iron"]>=6)
+			{ 
+				array_push($info_array["traits"],array("type"=>"neutral","trait"=>"iron_high","message"=>"User's Iron ratio is unusually high, but this alone does not necessarily prove use of X-Ray."));
+			}
+			else
+			{ 
+				array_push($info_array["traits"],array("type"=>"good","trait"=>"iron_normal","message"=>"User's Iron ratio is normal."));
+			}
+			
+			// First block ore
+			if( max($dataset_row["max_ratio_diamond"],$dataset_row["max_ratio_gold"]) >= 4) // Ignore high FBO ratio if diamond and gold ratio are normal
+			{
+				if( $dataset_row["color_ratio_first_block_ore"] > 4 )
+				{
+					array_push($info_array["traits"],array("type"=>"bad","trait"=>"fbo_high","message"=>"User frequently mines only ores that are already visible. This could suggest an x-ray texture pack, but could also simply indicate a preference to mine in exposed caverns."));
+				}
+				elseif( $dataset_row["color_ratio_first_block_ore"] > 7 )
+				{
+					array_push($info_array["traits"],array("type"=>"bad","trait"=>"fbo_extreme","message"=>"User almost exclusively mines ores that are already visible. This could suggest an x-ray texture pack, but could also simply indicate a preference to mine in exposed caverns."));
+				}
+			}
+
+		}
+		
 							 
 /*
 Bad Attribute 	
@@ -1570,7 +1613,7 @@ Bad Attribute 	User frequently mines only ores that are visible. This could sugg
 
 
 	}
-	//print_r($info_array);
+	print_r($info_array);
 	return $info_array;
 }
 
