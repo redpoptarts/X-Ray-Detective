@@ -1440,22 +1440,22 @@ function Calc_Playerinfo_SuspicionLevel(&$playerinfo_array)
 		
 		if($dataset_row["total_stone"]>=1500 && $dataset_row["total_clusters"]>=20)
 		{
-			$info_array["accuracy"] = "high";
+			$info_array["accuracy"] = "3";
 			//array_push($info_array,array("type"=>"disclaimer","trait"=>"TRAITNAME","message"=>"The information about this player is almost certainly accurate."));
 		}
 		elseif($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
 		{
-			$info_array["accuracy"] = "med";
+			$info_array["accuracy"] = "2";
 			//array_push($info_array,array("type"=>"disclaimer","trait"=>"TRAITNAME","message"=>"The information about this player is probably accurate."));
 		}
 		elseif($dataset_row["total_stone"]>=300 && $dataset_row["total_clusters"]>=2)
 		{
-			$info_array["accuracy"] = "low";
+			$info_array["accuracy"] = "1";
 			//array_push($info_array,array("type"=>"disclaimer","trait"=>"TRAITNAME","message"=>"This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate."));
 		}
 		else
 		{
-			$info_array["accuracy"] = "none";
+			$info_array["accuracy"] = "0";
 			//array_push($info_array,array("type"=>"disclaimer","trait"=>"TRAITNAME","message"=>"This user does not have enough mining data to come to any conclusions."));
 		}
 
