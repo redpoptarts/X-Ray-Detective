@@ -979,7 +979,7 @@ google.setOnLoadCallback(Draw_Gauges(1,8));
                     <tr>
                       <td><table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
                         <tr>
-                          <td><s><strong>Punishment Status</strong></s></td>
+                          <td><strong>Punishment Status</strong></td>
                           <td><select name="playerstatus" id="playerstatus">
                             <option value="0" selected="selected">Normal</option>
                             <option value="1">Warned</option>
@@ -989,7 +989,7 @@ google.setOnLoadCallback(Draw_Gauges(1,8));
                             </select></td>
                           </tr>
                         <tr>
-                          <td><s><strong>Watching</strong></s></td>
+                          <td><strong>Watching</strong></td>
                           <td><label for="watchingplayer"></label>
                             <select name="watchingplayer" id="watchingplayer">
                               <option value="0">Hide User</option>
@@ -1051,22 +1051,22 @@ google.setOnLoadCallback(Draw_Gauges(1,8));
 										</div>
                                       <?php break;
 										case "1": ?>
-										<div class="ui-widget-content ui-corner-all" style="padding: 10">
-											<div style="float:left" class="ui-icon ui-icon-info"></div>
+										<div class="ui-state-error ui-corner-all" style="padding: 10">
+											<div style="float:left" class="ui-icon ui-icon-alert"></div>
                                             <img src="img/null15.gif" width="15" height="15" />
                                           This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate.
 										</div>
                                       <?php break;
 										case "0": ?>
-										<div class="ui-widget-content ui-corner-all" style="padding: 10">
-											<div style="float:left" class="ui-icon ui-icon-info"></div>
+										<div class="ui-state-error ui-corner-all" style="padding: 10">
+											<div style="float:left" class="ui-icon ui-icon-alert"></div>
                                             <img src="img/null15.gif" width="15" height="15" />
                                           This user does not have enough mining data to come to any conclusions.
 										</div>
                                       <?php break;
 										default: ?>
 										<div class="ui-state-error ui-corner-all" style="padding: 10">
-											<div style="float:left" class="ui-icon ui-icon-info"></div>
+											<div style="float:left" class="ui-icon ui-icon-alert"></div>
                                             <img src="img/null15.gif" width="15" height="15" />
                                           ERROR: Accuracy value undefined
 										</div>
@@ -1117,7 +1117,7 @@ google.setOnLoadCallback(Draw_Gauges(1,8));
                                             <?php break;
 										case "good": ?>
                                             <div class="ui-state-highlight ui-corner-all" style="padding: 10">
-                                              <div style="float:left" class="ui-icon ui-icon-info"></div>
+                                              <div style="float:left" class="ui-icon ui-icon-plus"></div>
                                               <img src="img/null15.gif" width="15" height="15" />
                                               <strong><?php echo $trait_item["message"];?></strong>
                                               </div>
@@ -1164,12 +1164,8 @@ google.setOnLoadCallback(Draw_Gauges(1,8));
                     <td>
                       <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
                         <tr>
-                          <th width="22%" align="right" scope="row"><s>Location</s></th>
-                          <td width="78%">Future Feature</td>
-                        </tr>
-                        <tr>
-                          <th align="right" scope="row">IP Address</th>
-                          <td><?php ?></td>
+                          <th width="22%" align="right" scope="row">IP Address</th>
+                          <td width="78%"><?php echo $player_info["ip"];?></td>
                         </tr>
                         <tr>
                           <th align="right" scope="row">Join Date</th>
