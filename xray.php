@@ -32,7 +32,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		case 56: $sortby_column_name = "diamond_ratio"; break;
 		case 25: $sortby_column_name = "lapis_ratio"; break;
 		case 14: $sortby_column_name = "gold_ratio"; break;
-		case 48: $sortby_column_name = "moss_ratioy"; break;
+		case 48: $sortby_column_name = "mossy_ratio"; break;
 		case 15: $sortby_column_name = "iron_ratio"; break;
 		default: $sortby_column_name = "invalid"; break;
 	}
@@ -323,6 +323,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 <script type="text/javascript" src="styles/ui/jquery.ui.accordion.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.tabs.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.mouse.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.slider.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.button.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.draggable.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.position.js"></script>
@@ -333,21 +334,39 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 <script type="text/javascript" src="styles/ui/jquery.effects.blind.js"></script>
 <script type="text/javascript" src="inc/jquery.form.js"></script>
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-	<style type="text/css">
+<script type="text/javascript">
+$(function(){
+	$('.ui-state-default').hover(
+		function(){ $(this).addClass('ui-state-hover'); }, 
+		function(){ $(this).removeClass('ui-state-hover'); }
+	);
+	$('.ui-state-default').click(function(){ $(this).toggleClass('ui-state-active'); });
+	$('.icons').append(' <a href="#">Toggle text</a>').find('a').click(function(){ $('.icon-collection li span.text').toggle(); return false; }).trigger('click');
+	$( "#tabs" ).tabs();
 
-	</style>
 
-	<script type="text/javascript">
-		$(function(){
-			$('.ui-state-default').hover(
-				function(){ $(this).addClass('ui-state-hover'); }, 
-				function(){ $(this).removeClass('ui-state-hover'); }
-			);
-			$('.ui-state-default').click(function(){ $(this).toggleClass('ui-state-active'); });
-			$('.icons').append(' <a href="#">Toggle text</a>').find('a').click(function(){ $('.icon-collection li span.text').toggle(); return false; }).trigger('click');
-			$( "#tabs" ).tabs();
-		});
-	</script>
+	$( "#stone_threshold_slider" ).slider({
+		value:500,
+		min: 0,
+		max: 1500,
+		step: 100,
+		slide: function( event, ui ) {
+			$( "#amount" ).val( ui.value );
+		}
+	});
+	//alert($( "#stone_threshold_slider" ).slider( "value" ) );
+
+///	$( "#amount" ).val( $( "#stone_threshold_slider" ).slider( "value" ) );
+	$( "#amount" ).innerHTML = $( "#stone_threshold_slider" ).slider( "value" );
+	//document.getElementById("amount").innerHTML = $( "#stone_threshold_slider" ).slider( "value" );
+	//document.getElementById("amount").innerHTML = "Check Connection!";
+
+
+//	$( "#logging_radio" ).buttonset();
+	$( "#sort_by_radio" ).buttonset();
+	$( "#worldid_radio" ).buttonset();
+});
+</script>
 <script type="text/javascript">
   google.load('visualization', '1', {packages: ['gauge']});
 </script>
@@ -807,7 +826,10 @@ google.setOnLoadCallback(Draw_Gauges(1,8));
               <tr>
                 <td><table width="100%" border="0">
                   <tr>
-                      <td><strong>Block Type</strong></td>
+                      <td><strong>Block Type
+                        <input name="form" type="hidden" id="form" value="form_Get_Ratios_ByWorldID" />
+                        <input name="command" type="hidden" id="command" value="xtoplist" />
+                      </strong></td>
                       <td><select name="block_type" id="block_type">
                         <option value="56"<?php if($block_type=="56"){echo " selected";}?>>Diamonds</option>
                         <option value="25"<?php if($block_type=="25"){echo " selected";}?>>Lapis</option>
@@ -815,9 +837,7 @@ google.setOnLoadCallback(Draw_Gauges(1,8));
                         <option value="48"<?php if($block_type=="48"){echo " selected";}?>>Mossy</option>
                         <option value="15"<?php if($block_type=="15"){echo " selected";}?>>Iron</option>
                       </select>
-                        <input type="submit" name="top_go" id="top_go" value="Go" />
-                        <input name="form" type="hidden" id="form" value="form_Get_Ratios_ByWorldID" />
-                        <input name="command" type="hidden" id="command" value="xtoplist" /></td>
+                        <input type="submit" name="top_go" id="top_go" value="Go" /></td>
                     </tr>
                     <tr>
                       <td><strong>World</strong></td>
@@ -841,6 +861,70 @@ google.setOnLoadCallback(Draw_Gauges(1,8));
                         </select>
                         <input type="submit" name="top_go" id="top_go" value="Go" />
                       </em></strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Number Of Results</strong></td>
+                      <td><select name="limit_results" id="limit_results">
+                        <option value="10"<?php if($limit_results=="10"){ echo " selected";}?>>10 Users</option>
+                        <option value="25"<?php if($limit_results=="25"||$limit_results==""){ echo " selected";}?>>25 Users</option>
+                        <option value="50"<?php if($limit_results=="50"){ echo " selected";}?>>50 Users</option>
+                        <option value="75"<?php if($limit_results=="75"){ echo " selected";}?>>75 Users</option>
+                        <option value="100"<?php if($limit_results=="100"){ echo " selected";}?>>100 Users</option>
+                        <option value="250"<?php if($limit_results=="250"){ echo " selected";}?>>250 Users</option>
+                        <option value="500"<?php if($limit_results=="500"){ echo " selected";}?>>500 Users</option>
+                        <option value="-1"<?php if($limit_results=="-1"){ echo " selected";}?>>All Users</option>
+                      </select>
+                        <input type="submit" name="top_go" id="top_go" value="Go" /></td>
+                    </tr>
+                    <?php 
+					// Feature currently hidden until future version
+					/*
+                    <tr>
+                      <td><s><strong>Hide Banned Users</strong></s></td>
+                      <td><input name="hide_banned" type="checkbox" id="hide_banned" value="1" />
+                        <input type="submit" name="top_go" id="top_go" value="Go" /></td>
+                    </tr>*/
+					?>
+                </table>
+                  <table width="100%" border="0">
+                    <tr>
+                      <td><strong>Block Type
+                        <input name="form" type="hidden" id="form" value="form_Get_Ratios_ByWorldID" />
+                        <input name="command" type="hidden" id="command" value="xtoplist" />
+                      </strong></td>
+                      <td><br />
+                        <div id="sort_by_radio"> <br />
+                          <input name="block_type" type="radio" id="block_type_radio1" value="56" <?php if($block_type=="56"){?> checked="checked"<?php }?> />
+                          <label for="block_type_radio1">Diamonds</label>
+                          <input name="block_type" type="radio" id="block_type_radio2" value="25" <?php if($block_type=="25"){?> checked="checked"<?php }?> />
+                          <label for="block_type_radio2">Lapis</label>
+                          <input name="block_type" type="radio" id="block_type_radio3" value="14" <?php if($block_type=="14"){?> checked="checked"<?php }?> />
+                          <label for="block_type_radio3">Gold</label>
+                          <input name="block_type" type="radio" id="block_type_radio4" value="48" <?php if($block_type=="48"){?> checked="checked"<?php }?> />
+                          <label for="block_type_radio4">Mossy</label>
+                          <input name="block_type" type="radio" id="block_type_radio5" value="15" <?php if($block_type=="15"){?> checked="checked"<?php }?> />
+                          <label for="block_type_radio5">Iron</label>
+                        </div></td>
+                    </tr>
+                    <tr>
+                      <td><strong>World</strong></td>
+                      <td>
+                      <div id="worldid_radio">
+                        <?php 
+						$radio_index = 1;
+						foreach($GLOBALS['worlds'] as $world_key => $world_item ){ ?>
+                          <input name="worldid" type="radio" id="worldid_radio<?php echo $radio_index;?>" value="<?php echo $world_item["worldid"]; ?>" <?php if($world_id==$world_item["worldid"]){?> checked="checked"<?php }?> />
+                          <label for="worldid_radio<?php echo $radio_index;?>"><?php echo $world_item["worldalias"]; ?></label>
+                        <?php $radio_index++;
+						} ?>
+                        </div></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Stone Threshold</strong></td>
+                      <td>
+                        <span id="amount" />500</span>
+						<label for="amount">Stone Broken</label>
+                        <div id="stone_threshold_slider"></div></td>
                     </tr>
                     <tr>
                       <td><strong>Number Of Results</strong></td>
