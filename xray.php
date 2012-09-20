@@ -368,11 +368,59 @@ $(function(){
 });
 </script>
 <script type="text/javascript">
-  google.load('visualization', '1', {packages: ['gauge']});
+  google.load('visualization', '1.1', {packages: ['gauge']});
 </script>
 <script type="text/javascript">
 
-function Draw_Gauges(A_Value, S_Value)
+function Draw_Gauges()
+{
+	var Accuracy_data = google.visualization.arrayToDataTable([
+	  ['Label', 'Value'],
+	  ['Accuracy', <?php echo $player_info["accuracy"]; ?>],
+	]);
+	
+	var Suspicion_data = google.visualization.arrayToDataTable([
+	  ['Label', 'Value'],
+	  ['Suspicion', <?php echo $player_info["suspicion"]; ?>],
+	]);
+	
+	// Create and populate the data table.
+	var Accuracy_options = {
+	  width: 180, height: 180,
+	  greenFrom: 2.5, greenTo: 3,
+	  yellowFrom:1.5, yellowTo: 2.5,
+	  redFrom: 0, redTo: 1.5,
+	  majorTicks: ['','','','','','','','','',''],
+	  minorTicks: 0,
+	  max: 3
+	};
+	
+	var Suspicion_options = {
+	  width: 180, height: 180,
+	  greenFrom: 0, greenTo: 5,
+	  yellowFrom:5, yellowTo: 8,
+	  redFrom: 8, redTo: 10,
+	  majorTicks: ['','','','','','','','','','',''],
+	  minorTicks: 0,
+	  max: 10
+	};
+	
+	// Create and draw the visualization.
+
+	vis_accuracy_g = new google.visualization.Gauge(document.getElementById('accuracy_gauge'));
+	vis_suspicion_g = new google.visualization.Gauge(document.getElementById('suspicion_gauge'));
+
+	vis_accuracy_g.draw(Accuracy_data, Accuracy_options);
+	vis_suspicion_g.draw(Suspicion_data, Suspicion_options);
+
+}
+
+google.setOnLoadCallback(Draw_Gauges);
+
+
+
+/*
+function Draw_Gauges
 {
 	var Accuracy_data = google.visualization.arrayToDataTable([
 	  ['Label', 'Value'],
@@ -404,41 +452,58 @@ function Draw_Gauges(A_Value, S_Value)
 	  minorTicks: 0,
 	  max: 10
 	};
+	
+	new google.visualization.Gauge(document.getElementById('accuracy_gauge')).draw(Accuracy_data, Accuracy_options);
+	//new google.visualization.Gauge(document.getElementById('suspicion_gauge')).draw(Suspicion_data, Suspicion_options);
+
+
+}*/
+
+//google.setOnLoadCallback(Draw_Gauges);
+/*
+function Draw_Gauges(){
+  // Create and populate the data table.
+  var Accuracy_data = google.visualization.arrayToDataTable([
+	['Label', 'Value'],
+	['Accuracy', 2],
+  ]);
   
-	// Create and draw the visualization.
+  var Accuracy_options = {
+	  width: 180, height: 180,
+	  greenFrom: 2.5, greenTo: 3,
+	  yellowFrom:1.5, yellowTo: 2.5,
+	  redFrom: 0, redTo: 1.5,
+	  majorTicks: ['','','','','','','','','',''],
+	  minorTicks: 0,
+	  max: 3
+  };
+  
+  var Suspicion_data = google.visualization.arrayToDataTable([
+	['Label', 'Value'],
+	['Suspicion', 6],
+  ]);
+  
+  var Suspicion_options = {
+	  width: 180, height: 180,
+	  greenFrom: 0, greenTo: 5,
+	  yellowFrom:5, yellowTo: 8,
+	  redFrom: 8, redTo: 10,
+	  majorTicks: ['','','','','','','','','','',''],
+	  minorTicks: 0,
+	  max: 10
+  };
 
-	vis_accuracy_g = new google.visualization.Gauge(document.getElementById('accuracy_gauge'));
-	vis_suspicion_g = new google.visualization.Gauge(document.getElementById('suspicion_gauge'));
 
-	vis_accuracy_g.draw(Accuracy_data, Accuracy_options);
-	vis_suspicion_g.draw(Suspicion_data, Suspicion_options);
+  // Create and draw the visualization.
+  new google.visualization.Gauge(document.getElementById('accuracy_gauge')).
+	  draw(Accuracy_data, Accuracy_options);
+  new google.visualization.Gauge(document.getElementById('suspicion_gauge')).
+	  draw(Suspicion_data, Suspicion_options);
 }
 
-google.setOnLoadCallback(Draw_Gauges(1,8));
+google.setOnLoadCallback(Draw_Gauges);
 
-<?php if(isset($player_info["accuracy"]) )
-{ 
-
-?>//google.setOnLoadCallback(Draw_Gauges(<?php echo $player_info["accuracy"]; ?>,8));<?php
-/*	switch($player_info["accuracy"])
-	{
-		case "high": ?>
-			google.setOnLoadCallback(A_Gauge_Set(3));
-	  <?php break;
-		case "med": ?>
-			google.setOnLoadCallback(A_Gauge_Set(2));
-	  <?php break;
-		case "low": ?>
-			google.setOnLoadCallback(A_Gauge_Set(1));
-	  <?php break;
-		case "none": ?>
-			google.setOnLoadCallback(A_Gauge_Set(0));
-	  <?php break;
-		default:
-			break;
-	}*/
-} ?>
-
+*/
 </script>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -813,6 +878,7 @@ google.setOnLoadCallback(Draw_Gauges(1,8));
         </table></td>
       </tr>
       <tr>
+<?php echo "player_info: "; print_r($player_info); ?>
         <td><?php if($command=="xtoplist"){ ?>
           <form id="Get_Ratios_ByWorldID_form" name="Get_Ratios_ByWorldID_form" method="post" action="xray.php">
             <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
@@ -1248,12 +1314,8 @@ google.setOnLoadCallback(Draw_Gauges(1,8));
                     <td>
                       <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
                         <tr>
-                          <th width="22%" align="right" scope="row">IP Address</th>
-                          <td width="78%"><?php echo $player_info["ip"];?></td>
-                        </tr>
-                        <tr>
-                          <th align="right" scope="row">Join Date</th>
-                          <td>&nbsp;</td>
+                          <th width="22%" align="right" scope="row">Join Date</th>
+                          <td width="78%">&nbsp;</td>
                         </tr>
                         <tr>
                           <th align="right" scope="row">Online Time</th>

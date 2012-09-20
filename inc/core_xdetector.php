@@ -1580,36 +1580,19 @@ function Calc_Playerinfo_SuspicionLevel(&$playerinfo_array)
 				{
 					array_push($info_array["traits"],array("type"=>"bad","trait"=>"fbo_extreme","message"=>"User almost exclusively mines ores that are already visible. This could suggest an x-ray texture pack, but could also simply indicate a preference to mine in exposed caverns."));
 				}
+				
+				if( $dataset_row["color_avg_slope_before_neg"] > 4 )
+				{
+					array_push($info_array["traits"],array("type"=>"bad","trait"=>"sbn_high","message"=>"User frequently mines at unusually steep angles before finding ores. This could suggest the user knows when to mine up/down to find ores."));
+				}
+				elseif( $dataset_row["color_avg_slope_before_neg"] > 7 )
+				{
+					array_push($info_array["traits"],array("type"=>"bad","trait"=>"sbn_extreme","message"=>"User frequently mines at unusually steep angles before finding ores. This could suggest the user knows when to mine up/down to find ores."));
+				}
 			}
 
 		}
-		
-							 
-/*
-Bad Attribute 	
-Bad Attribute 	
-Bad Attribute 	.
-Bad Attribute 	
-Bad Attribute 	
-Neutral Attribute 	
-Neutral Attribute 	
-Neutral Attribute 	
-Neutral Attribute 	
-Neutral Attribute 	
-Good Attribute 	
-Good Attribute 	
-Good Attribute 	
-Good Attribute 	
-Good Attribute 	
-Bad Attribute 	User often stops mining nearby after finding ores.
-Good Attribute 	User continues mining nearby after finding ores.
-Bad Attribute 	User frequently mines only ores that are visible. This could suggest an x-ray texture pack, but could also simply indicate a preference to mine in exposed caverns.
-*/									 
-										 
-										 
-		///////////
-		//$dataset_row[""];
-		
+			
 		if( max($dataset_row["max_ratio_diamond"],$dataset_row["max_ratio_gold"]) >= 6)
 		{
 			
@@ -1620,9 +1603,9 @@ Bad Attribute 	User frequently mines only ores that are visible. This could sugg
 			$dataset_row["color_method_B"] = max($dataset_row["max_ratio_diamond"],$dataset_row["max_ratio_gold"]);
 		}
 
-
+		$info_array["suspicion"] = $dataset_row["color_method_A"];
 	}
-	print_r($info_array);
+	//print_r($info_array);
 	return $info_array;
 }
 
