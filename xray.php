@@ -1402,7 +1402,9 @@ google.setOnLoadCallback(Draw_Gauges);
                         <td align="center">&nbsp;</td>
                       </tr>
                       <tr>
-                        <td align="center" class="bg_H_-3"><p>You have not yet analyzed this players mining behavior. Would you like to do that now?</p>
+                        <td align="center" class="bg_H_-3">
+                        <?php if(count($player_clusters_world) == 0){ ?>
+                          <p>You have not yet analyzed this players mining behavior. Would you like to do that now?</p>
                           <p>&nbsp;</p>
                           <form action="xray.php" method="post" name="form_startanalysis" target="_self" id="form_startanalysis">
                             <input name="form" type="hidden" id="form" value="form_analyze_mines_now" />
@@ -1410,7 +1412,8 @@ google.setOnLoadCallback(Draw_Gauges);
                             <input name="command" type="hidden" id="command" value="xanalyze" />
                             <input name="player" type="hidden" id="player" value="<?php echo $player_name;?>" />
                           </form>
-                          </p></td>
+                          </p>
+						  <?php } ?></td>
                       </tr>
                       <tr>
                         <td align="center">&nbsp;</td>
