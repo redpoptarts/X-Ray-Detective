@@ -126,9 +126,10 @@ if($_POST['form']!="")
 						}
 						/* print divider */
 						if (mysqli_more_results($multi_link)) {
-							//printf("-----------------\n");
+							//printf("-----------------\n");\
+							mysqli_next_result($multi_link);
 						}
-					} while (mysqli_next_result($multi_link));
+					} while (mysqli_more_results($multi_link));
 				}
 				
 				/* close connection */
