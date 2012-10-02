@@ -344,27 +344,39 @@ $(function(){
 	$('.icons').append(' <a href="#">Toggle text</a>').find('a').click(function(){ $('.icon-collection li span.text').toggle(); return false; }).trigger('click');
 	$( "#tabs" ).tabs();
 
-
-	$( "#stone_threshold_slider" ).slider({
-		value:500,
-		min: 0,
-		max: 1500,
-		step: 100,
-		slide: function( event, ui ) {
-			$( "#amount" ).val( ui.value );
-		}
+<?php $stone_threshold_options = array(0, 100, 250, 500, 750, 1000); $stone_threshold_default = 500; ?>
+	$(function() {
+		var valMap = [<?php echo implode(", ", $stone_threshold_options); ?>];
+		$("#stone_threshold_slider").slider({
+			min: 0,
+			max: valMap.length - 1,
+			value: <?php 
+				if(isset($_POST['stone_threshold']))
+				{
+					$stone_threshold_default = $_POST['stone_threshold'];
+				}
+				foreach($stone_threshold_options as $index => $item)
+				{
+					if($item == $stone_threshold_default){echo $index;}
+				}
+			?>,
+			slide: function(event, ui) {                        
+					$("#amount").val( valMap[ui.value] + " Stones");
+					$("#stone_threshold").val( valMap[ui.value] );
+			},
+			change: function(event, ui) { $( "#Get_Ratios_ByWorldID_form" ).submit(); },
+		});
+		$("#amount").val( valMap[$("#stone_threshold_slider").slider("value")] + " Stones");
 	});
-	//alert($( "#stone_threshold_slider" ).slider( "value" ) );
 
-///	$( "#amount" ).val( $( "#stone_threshold_slider" ).slider( "value" ) );
-	$( "#amount" ).innerHTML = $( "#stone_threshold_slider" ).slider( "value" );
-	//document.getElementById("amount").innerHTML = $( "#stone_threshold_slider" ).slider( "value" );
-	//document.getElementById("amount").innerHTML = "Check Connection!";
-
-
-//	$( "#logging_radio" ).buttonset();
 	$( "#sort_by_radio" ).buttonset();
 	$( "#worldid_radio" ).buttonset();
+	$( "#limit_results_radio" ).buttonset();
+	
+	$( "#sort_by_radio" ).change(function(){ $( "#Get_Ratios_ByWorldID_form" ).submit(); });
+	$( "#worldid_radio" ).change(function(){ $( "#Get_Ratios_ByWorldID_form" ).submit(); });
+	$( "#limit_results_radio" ).change(function(){ $( "#Get_Ratios_ByWorldID_form" ).submit(); });
+	
 });
 </script>
 <script type="text/javascript">
@@ -878,7 +890,10 @@ google.setOnLoadCallback(Draw_Gauges);
         </table></td>
       </tr>
       <tr>
-<?php echo "player_info: "; print_r($player_info); ?>
+<?php
+	/* echo "player_info: "; print_r($player_info); */
+	echo "POST: "; print_r($_POST);
+?>
         <td><?php if($command=="xtoplist"){ ?>
           <form id="Get_Ratios_ByWorldID_form" name="Get_Ratios_ByWorldID_form" method="post" action="xray.php">
             <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
@@ -890,7 +905,7 @@ google.setOnLoadCallback(Draw_Gauges);
                 </table></td>
               </tr>
               <tr>
-                <td><table width="100%" border="0">
+                <td><!--<table width="100%" border="0">
                   <tr>
                       <td><strong>Block Type
                         <input name="form" type="hidden" id="form" value="form_Get_Ratios_ByWorldID" />
@@ -951,15 +966,15 @@ google.setOnLoadCallback(Draw_Gauges);
                         <input type="submit" name="top_go" id="top_go" value="Go" /></td>
                     </tr>*/
 					?>
-                </table>
+                </table>-->
                   <table width="100%" border="0">
                     <tr>
-                      <td><strong>Block Type
+                      <td valign="middle"><strong>Block Type
                         <input name="form" type="hidden" id="form" value="form_Get_Ratios_ByWorldID" />
                         <input name="command" type="hidden" id="command" value="xtoplist" />
                       </strong></td>
                       <td><br />
-                        <div id="sort_by_radio"> <br />
+                        <div id="sort_by_radio" style="float: left; width: 80%;"> <br />
                           <input name="block_type" type="radio" id="block_type_radio1" value="56" <?php if($block_type=="56"){?> checked="checked"<?php }?> />
                           <label for="block_type_radio1">Diamonds</label>
                           <input name="block_type" type="radio" id="block_type_radio2" value="25" <?php if($block_type=="25"){?> checked="checked"<?php }?> />
@@ -970,10 +985,14 @@ google.setOnLoadCallback(Draw_Gauges);
                           <label for="block_type_radio4">Mossy</label>
                           <input name="block_type" type="radio" id="block_type_radio5" value="15" <?php if($block_type=="15"){?> checked="checked"<?php }?> />
                           <label for="block_type_radio5">Iron</label>
-                        </div></td>
+                      </div>
+                      <div style="float: right; width: 20%;">
+                      	test
+                      </div>
+                      </td>
                     </tr>
                     <tr>
-                      <td><strong>World</strong></td>
+                      <td valign="middle"><strong>World</strong></td>
                       <td>
                       <div id="worldid_radio">
                         <?php 
@@ -983,28 +1002,45 @@ google.setOnLoadCallback(Draw_Gauges);
                           <label for="worldid_radio<?php echo $radio_index;?>"><?php echo $world_item["worldalias"]; ?></label>
                         <?php $radio_index++;
 						} ?>
-                        </div></td>
+                      </div></td>
                     </tr>
                     <tr>
-                      <td><strong>Stone Threshold</strong></td>
+                      <td valign="middle"><strong>Stone Threshold</strong></td>
                       <td>
-                        <span id="amount" />500</span>
-						<label for="amount">Stone Broken</label>
-                        <div id="stone_threshold_slider"></div></td>
+                        <label for="amount" style="font-size: small; font-weight:bold; ">Stone Broken:</label>
+                        <input type="text" id="amount" style="border:0; color:#FFFFFF; background-color: transparent; font-weight:bold;" />
+                        <input type="hidden" name="stone_threshold" id="stone_threshold" value="1000"/>
+                        <div id="stone_threshold_slider"></div>
+                        <table width="100%" border="0">
+                          <tr>
+                            <td align="left"><span style="font-size: small; font-weight:bold; ">Less Accurate</span></td>
+                            <td align="right"><span style="font-size: small; font-weight:bold; ">More Accurate</span></td>
+                          </tr>
+                        </table>
+
+                      </td>
                     </tr>
                     <tr>
-                      <td><strong>Number Of Results</strong></td>
-                      <td><select name="limit_results" id="limit_results">
-                        <option value="10"<?php if($limit_results=="10"){ echo " selected";}?>>10 Users</option>
-                        <option value="25"<?php if($limit_results=="25"||$limit_results==""){ echo " selected";}?>>25 Users</option>
-                        <option value="50"<?php if($limit_results=="50"){ echo " selected";}?>>50 Users</option>
-                        <option value="75"<?php if($limit_results=="75"){ echo " selected";}?>>75 Users</option>
-                        <option value="100"<?php if($limit_results=="100"){ echo " selected";}?>>100 Users</option>
-                        <option value="250"<?php if($limit_results=="250"){ echo " selected";}?>>250 Users</option>
-                        <option value="500"<?php if($limit_results=="500"){ echo " selected";}?>>500 Users</option>
-                        <option value="-1"<?php if($limit_results=="-1"){ echo " selected";}?>>All Users</option>
-                      </select>
-                        <input type="submit" name="top_go" id="top_go" value="Go" /></td>
+                      <td valign="middle"><strong>Number Of Results</strong></td>
+                      <td>
+	                    <div id="limit_results_radio"> <br />
+                          <input name="limit_results" type="radio" id="limit_results_radio1" value="10" <?php if($limit_results=="10"){?> checked="checked"<?php }?> />
+                          <label for="limit_results_radio1">10</label>
+                          <input name="limit_results" type="radio" id="limit_results_radio2" value="25" <?php if($limit_results=="25"){?> checked="checked"<?php }?> />
+                          <label for="limit_results_radio2">25</label>
+                          <input name="limit_results" type="radio" id="limit_results_radio3" value="50" <?php if($limit_results=="50"){?> checked="checked"<?php }?> />
+                          <label for="limit_results_radio3">50</label>
+                          <input name="limit_results" type="radio" id="limit_results_radio4" value="75" <?php if($limit_results=="75"){?> checked="checked"<?php }?> />
+                          <label for="limit_results_radio4">75</label>
+                          <input name="limit_results" type="radio" id="limit_results_radio5" value="100" <?php if($limit_results=="100"){?> checked="checked"<?php }?> />
+                          <label for="limit_results_radio5">100</label>
+                          <input name="limit_results" type="radio" id="limit_results_radio6" value="250" <?php if($limit_results=="250"){?> checked="checked"<?php }?> />
+                          <label for="limit_results_radio6">250</label>
+                          <input name="limit_results" type="radio" id="limit_results_radio7" value="500" <?php if($limit_results=="500"){?> checked="checked"<?php }?> />
+                          <label for="limit_results_radio7">500</label>
+                          <input name="limit_results" type="radio" id="limit_results_radio8" value="-1" <?php if($limit_results=="-1"){?> checked="checked"<?php }?> />
+                          <label for="limit_results_radio8">All Users</label>
+                      </div></td>
                     </tr>
                     <?php 
 					// Feature currently hidden until future version
