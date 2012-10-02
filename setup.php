@@ -312,7 +312,7 @@ if($_POST['form']!="")
 			$outfile_ok = Save_Config_Settings();
 			if($outfile_ok)
 			{
-				$_SESSION['first_setup'] = false; session_unset(); Do_Auth(true);
+				$_SESSION['first_setup'] = false; session_unset(); session_destroy(); Do_Auth(true);
 				$config_success .= "<BR><BR>SETUP COMPLETE: You have successfully configured X-Ray Detective.<BR>";
 			}
 			else
