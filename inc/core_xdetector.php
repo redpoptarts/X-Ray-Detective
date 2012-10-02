@@ -314,7 +314,7 @@ function Get_Ratios_ByWorldID($world_id, $limit_results, &$block_type, &$stone_t
 
 function Update_Stats_RatioTotals()
 {
-	$sql_Update_Stats_RatioTotals = file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']). "/inc/sql/update_totals.sql");
+	$sql_Update_Stats_RatioTotals = file_get_contents(dirname(__FILE__). "/sql/update_totals.sql");
 	//echo "SQL QUERY: <BR>" . $sql_Update_Stats_RatioTotals . "<BR>";
 	return $res_Update_Stats_RatioTotals = mysql_query($sql_Update_Stats_RatioTotals) or die("Update_Stats_RatioTotals: " . mysql_error());
 }

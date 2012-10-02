@@ -45,6 +45,8 @@ function Add_NewBreaks()
 		$sql_getdate .= "     AND type = 0";
 	}
 
+	$return_updated = 0;
+
 	//echo "SQL_QUERY: <br>". $sql_getdate . "<br>";
 	$res_getdate = mysql_query($sql_getdate) or die("World-LatestBreakDate: " . mysql_error());
 	while(($LatestDateArray[] = mysql_fetch_assoc($res_getdate)) || array_pop($LatestDateArray));
@@ -133,9 +135,12 @@ function Add_NewBreaks()
 				//echo "SQL_QUERY: <br>". $sql_setdate . "<br>";
 				$res_setdate = mysql_query($sql_setdate) or die("SetDate([".$world_item["worldalias"]."] => '".$latest_break_date."'): " . mysql_error() . " SQL: [$sql_setdate]");
 			}
+			
+			$return_updated += $stats_sql["records"];
 		}
 	}
 	Update_Stats_RatioTotals();
+	return $return_updated;
 }
 
 ?>

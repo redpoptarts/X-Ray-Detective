@@ -376,8 +376,83 @@ $(function(){
 	$( "#sort_by_radio" ).change(function(){ $( "#Get_Ratios_ByWorldID_form" ).submit(); });
 	$( "#worldid_radio" ).change(function(){ $( "#Get_Ratios_ByWorldID_form" ).submit(); });
 	$( "#limit_results_radio" ).change(function(){ $( "#Get_Ratios_ByWorldID_form" ).submit(); });
-	
+
+	$( '#refresh_stats_button' ).button();
+
+	$( '#refresh_stats_button' ).click(function()
+	{
+		var clicked_obj = $(this);
+		
+		clicked_obj.switchClass( "ui-state-default", "ui-state-error", 1000 );
+		clicked_obj.switchClass( "ui-state-highlight", "ui-state-error", 1000 );
+		clicked_obj.button();
+		document.getElementById("refresh_stats_text").innerHTML = "Refreshing...";
+		
+		$.ajax(
+		{ url: 'inc/live/update_newbreaks.php',
+				dataType: 'json',
+				success: function(response, data)
+						 {
+								//alert(clicked_obj.attr('id'));
+								//alert(response);
+								
+								clicked_obj.switchClass( "ui-state-default", "ui-state-highlight", 1000 );
+								clicked_obj.switchClass( "ui-state-error", "ui-state-highlight", 1000 );
+								if(response > 0)
+								{
+									document.getElementById("refresh_stats_text").innerHTML = response + " Users Updated";
+									$( "#refresh_stats_records" ).val(response);
+									$( "#Get_Ratios_ByWorldID_form" ).submit();
+								}
+								else
+								{
+									document.getElementById("refresh_stats_text").innerHTML = "No Changes Detected";
+									//$( "#Get_Ratios_ByWorldID_form" ).submit();
+								}
+
+								
+								if(response.message == "HOST OK")
+								{
+
+								} else {
+/*
+							
+									document.getElementById("source_db_error_main").innerHTML = "An error occurred while validating MySQL Server.<BR>Please check the information and try again.";
+									document.getElementById("source_db_error_specific").innerHTML = response.message;
+									$( "#db_setup_error_dialog" ).dialog({
+										autoOpen: true,
+										width: 500,
+										modal: false,
+										buttons: {
+											Ok: function() {
+												$( this ).dialog( "close" );
+											}
+										}
+									});
+									
+									clicked_obj.switchClass( "ui-state-default", "ui-state-error", 1000 );
+									clicked_obj.switchClass( "ui-state-highlight", "ui-state-error", 1000 );
+									document.getElementById("check_source_db_text").innerHTML = "Check Connection";
+									clicked_obj.closest('ul').find('input').val('0');
+									clicked_obj.button();
+									
+									if( ( $('input:radio[name=copy_stx]:checked').val() == 1 ) && ( clicked_obj.attr("id") == "check_source_db"  ) )
+									{
+										$( "#db_xray_ok" ).val('0');
+										$( "#check_xray_db" ).switchClass( "ui-state-default", "ui-state-error", 1000 );
+										$( "#check_xray_db" ).switchClass( "ui-state-highlight", "ui-state-error", 1000 );
+										document.getElementById("check_xray_db_text").innerHTML = document.getElementById("check_source_db_text").innerHTML;
+									}
+*/
+								}
+						 }
+		}); // AJAX
+		
+	});
 });
+
+
+
 </script>
 <script type="text/javascript">
   google.load('visualization', '1.1', {packages: ['gauge']});
@@ -969,12 +1044,20 @@ google.setOnLoadCallback(Draw_Gauges);
                 </table>-->
                   <table width="100%" border="0">
                     <tr>
+                      <td valign="middle"><strong>Update Stats
+                        <input name="refresh_stats_records" type="hidden" id="refresh_stats_records" value="NULL" />
+                      </strong></td>
+                      <td><div id="refresh_stats_button" class="<?php if(isset($_POST['refresh_stats_records'])){ ?>ui-state-highlight<?php } else { ?>ui-state-default<?php } ?>">
+                      	<span class="text" id="refresh_stats_text"><?php if(isset($_POST['refresh_stats_records'])){ echo $_POST['refresh_stats_records']; ?> Users Updated<?php } else { ?>Refresh Stats<?php } ?></span>
+                      </div></td>
+                    </tr>
+                    <tr>
                       <td valign="middle"><strong>Block Type
                         <input name="form" type="hidden" id="form" value="form_Get_Ratios_ByWorldID" />
                         <input name="command" type="hidden" id="command" value="xtoplist" />
                       </strong></td>
-                      <td><br />
-                        <div id="sort_by_radio" style="float: left; width: 80%;"> <br />
+                      <td>
+                        <div id="sort_by_radio"> <br />
                           <input name="block_type" type="radio" id="block_type_radio1" value="56" <?php if($block_type=="56"){?> checked="checked"<?php }?> />
                           <label for="block_type_radio1">Diamonds</label>
                           <input name="block_type" type="radio" id="block_type_radio2" value="25" <?php if($block_type=="25"){?> checked="checked"<?php }?> />
@@ -985,9 +1068,6 @@ google.setOnLoadCallback(Draw_Gauges);
                           <label for="block_type_radio4">Mossy</label>
                           <input name="block_type" type="radio" id="block_type_radio5" value="15" <?php if($block_type=="15"){?> checked="checked"<?php }?> />
                           <label for="block_type_radio5">Iron</label>
-                      </div>
-                      <div style="float: right; width: 20%;">
-                      	test
                       </div>
                       </td>
                     </tr>
