@@ -110,6 +110,6 @@ autowatch_stop = 6
 ; ABOVE SETTINGS ARE NOT YET IMPLEMENTED
 
 
-first_setup = no
+first_setup = yes
 ; DO NOT EDIT BELOW THIS LINE */
 ;?>
