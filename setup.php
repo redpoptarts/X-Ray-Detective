@@ -126,9 +126,10 @@ if($_POST['form']!="")
 						}
 						/* print divider */
 						if (mysqli_more_results($multi_link)) {
-							//printf("-----------------\n");
+							//printf("-----------------\n");\
+							mysqli_next_result($multi_link);
 						}
-					} while (mysqli_next_result($multi_link));
+					} while (mysqli_more_results($multi_link));
 				}
 				
 				/* close connection */
@@ -311,7 +312,7 @@ if($_POST['form']!="")
 			$outfile_ok = Save_Config_Settings();
 			if($outfile_ok)
 			{
-				$_SESSION['first_setup'] = false; session_unset(); Do_Auth(true);
+				$_SESSION['first_setup'] = false; session_unset(); session_destroy(); Do_Auth(true);
 				$config_success .= "<BR><BR>SETUP COMPLETE: You have successfully configured X-Ray Detective.<BR>";
 			}
 			else

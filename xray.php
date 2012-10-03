@@ -330,6 +330,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 <script type="text/javascript" src="styles/ui/jquery.ui.resizable.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.dialog.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.autocomplete.js"></script>
+<script type="text/javascript" src="styles/ui/jquery.ui.progressbar.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.effects.core.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.effects.blind.js"></script>
 <script type="text/javascript" src="inc/jquery.form.js"></script>
@@ -387,6 +388,18 @@ $(function(){
 		clicked_obj.switchClass( "ui-state-highlight", "ui-state-error", 1000 );
 		clicked_obj.button();
 		document.getElementById("refresh_stats_text").innerHTML = "Refreshing...";
+
+		$( "#refresh_stats_progressbar" ).progressbar({
+			value: 0,
+			option: enabled
+		});
+
+		// Get range of dates
+
+
+		// Divide range of dates into separate AJAX calls
+
+		
 		
 		$.ajax(
 		{ url: 'inc/live/update_newbreaks.php',
@@ -448,6 +461,11 @@ $(function(){
 						 }
 		}); // AJAX
 		
+	});
+
+	$( "#refresh_stats_progressbar" ).progressbar({
+		value: 0,
+		option: disabled
 	});
 });
 
@@ -1047,9 +1065,20 @@ google.setOnLoadCallback(Draw_Gauges);
                       <td valign="middle"><strong>Update Stats
                         <input name="refresh_stats_records" type="hidden" id="refresh_stats_records" value="NULL" />
                       </strong></td>
-                      <td><div id="refresh_stats_button" class="<?php if(isset($_POST['refresh_stats_records'])){ ?>ui-state-highlight<?php } else { ?>ui-state-default<?php } ?>">
-                      	<span class="text" id="refresh_stats_text"><?php if(isset($_POST['refresh_stats_records'])){ echo $_POST['refresh_stats_records']; ?> Users Updated<?php } else { ?>Refresh Stats<?php } ?></span>
-                      </div></td>
+                      <td>
+	                      	<table width="100%">
+	                      		<tr>
+	                      			<td width="30%">
+										<div id="refresh_stats_button" class="<?php if(isset($_POST['refresh_stats_records'])){ ?>ui-state-highlight<?php } else { ?>ui-state-default<?php } ?>">
+				                      		<span class="text" id="refresh_stats_text"><?php if(isset($_POST['refresh_stats_records'])){ echo $_POST['refresh_stats_records']; ?> Users Updated<?php } else { ?>Refresh Stats<?php } ?></span>
+				            	        </div>
+	                      			</td>
+	                      			<td>
+	                      				<div id="refresh_stats_progressbar" width="100%"></div>
+	                      			</td>
+	                      		</tr>
+	                      	</table>
+                      	</td>
                     </tr>
                     <tr>
                       <td valign="middle"><strong>Block Type

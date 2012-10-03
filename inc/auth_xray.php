@@ -11,7 +11,7 @@ function Do_Auth($ip_only=false)
 	// Force IP to match Failsafe IPs list if running setup for first time
 	if( FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true) )
 	{
-		session_unset(); session_start();
+		session_unset(); session_destroy(); session_start();
 		$_SESSION['first_setup'] = true;
 		$ip_only = true;
 	}

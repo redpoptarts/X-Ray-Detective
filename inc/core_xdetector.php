@@ -55,6 +55,7 @@ function Global_Init()
 	//echo "GLOBALS: <BR>"; print_r($GLOBALS['db']); echo "<BR>";
 	
 	$source_db_ok = SQL_DB_OK("source");
+	$config_error = "";
 	
 	if($source_db_ok['error'] === false)
 	{
