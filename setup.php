@@ -2,6 +2,8 @@
 <?php include_once('inc/auth_xray.php'); ?>
 <?php
 
+if (version_compare(PHP_VERSION, '5.3.0') < 0){ die("ERROR: Invalid PHP Version (".PHP_VERSION.") - PHP v5.3.0 or above is required."); }
+
 //Initialize error message
 $config_error = array("message" => Check_Env_OK(), "canceltext" => "Start Over", "URL" => "setup.php");
 $config_error['message'] = Check_Env_OK(); if($config_error['message']!=""){ $config_error['canceltext'] = "Try Again"; }
