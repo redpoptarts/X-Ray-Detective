@@ -233,7 +233,7 @@ function Check_DB_Exists($validate_table, $db_type, $db_host, $db_base, $db_user
 
 function Check_XTables_Valid()
 {
-	$correct_tablecount = 5;
+	$correct_tablecount = 6;
 	$db_ok_response = SQL_DB_OK("xray");
 	
 	if($db_ok_response["error"])
