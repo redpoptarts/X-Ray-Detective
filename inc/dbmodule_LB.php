@@ -24,6 +24,44 @@ function World_IsValid($worldname)
 		{ return false; }	
 }
 
+function Get_Count_DirtyUsers_ByWorld($world_id)
+{
+	$datetime_now = new DateTime;
+	$sql_getlatest = "";
+	foreach($GLOBALS['worlds'] as $world_index => $world_item)
+	{
+		if($world_index == $world_id)
+		{
+			$sql_getlatest .= " SELECT count(playerid) AS player_count ";
+			$sql_getlatest .= " FROM ";
+			$sql_getlatest .= " ( ";
+			$sql_getlatest .= " 	SELECT playerid ";
+			$sql_getlatest .= " 	FROM `lb-".$world_item["worldname"]."` ";
+			$sql_getlatest .= " 	WHERE ";
+			$sql_getlatest .= " 	    (date > '2012-02-15 00:00:00') ";  // TODO: CHANGE THIS VALUE TO KNOWN LATEST_BREAK_DATE
+			$sql_getlatest .= " 	    AND (replaced = 1 ";
+			$sql_getlatest .= " 	    OR replaced = 15 ";
+			$sql_getlatest .= " 	    OR replaced = 14 ";
+			$sql_getlatest .= " 	    OR replaced = 56 ";
+			$sql_getlatest .= " 	    OR replaced = 25 ";
+			$sql_getlatest .= " 	    OR replaced = 48 ";
+			$sql_getlatest .= " 	    AND type = 0) ";
+			$sql_getlatest .= "  ";
+			$sql_getlatest .= " 	 GROUP BY playerid ";
+			$sql_getlatest .= " ) AS world_dirty_users ";
+		}
+	}
+
+	$return_updated = 0;
+
+	echo "SQL_QUERY: <br>". $sql_getlatest . "<br>";
+	$res_getlatest = mysql_query($sql_getlatest) or die("World-DirtyUsers: " . mysql_error());
+	while(($DirtyUsersArray[] = mysql_fetch_assoc($res_getlatest)) || array_pop($DirtyUsersArray));
+	echo "DIRTY_USERS_ARRAY: <BR>"; print_r($DirtyUsersArray); echo "<BR>";
+	
+	return $DirtyUsersArray[0]['player_count'];
+}
+
 function Add_NewBreaks()
 {
 	// Detect datetime of most recent break
