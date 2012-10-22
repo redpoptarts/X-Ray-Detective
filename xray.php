@@ -559,10 +559,6 @@ $(function(){
 		
 	});
 
-	$( "#refresh_stats_progressbar" ).progressbar({
-		value: 0,
-		disabled: false
-	});
 });
 
 
@@ -1166,8 +1162,8 @@ google.setOnLoadCallback(Draw_Gauges);
 	                      	<table width="100%">
 	                      		<tr>
 	                      			<td width="30%">
-										<div id="refresh_stats_button" class="<?php if(isset($_POST['refresh_stats_records'])){ ?>ui-state-highlight<?php } else { ?>ui-state-default<?php } ?>">
-				                      		<span class="text" id="refresh_stats_text"><?php if(isset($_POST['refresh_stats_records'])){ echo $_POST['refresh_stats_records']; ?> Users Updated<?php } else { ?>Refresh Stats<?php } ?></span>
+										<div id="refresh_stats_button" class="<?php if(isset($_POST['refresh_stats_records']) && $_POST['refresh_stats_records']!="NULL"){ ?>ui-state-highlight<?php } else { ?>ui-state-default<?php } ?>">
+				                      		<span class="text" id="refresh_stats_text"><?php if(isset($_POST['refresh_stats_records']) && $_POST['refresh_stats_records']!="NULL"){ echo $_POST['refresh_stats_records']; ?> Users Updated<?php } else { ?>Refresh Stats<?php } ?></span>
 				            	        </div>
 	                      			</td>
 	                      			<td>
