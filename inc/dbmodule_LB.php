@@ -38,7 +38,7 @@ function Get_Count_DirtyUsers_ByWorld($world_id)
 			$sql_getlatest .= " 	SELECT playerid ";
 			$sql_getlatest .= " 	FROM `lb-".$world_item["worldname"]."` ";
 			$sql_getlatest .= " 	WHERE ";
-			$sql_getlatest .= " 	    (date > '2012-02-15 00:00:00') ";  // TODO: CHANGE THIS VALUE TO KNOWN LATEST_BREAK_DATE
+			$sql_getlatest .= " 	    (date > '2012-03-01 00:00:00') ";  // TODO: CHANGE THIS VALUE TO KNOWN LATEST_BREAK_DATE
 			$sql_getlatest .= " 	    AND (replaced = 1 ";
 			$sql_getlatest .= " 	    OR replaced = 15 ";
 			$sql_getlatest .= " 	    OR replaced = 14 ";
