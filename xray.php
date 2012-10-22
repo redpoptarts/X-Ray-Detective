@@ -334,7 +334,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 <script type="text/javascript" src="styles/ui/jquery.effects.core.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.effects.blind.js"></script>
 <script type="text/javascript" src="inc/jquery.form.js"></script>
-<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<!--<script type="text/javascript" src="http://www.google.com/jsapi"></script>-->
+<script type="text/javascript" src="scripts/jsapi.js"></script>
 <script type="text/javascript">
 $(function(){
 	$('.ui-state-default').hover(
@@ -387,20 +388,126 @@ $(function(){
 		clicked_obj.switchClass( "ui-state-default", "ui-state-error", 1000 );
 		clicked_obj.switchClass( "ui-state-highlight", "ui-state-error", 1000 );
 		clicked_obj.button();
-		document.getElementById("refresh_stats_text").innerHTML = "Refreshing...";
+		document.getElementById("refresh_stats_text").innerHTML = "Checking...";
+		
+		$( "#sort_by_radio" ).buttonset("disable");
+		$( "#worldid_radio" ).buttonset("disable");
+		$( "#limit_results_radio" ).buttonset("disable");
+		$("#stone_threshold_slider").slider("disable");
 
 		$( "#refresh_stats_progressbar" ).progressbar({
 			value: 0,
-			option: enabled
+			disabled: false
 		});
 
-		// Get range of dates
+		// Get a list of worlds, and how many new users there are to process in each
+		$.ajax(
+		{ url: 'inc/live/count_dirtyusers_eachworld.php',
+				dataType: 'json',
+				async: false,
+				success: function(response)
+						 {
+								//alert(clicked_obj.attr('id'));
+								//alert(response);
+								
+								clicked_obj.switchClass( "ui-state-error", "ui-state-focus", 1000 );
+								document.getElementById("refresh_stats_text").innerHTML = "Refreshing...";
 
+								if($(response).size() > 0)
+								{
+									var updated_users = 0;
+									
+									$.each(response, function(response_index, world_array)
+									{ 
+										//alert('world_id' + ': ' + world_array.world_id); 
+										//alert('player_count' + ': ' + world_array.player_count); 
+										
+										var page = 1;
+										var max_pages = (Math.ceil(world_array.player_count / 10 ));
+										
+										//alert( 'Total Pages: ' + max_pages );
+										while(page <= max_pages )
+										{
+											//alert( 'Current Page: ' + page );
+											$.ajax(
+											{ url: 'inc/live/update_newbreaks_byworld_bypage.php',
+													data: { 
+														world_id: world_array.world_id,
+														page_num: page,
+														},
+													type: 'GET',
+													dataType: 'json',
+													async: false,
+													success: function(response)
+															 {
+																//alert( 'Current Page: ' + page );
+																//alert('OK - ' + response);
+																updated_users += response;
+															 },
+													error: function(response)
+															 {
+																//alert('ERROR - ' + response);
+															 }
+													 
+											}); // AJAX
 
-		// Divide range of dates into separate AJAX calls
+										//	$( "#refresh_stats_progressbar" ).progressbar.value((page / max_pages) * 100);
+									
+									$( "#refresh_stats_progressbar" ).progressbar({
+										value: ((page / max_pages) * 100)
+									});
+											
+											page++;
+										}
+
+									});
+									
+									//alert('Updated: ' + updated_users);
+									
+									$( "#refresh_stats_progressbar" ).progressbar({
+										value: 100
+									});
+									
+									clicked_obj.switchClass( "ui-state-default", "ui-state-highlight", 1000 );
+									clicked_obj.switchClass( "ui-state-error", "ui-state-highlight", 1000 );
+									
+									document.getElementById("refresh_stats_text").innerHTML = updated_users + " Users Updated";
+									$( "#refresh_stats_records" ).val(updated_users);
+								}
+								else
+								{
+									document.getElementById("refresh_stats_text").innerHTML = "No Changes Detected";
+								}
+
+								
+								if(response.message == "HOST OK")
+								{
+
+								} else {
+/*
+							
+									document.getElementById("source_db_error_main").innerHTML = "An error occurred while validating MySQL Server.<BR>Please check the information and try again.";
+									document.getElementById("source_db_error_specific").innerHTML = response.message;
+									$( "#db_setup_error_dialog" ).dialog({
+										autoOpen: true,
+										width: 500,
+										modal: false,
+										buttons: {
+											Ok: function() {
+												$( this ).dialog( "close" );
+											}
+										}
+									});
+									
+*/
+								}
+						 }
+		}); // AJAX
+		// Paginate each list of users into groups
 
 		
-		
+		// Deprecated method
+		/*
 		$.ajax(
 		{ url: 'inc/live/update_newbreaks.php',
 				dataType: 'json',
@@ -428,7 +535,7 @@ $(function(){
 								{
 
 								} else {
-/*
+
 							
 									document.getElementById("source_db_error_main").innerHTML = "An error occurred while validating MySQL Server.<BR>Please check the information and try again.";
 									document.getElementById("source_db_error_specific").innerHTML = response.message;
@@ -443,35 +550,24 @@ $(function(){
 										}
 									});
 									
-									clicked_obj.switchClass( "ui-state-default", "ui-state-error", 1000 );
-									clicked_obj.switchClass( "ui-state-highlight", "ui-state-error", 1000 );
-									document.getElementById("check_source_db_text").innerHTML = "Check Connection";
-									clicked_obj.closest('ul').find('input').val('0');
-									clicked_obj.button();
-									
-									if( ( $('input:radio[name=copy_stx]:checked').val() == 1 ) && ( clicked_obj.attr("id") == "check_source_db"  ) )
-									{
-										$( "#db_xray_ok" ).val('0');
-										$( "#check_xray_db" ).switchClass( "ui-state-default", "ui-state-error", 1000 );
-										$( "#check_xray_db" ).switchClass( "ui-state-highlight", "ui-state-error", 1000 );
-										document.getElementById("check_xray_db_text").innerHTML = document.getElementById("check_source_db_text").innerHTML;
-									}
-*/
+
 								}
 						 }
 		}); // AJAX
+		*/
 		
 	});
 
 	$( "#refresh_stats_progressbar" ).progressbar({
 		value: 0,
-		option: disabled
+		disabled: false
 	});
 });
 
 
 
 </script>
+<?php if($command == "xsingle"){ ?>
 <script type="text/javascript">
   google.load('visualization', '1.1', {packages: ['gauge']});
 </script>
@@ -481,12 +577,12 @@ function Draw_Gauges()
 {
 	var Accuracy_data = google.visualization.arrayToDataTable([
 	  ['Label', 'Value'],
-	  ['Accuracy', <?php echo $player_info["accuracy"]; ?>],
+	  ['Accuracy', <?php if(isset($player_info["accuracy"])){ echo $player_info["accuracy"]; } ?>],
 	]);
 	
 	var Suspicion_data = google.visualization.arrayToDataTable([
 	  ['Label', 'Value'],
-	  ['Suspicion', <?php echo $player_info["suspicion"]; ?>],
+	  ['Suspicion', <?php if(isset($player_info["suspicion"])){ echo $player_info["suspicion"]; } ?>],
 	]);
 	
 	// Create and populate the data table.
@@ -610,7 +706,7 @@ google.setOnLoadCallback(Draw_Gauges);
 
 */
 </script>
-
+<?php } ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>

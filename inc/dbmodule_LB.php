@@ -54,14 +54,138 @@ function Get_Count_DirtyUsers_ByWorld($world_id)
 
 	$return_updated = 0;
 
-	echo "SQL_QUERY: <br>". $sql_getlatest . "<br>";
+	//echo "SQL_QUERY: <br>". $sql_getlatest . "<br>";
 	$res_getlatest = mysql_query($sql_getlatest) or die("World-DirtyUsers: " . mysql_error());
 	while(($DirtyUsersArray[] = mysql_fetch_assoc($res_getlatest)) || array_pop($DirtyUsersArray));
-	echo "DIRTY_USERS_ARRAY: <BR>"; print_r($DirtyUsersArray); echo "<BR>";
+	//echo "DIRTY_USERS_ARRAY: <BR>"; print_r($DirtyUsersArray); echo "<BR>";
 	
 	return $DirtyUsersArray[0]['player_count'];
 }
 
+function Get_List_DirtyUsers_ByWorld_ByPage($world_id, $page_num)
+{
+	$datetime_now = new DateTime;
+	$sql_getlatest = "";
+	foreach($GLOBALS['worlds'] as $world_index => $world_item)
+	{
+		if($world_item['worldid'] == $world_id)
+		{
+			$sql_getlatest  = " SELECT playerid ";
+			$sql_getlatest .= " 	FROM `lb-".$world_item["worldname"]."` ";
+			$sql_getlatest .= " 	WHERE ";
+			$sql_getlatest .= " 	    (date > '2012-02-15 00:00:00') ";  // TODO: CHANGE THIS VALUE TO KNOWN LATEST_BREAK_DATE
+			$sql_getlatest .= " 	    AND (replaced = 1 ";
+			$sql_getlatest .= " 	    OR replaced = 15 ";
+			$sql_getlatest .= " 	    OR replaced = 14 ";
+			$sql_getlatest .= " 	    OR replaced = 56 ";
+			$sql_getlatest .= " 	    OR replaced = 25 ";
+			$sql_getlatest .= " 	    OR replaced = 48 ";
+			$sql_getlatest .= " 	    AND type = 0) ";
+			$sql_getlatest .= "  ";
+			$sql_getlatest .= " GROUP BY playerid ";
+			$sql_getlatest .= " LIMIT 10 OFFSET ". ($page_num - 1) * 10 ." ";
+		}
+	}
+
+	$return_updated = 0;
+
+	//echo "SQL_QUERY: <br>". $sql_getlatest . "<br>";
+	$res_getlatest = mysql_query($sql_getlatest) or die("World-DirtyUsers: " . mysql_error());
+	while(($DirtyUsersArray[] = mysql_fetch_assoc($res_getlatest)) || array_pop($DirtyUsersArray));
+	
+	$func_strip_playerid_array = function($input)
+	{
+		return $input['playerid'];
+	};
+	
+	
+	
+	$DirtyUsers_list = array_map($func_strip_playerid_array, $DirtyUsersArray);
+	//echo "DIRTY_USERS_LIST: <BR>"; print_r($DirtyUsers_list); echo "<BR>";
+	
+	return $DirtyUsers_list;
+}
+
+function Add_NewBreaks_ByWorld_ByPage($world_id, $page_num)
+{
+	$datetime_now = new DateTime;
+	$return_updated = 0;
+	
+	foreach($GLOBALS['worlds'] as $world_index => $world_item)
+	{
+		if($world_item['worldid'] == $world_id)
+		{
+			$dirtyusers_array = Get_List_DirtyUsers_ByWorld_ByPage($world_id, $page_num);
+			$dirtyusers_list = implode(",",$dirtyusers_array);
+			
+			if(count($dirtyusers_array) > 0)
+			{
+				Use_DB("xray");
+				$sql_newbreaks  = "INSERT INTO `x-stats` ";
+				$sql_newbreaks .= " (`playerid`, `worldid`, `diamond_count`, `gold_count`, `lapis_count`, `mossy_count`, `iron_count`, `stone_count`) ";
+				$sql_newbreaks .= " SELECT p.playerid, '".$world_item["worldid"]."', IFNULL(diamond_info.cnt,0) AS diamond_count, IFNULL(gold_info.cnt,0) AS gold_count, ";
+				$sql_newbreaks .= " 	IFNULL(lapis_info.cnt,0) AS lapis_count, IFNULL(mossy_info.cnt,0) AS mossy_count, IFNUlL(iron_info.cnt,0) AS iron_count, IFNULL(stone_info.cnt,0) AS stone_count";
+				$sql_newbreaks .= " FROM `lb-players`";
+				$sql_newbreaks .= " AS p";
+				$sql_newbreaks .= " INNER JOIN (SELECT playerid, count(playerid) AS cnt FROM `lb-".$world_item["worldname"]."` ";
+				$sql_newbreaks .= " 	WHERE ((`playerid` IN (".$dirtyusers_list.")) AND replaced = 1 ";
+				$sql_newbreaks .= " 		AND type = 0 AND y <= 50) ";
+				$sql_newbreaks .= " 	GROUP BY playerid) AS stone_info ON p.playerid = stone_info.playerid";
+				$sql_newbreaks .= " LEFT JOIN (SELECT playerid, count(playerid) AS cnt FROM `lb-".$world_item["worldname"]."` ";
+				$sql_newbreaks .= " 	WHERE ((`playerid` IN (".$dirtyusers_list.")) AND replaced = 56 ";
+				$sql_newbreaks .= " 		AND type = 0 AND y <= 50) ";
+				$sql_newbreaks .= " 	GROUP BY playerid) AS diamond_info ON p.playerid = diamond_info.playerid";
+				$sql_newbreaks .= " LEFT JOIN (SELECT playerid, count(playerid) AS cnt FROM `lb-".$world_item["worldname"]."` ";
+				$sql_newbreaks .= " 	WHERE ((`playerid` IN (".$dirtyusers_list.")) AND replaced = 14 ";
+				$sql_newbreaks .= " 		AND type = 0 AND y <= 50) ";
+				$sql_newbreaks .= " 	GROUP BY playerid) AS gold_info ON p.playerid = gold_info.playerid";
+				$sql_newbreaks .= " LEFT JOIN (SELECT playerid, count(playerid) AS cnt FROM `lb-".$world_item["worldname"]."` ";
+				$sql_newbreaks .= " 	WHERE ((`playerid` IN (".$dirtyusers_list.")) AND replaced = 15 ";
+				$sql_newbreaks .= " 		AND type = 0 AND y <= 50) ";
+				$sql_newbreaks .= " 	GROUP BY playerid) AS iron_info ON p.playerid = iron_info.playerid";
+				$sql_newbreaks .= " LEFT JOIN (SELECT playerid, count(playerid) AS cnt FROM `lb-".$world_item["worldname"]."` ";
+				$sql_newbreaks .= " 	WHERE ((`playerid` IN (".$dirtyusers_list.")) AND replaced = 48 ";
+				$sql_newbreaks .= " 		AND type = 0 AND y <= 50) ";
+				$sql_newbreaks .= " 	GROUP BY playerid) AS mossy_info ON p.playerid = mossy_info.playerid";
+				$sql_newbreaks .= " LEFT JOIN (SELECT playerid, count(playerid) AS cnt FROM `lb-".$world_item["worldname"]."` ";
+				$sql_newbreaks .= " 	WHERE ((`playerid` IN (".$dirtyusers_list.")) AND replaced = 21 ";
+				$sql_newbreaks .= " 		AND type = 0 AND y <= 50) ";
+				$sql_newbreaks .= " 	GROUP BY playerid) AS lapis_info ON p.playerid = lapis_info.playerid";
+				$sql_newbreaks .= " GROUP BY p.playerid";
+				$sql_newbreaks .= " ON DUPLICATE KEY UPDATE `diamond_count`=`diamond_count`+VALUES(diamond_count), `gold_count`=`gold_count`+VALUES(gold_count),";
+				$sql_newbreaks .= " 	 `lapis_count`=`lapis_count`+VALUES(lapis_count), `iron_count`=`iron_count`+VALUES(iron_count), `stone_count`=`stone_count`+VALUES(stone_count)";
+				$res_newbreaks = mysql_query($sql_newbreaks);
+				if(mysql_errno())
+				{
+					die("SQL_QUERY[newbreaks]: " . $sql_newbreaks . "<BR> " . mysql_error() . "<BR>");
+				}
+				//else{ echo "DONE!<BR>"; }
+				
+		
+				//while(($BreaksArray[] = mysql_fetch_assoc($res_newbreaks)) || array_pop($BreaksArray)); 
+				$stats_sql = GetMySQL_ResultStats();
+				//echo "STATS_SQL: <BR>"; print_r($stats_sql); echo "<BR>";
+				//echo "-----------------------------------------------<br>";
+				//echo "Summary For World [".$world_item["worldalias"]."]<BR>";
+				//echo "-----------------------------------------------<br>";
+				//echo "..." . $stats_sql["records"]." Users Processed.<BR>";
+				//echo "..." . ($stats_sql["records"] - $stats_sql["duplicates"]) . " New Users Found.<BR>";
+				//echo "..." . $stats_sql["duplicates"]." Users Updated.<BR>";
+				//echo "-----------------------------------------------<br>";
+				$return_updated = $stats_sql["records"];
+			}
+			
+		}
+		
+
+	}
+	Update_Stats_RatioTotals();
+	return $return_updated;
+//	return count($dirtyusers_array);
+}
+
+
+// Deprecated function
 function Add_NewBreaks()
 {
 	// Detect datetime of most recent break
