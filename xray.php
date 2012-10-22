@@ -436,13 +436,14 @@ $(function(){
 														page_num: page,
 														},
 													type: 'GET',
-													dataType: 'json',
+													dataType: 'JSON',
 													async: false,
 													success: function(response)
 															 {
 																//alert( 'Current Page: ' + page );
 																//alert('OK - ' + response);
 																updated_users += response;
+																//alert('OK - ' + updated_users);
 															 },
 													error: function(response)
 															 {
