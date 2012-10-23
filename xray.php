@@ -255,6 +255,10 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 	{
 		$show_process = true;
 	}
+	elseif ($command == 'xrecalc')
+	{
+		$show_process = true;
+	}
 	elseif ($command == 'xanalyze')
 	{
 		$show_process = true;
@@ -942,6 +946,11 @@ google.setOnLoadCallback(Draw_Gauges);
 						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"]) { Add_NewBreaks(); /* AutoFlagWatching(); TakeSnapshots();*/ }
 						else { $command_error .= "You do not have permission to do that.<BR>"; }
 					}
+					if($command == "xrecalc")
+					{
+						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"]) { Update_Stats_RatioTotals(); }
+						else { $command_error .= "You do not have permission to do that.<BR>"; }
+					}
 					if($command == "xanalyze")
 					{						
 						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"])
@@ -1048,11 +1057,11 @@ google.setOnLoadCallback(Draw_Gauges);
               </tr>
               <tr class="bg_white">
                 <td>&nbsp;</td>
-                <td>&nbsp;</td>
+                <td><a href="xray.php?command=xrecalc" style="color:#000000"><strong>Recalculate Percentages</strong></a></td>
                 <td>&nbsp;</td>
               </tr>
               <tr class="bg_white">
-                <td><strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong></td>
+                <td><!--<strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong>--></td>
                 <td>&nbsp;</td>
                 <td><a href="xray.php?command=xclear" style="color:#000000"><strong>Clear X-Ray Stats</strong></a></td>
               </tr>
@@ -1062,7 +1071,7 @@ google.setOnLoadCallback(Draw_Gauges);
             <td><form action="xray.php" method="post" name="XR_form" target="_self" id="XR_form">
               <table width="100%" border="0" class="borderblack_greybg_light_thin">
                 <tr>
-                  <td width="14%" nowrap="nowrap"><strong><s>Check Player By Name</s>
+                  <td width="14%" nowrap="nowrap"><strong>Check Player By Name
                     <input name="command" type="hidden" id="command" value="xsingle" />
                     <input name="form" type="hidden" id="form" value="XR_form" />
                   </strong></td>
