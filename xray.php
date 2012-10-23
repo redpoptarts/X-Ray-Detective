@@ -94,18 +94,24 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		//echo "[" . $column_name . "]<br>"; print_r($colorbins[$column_name]); echo "<br>";
 	}
 
-	if ($command == 'xsingle')
+	if ($command == "xsingle")
 	{
 	
 		
 		$_GET['xr_submit'] = array_key_exists('xr_submit', $_GET) ? $_GET['xr_submit'] : NULL;
-//		echo "XCHECK";
+		//echo "XCHECK";
 		if($_GET['xr_submit']=="Check" || $_GET['xr_submit']=="")
 		{
 			// Check user's totals from stats table
+			ob_start();
+			Add_Player_Mines($player_id);
+			Update_PlayerInfo($player_id);
+			ob_end_clean();	
+			
 			$player_world_stats = Get_Player_WorldRatios($player_id);
 			$player_mines_all = Get_Player_Mines_InWorld($player_id, $GLOBALS['worlds'][0]['worldid']);
 			$player_info = Get_Playerinfo($player_id);
+
 			$color_template_list = array("max_ratio_diamond" => "diamond_ratio", "max_ratio_gold" => "gold_ratio", "max_ratio_lapis" => "lapis_ratio", "max_ratio_mossy" => "mossy_ratio", "max_ratio_iron" => "iron_ratio",
 				 "avg_slope_before_pos" => "slope_before_pos", "avg_slope_before_neg" => "slope_before_neg", "avg_slope_after_pos" => "slope_after_pos", "avg_slope_after_neg" => "slope_after_neg", "ratio_first_block_ore"=>"first_block_ore");
 			$color_important_columns = array("max_ratio_diamond", "max_ratio_gold", "avg_slope_before_neg", "avg_slope_after_neg");	
@@ -340,234 +346,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 <script type="text/javascript" src="inc/jquery.form.js"></script>
 <!--<script type="text/javascript" src="http://www.google.com/jsapi"></script>-->
 <script type="text/javascript" src="scripts/jsapi.js"></script>
-<script type="text/javascript">
-$(function(){
-	$('.ui-state-default').hover(
-		function(){ $(this).addClass('ui-state-hover'); }, 
-		function(){ $(this).removeClass('ui-state-hover'); }
-	);
-	$('.ui-state-default').click(function(){ $(this).toggleClass('ui-state-active'); });
-	$('.icons').append(' <a href="#">Toggle text</a>').find('a').click(function(){ $('.icon-collection li span.text').toggle(); return false; }).trigger('click');
-	$( "#tabs" ).tabs();
+<?php include_once('scripts/xray.js.php'); ?>
 
-<?php $stone_threshold_options = array(0, 100, 250, 500, 750, 1000); $stone_threshold_default = 500; ?>
-	$(function() {
-		var valMap = [<?php echo implode(", ", $stone_threshold_options); ?>];
-		$("#stone_threshold_slider").slider({
-			min: 0,
-			max: valMap.length - 1,
-			value: <?php 
-				if(isset($_POST['stone_threshold']))
-				{
-					$stone_threshold_default = $_POST['stone_threshold'];
-				}
-				foreach($stone_threshold_options as $index => $item)
-				{
-					if($item == $stone_threshold_default){echo $index;}
-				}
-			?>,
-			slide: function(event, ui) {                        
-					$("#amount").val( valMap[ui.value] + " Stones");
-					$("#stone_threshold").val( valMap[ui.value] );
-			},
-			change: function(event, ui) { $( "#Get_Ratios_ByWorldID_form" ).submit(); },
-		});
-		$("#amount").val( valMap[$("#stone_threshold_slider").slider("value")] + " Stones");
-	});
-
-	$( "#sort_by_radio" ).buttonset();
-	$( "#worldid_radio" ).buttonset();
-	$( "#limit_results_radio" ).buttonset();
-	
-	$( "#sort_by_radio" ).change(function(){ $( "#Get_Ratios_ByWorldID_form" ).submit(); });
-	$( "#worldid_radio" ).change(function(){ $( "#Get_Ratios_ByWorldID_form" ).submit(); });
-	$( "#limit_results_radio" ).change(function(){ $( "#Get_Ratios_ByWorldID_form" ).submit(); });
-
-	$( '#refresh_stats_button' ).button();
-
-	$( '#refresh_stats_button' ).click(function()
-	{
-		var clicked_obj = $(this);
-		
-		clicked_obj.switchClass( "ui-state-default", "ui-state-error", 1000 );
-		clicked_obj.switchClass( "ui-state-highlight", "ui-state-error", 1000 );
-		clicked_obj.button();
-		document.getElementById("refresh_stats_text").innerHTML = "Checking...";
-		
-		$( "#sort_by_radio" ).buttonset("disable");
-		$( "#worldid_radio" ).buttonset("disable");
-		$( "#limit_results_radio" ).buttonset("disable");
-		$("#stone_threshold_slider").slider("disable");
-
-		$( "#refresh_stats_progressbar" ).progressbar({
-			value: 0,
-			disabled: false
-		});
-
-		// Get a list of worlds, and how many new users there are to process in each
-		$.ajax(
-		{ url: 'inc/live/count_dirtyusers_eachworld.php',
-				dataType: 'json',
-				async: false,
-				success: function(response)
-						 {
-								//alert(clicked_obj.attr('id'));
-								//alert(response);
-								
-								clicked_obj.switchClass( "ui-state-error", "ui-state-focus", 1000 );
-								document.getElementById("refresh_stats_text").innerHTML = "Refreshing...";
-
-								if($(response).size() > 0)
-								{
-									var updated_users = 0;
-									
-									$.each(response, function(response_index, world_array)
-									{ 
-										//alert('world_id' + ': ' + world_array.world_id); 
-										//alert('player_count' + ': ' + world_array.player_count); 
-										
-										var page = 1;
-										var max_pages = (Math.ceil(world_array.player_count / 10 ));
-										
-										//alert( 'Total Pages: ' + max_pages );
-										while(page <= max_pages )
-										{
-											//alert( 'Current Page: ' + page );
-											$.ajax(
-											{ url: 'inc/live/update_newbreaks_byworld_bypage.php',
-													data: { 
-														world_id: world_array.world_id,
-														page_num: page,
-														},
-													type: 'GET',
-													dataType: 'JSON',
-													async: false,
-													success: function(response)
-															 {
-																//alert( 'Current Page: ' + page );
-																//alert('OK - ' + response);
-																updated_users += response;
-																//alert('OK - ' + updated_users);
-															 },
-													error: function(response)
-															 {
-																//alert('ERROR - ' + response);
-															 }
-													 
-											}); // AJAX
-
-										//	$( "#refresh_stats_progressbar" ).progressbar.value((page / max_pages) * 100);
-									
-									$( "#refresh_stats_progressbar" ).progressbar({
-										value: ((page / max_pages) * 100)
-									});
-											
-											page++;
-										}
-
-									});
-									
-									//alert('Updated: ' + updated_users);
-									
-									$( "#refresh_stats_progressbar" ).progressbar({
-										value: 100
-									});
-									
-									clicked_obj.switchClass( "ui-state-default", "ui-state-highlight", 1000 );
-									clicked_obj.switchClass( "ui-state-error", "ui-state-highlight", 1000 );
-									
-									document.getElementById("refresh_stats_text").innerHTML = updated_users + " Users Updated";
-									$( "#refresh_stats_records" ).val(updated_users);
-								}
-								else
-								{
-									document.getElementById("refresh_stats_text").innerHTML = "No Changes Detected";
-								}
-
-								
-								if(response.message == "HOST OK")
-								{
-
-								} else {
-/*
-							
-									document.getElementById("source_db_error_main").innerHTML = "An error occurred while validating MySQL Server.<BR>Please check the information and try again.";
-									document.getElementById("source_db_error_specific").innerHTML = response.message;
-									$( "#db_setup_error_dialog" ).dialog({
-										autoOpen: true,
-										width: 500,
-										modal: false,
-										buttons: {
-											Ok: function() {
-												$( this ).dialog( "close" );
-											}
-										}
-									});
-									
-*/
-								}
-						 }
-		}); // AJAX
-		// Paginate each list of users into groups
-
-		
-		// Deprecated method
-		/*
-		$.ajax(
-		{ url: 'inc/live/update_newbreaks.php',
-				dataType: 'json',
-				success: function(response, data)
-						 {
-								//alert(clicked_obj.attr('id'));
-								//alert(response);
-								
-								clicked_obj.switchClass( "ui-state-default", "ui-state-highlight", 1000 );
-								clicked_obj.switchClass( "ui-state-error", "ui-state-highlight", 1000 );
-								if(response > 0)
-								{
-									document.getElementById("refresh_stats_text").innerHTML = response + " Users Updated";
-									$( "#refresh_stats_records" ).val(response);
-									$( "#Get_Ratios_ByWorldID_form" ).submit();
-								}
-								else
-								{
-									document.getElementById("refresh_stats_text").innerHTML = "No Changes Detected";
-									//$( "#Get_Ratios_ByWorldID_form" ).submit();
-								}
-
-								
-								if(response.message == "HOST OK")
-								{
-
-								} else {
-
-							
-									document.getElementById("source_db_error_main").innerHTML = "An error occurred while validating MySQL Server.<BR>Please check the information and try again.";
-									document.getElementById("source_db_error_specific").innerHTML = response.message;
-									$( "#db_setup_error_dialog" ).dialog({
-										autoOpen: true,
-										width: 500,
-										modal: false,
-										buttons: {
-											Ok: function() {
-												$( this ).dialog( "close" );
-											}
-										}
-									});
-									
-
-								}
-						 }
-		}); // AJAX
-		*/
-		
-	});
-
-});
-
-
-
-</script>
 <?php if($command == "xsingle"){ ?>
 <script type="text/javascript">
   google.load('visualization', '1.1', {packages: ['gauge']});
@@ -1363,7 +1143,7 @@ google.setOnLoadCallback(Draw_Gauges);
           </tr>
           <tr>
             <td><form action="xray.php" method="post" name="useraction_form" target="_self" id="useraction_form">
-              <table width="100%" border="0">
+              <table width="100%" border="0" style="display:none">
                 <tr>
                   <td valign="top"><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
                     <tr>
@@ -1437,41 +1217,58 @@ google.setOnLoadCallback(Draw_Gauges);
 										<div class="ui-widget-content ui-corner-all" style="padding: 10">
 											<div style="float:left" class="ui-icon ui-icon-info"></div>
                                             <img src="img/null15.gif" width="15" height="15" />
-                                          The information about this player is almost certainly accurate.
-										</div>
+                                            <strong>The information about this player is almost certainly accurate.</strong>
+                                        </div>
                                       <?php break;
 										case "2": ?>
-										<div class="ui-widget-content ui-corner-all" style="padding: 10; float:left">
+										<div class="ui-widget-content ui-corner-all" style="padding: 10">
 											<div style="float:left" class="ui-icon ui-icon-info"></div>
                                             <img src="img/null15.gif" width="15" height="15" />
-                                            The information about this player is probably accurate.
-										</div>
+                                            <strong>The information about this player is probably accurate.</strong>
+                                        </div>
                                       <?php break;
 										case "1": ?>
 										<div class="ui-state-error ui-corner-all" style="padding: 10">
 											<div style="float:left" class="ui-icon ui-icon-alert"></div>
                                             <img src="img/null15.gif" width="15" height="15" />
-                                          This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate.
-										</div>
+                                            <strong>This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate.</strong>
+                                        </div>
                                       <?php break;
 										case "0": ?>
 										<div class="ui-state-error ui-corner-all" style="padding: 10">
 											<div style="float:left" class="ui-icon ui-icon-alert"></div>
                                             <img src="img/null15.gif" width="15" height="15" />
-                                          This user does not have enough mining data to come to any conclusions.
-										</div>
+                                            <strong> This user does not have enough mining data to come to any conclusions.</strong>
+                                        </div>
                                       <?php break;
 										default: ?>
 										<div class="ui-state-error ui-corner-all" style="padding: 10">
 											<div style="float:left" class="ui-icon ui-icon-alert"></div>
                                             <img src="img/null15.gif" width="15" height="15" />
-                                          ERROR: Accuracy value undefined
-										</div>
+                                            <strong> ERROR: Accuracy value undefined</strong>
+                                        </div>
                                       <?php break;
 									}?></td>
-                                    </tr>
+                                  <td></td>
+                                  </tr>
                                   <?php } ?>
-                                  </table></td>
+                                  </table>
+                                    <table width="100%" border="0">
+                                        <tr>
+                                            <td>
+                                                <?php if(count($player_clusters_world) == 0)
+                                                { ?>
+                                                <div class="ui-widget-content ui-corner-all" style="padding: 10">
+                                                  <div style="float:left" class="ui-icon ui-icon-info"></div>
+                                                  <img src="img/null15.gif" width="15" height="15" />
+                                                  <strong>You have not yet scanned this players' mining behavior.</strong><br /><br />
+                                                    <div align="center"><button id="xsingle_scan_player_now">Scan Now</button></div>
+                                                  </div>
+                                          <?php } ?>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                  </td>
                                 </tr>
                               </table></td>
                           </tr>
@@ -1489,44 +1286,44 @@ google.setOnLoadCallback(Draw_Gauges);
                                       <table width="100%" border="0">
                                         <tr>
                                           <td><?php
-                                	switch($trait_item["type"])
-									{
-										case "disclaimer": ?>
-                                            <div class="ui-widget-content ui-corner-all xray-dark" style="padding: 10">
-                                              <div style="float:left" class="ui-icon ui-icon-info"></div>
-                                              <img src="img/null15.gif" width="15" height="15" />
-                                              <strong><?php echo $trait_item["message"];?></strong>
-                                              </div>
-                                            <?php break;
-										case "bad": ?>
-                                            <div class="ui-state-error ui-corner-all" style="padding: 10">
-                                              <div style="float:left" class="ui-icon ui-icon-info"></div>
-                                              <img src="img/null15.gif" width="15" height="15" />
-                                              <strong><?php echo $trait_item["message"];?></strong>
-                                              </div>
-                                            <?php break;
-										case "neutral": ?>
-                                            <div class="ui-widget-content ui-corner-all" style="padding: 10">
-                                              <div style="float:left" class="ui-icon ui-icon-info"></div>
-                                              <img src="img/null15.gif" width="15" height="15" />
-                                              <strong><?php echo $trait_item["message"];?></strong>
-                                              </div>
-                                            <?php break;
-										case "good": ?>
-                                            <div class="ui-state-highlight ui-corner-all" style="padding: 10">
-                                              <div style="float:left" class="ui-icon ui-icon-plus"></div>
-                                              <img src="img/null15.gif" width="15" height="15" />
-                                              <strong><?php echo $trait_item["message"];?></strong>
-                                              </div>
-                                            <?php break;
-										default: ?>
-                                            <div class="ui-widget-content ui-corner-all" style="padding: 10">
-                                              <div style="float:left" class="ui-icon ui-icon-info"></div>
-                                              <img src="img/null15.gif" width="15" height="15" />
-                                              <strong><?php echo $trait_item["message"];?></strong>
-                                              </div>
-                                            <?php break;
-									}?></td>
+											switch($trait_item["type"])
+											{
+												case "disclaimer": ?>
+													<div class="ui-widget-content ui-corner-all xray-dark" style="padding: 10">
+													  <div style="float:left" class="ui-icon ui-icon-info"></div>
+													  <img src="img/null15.gif" width="15" height="15" />
+													  <strong><?php echo $trait_item["message"];?></strong>
+													  </div>
+													<?php break;
+												case "bad": ?>
+													<div class="ui-state-error ui-corner-all" style="padding: 10">
+													  <div style="float:left" class="ui-icon ui-icon-info"></div>
+													  <img src="img/null15.gif" width="15" height="15" />
+													  <strong><?php echo $trait_item["message"];?></strong>
+													  </div>
+													<?php break;
+												case "neutral": ?>
+													<div class="ui-widget-content ui-corner-all" style="padding: 10">
+													  <div style="float:left" class="ui-icon ui-icon-info"></div>
+													  <img src="img/null15.gif" width="15" height="15" />
+													  <strong><?php echo $trait_item["message"];?></strong>
+													  </div>
+													<?php break;
+												case "good": ?>
+													<div class="ui-state-highlight ui-corner-all" style="padding: 10">
+													  <div style="float:left" class="ui-icon ui-icon-plus"></div>
+													  <img src="img/null15.gif" width="15" height="15" />
+													  <strong><?php echo $trait_item["message"];?></strong>
+													  </div>
+													<?php break;
+												default: ?>
+													<div class="ui-widget-content ui-corner-all" style="padding: 10">
+													  <div style="float:left" class="ui-icon ui-icon-info"></div>
+													  <img src="img/null15.gif" width="15" height="15" />
+													  <strong><?php echo $trait_item["message"];?></strong>
+													  </div>
+													<?php break; }?>
+											</td>
                                           <td></td>
                                           </tr>
                                         <?php } ?>
@@ -1547,7 +1344,7 @@ google.setOnLoadCallback(Draw_Gauges);
               </table></td>
           </tr>
           <tr>
-            <td><table width="100%" border="0">
+            <td><table width="100%" border="0" style="display:none">
               <tr>
                 <td><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
                   <tr>
@@ -1633,141 +1430,7 @@ google.setOnLoadCallback(Draw_Gauges);
             </td>
           </tr>
           <tr>
-            <td><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
-              <tr>
-                <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
-                  <tr>
-                    <td><strong><?php echo $player_name; ?>'s Advanced Stats</strong></td>
-                  </tr>
-                </table></td>
-              </tr>
-              <tr>
-                <td><table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
-                  <tr>
-                    <td><table width="100%" border="0">
-                      <tr>
-                        <td align="center">&nbsp;</td>
-                      </tr>
-                      <tr>
-                        <td align="center" class="bg_H_-3">
-                        <?php if(count($player_clusters_world) == 0){ ?>
-                          <p>You have not yet analyzed this players mining behavior. Would you like to do that now?</p>
-                          <p>&nbsp;</p>
-                          <form action="xray.php" method="post" name="form_startanalysis" target="_self" id="form_startanalysis">
-                            <input name="form" type="hidden" id="form" value="form_analyze_mines_now" />
-                            <input type="submit" name="Submit" id="Submit" value="Analyze Mining Behavior" />
-                            <input name="command" type="hidden" id="command" value="xanalyze" />
-                            <input name="player" type="hidden" id="player" value="<?php echo $player_name;?>" />
-                          </form>
-                          </p>
-						  <?php } ?></td>
-                      </tr>
-                      <tr>
-                        <td align="center">&nbsp;</td>
-                      </tr>
-                    </table>
-                      <?php foreach($GLOBALS['worlds'] as $world_index => $world_item)
-					  { 
-					  	if(count( $player_clusters_world[$world_index]) > 0)
-						{ ?>
-                      <table width="100%" border="0">
-                      <tr>
-                        <td>&nbsp;</td>
-                      </tr>
-                      <tr>
-                        <td><table width="100%" border="0" class="bg_black">
-                          <tr class="bg_white">
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
-                          </tr>
-                          <?php 
-				  		foreach($player_clusters_world[$world_index] as $cluster_index => $cluster_item)
-				  		{
-						?>
-                          <tr class="bg_I_0">
-                            <td nowrap="nowrap" class="bg_H_<?php echo (!isset($cluster_item["slope_before"]) ) ? "-3" : $cluster_item["color_slope_before"];?>"><strong><?php echo $cluster_item["slope_before"]; ?></strong></td>
-                            <td nowrap="nowrap" class="bg_H_<?php echo (!isset($cluster_item["spread_before"]) ) ? "-3" : $cluster_item["color_spread_before"];?>"><strong><?php echo $cluster_item["spread_before"]; ?></strong></td>
-                            <td nowrap="nowrap"><strong><?php echo $cluster_item["ore_length"]; ?></strong></td>
-                            <td nowrap="nowrap" class="bg_H_<?php echo (!isset($cluster_item["slope_after"]) ) ? "-3" : "0"; ?>"><strong><?php echo $cluster_item["slope_after"]; ?></strong></td>
-                            <td nowrap="nowrap" class="bg_H_<?php echo (!isset($cluster_item["spread_after"]) ) ? "-3" : "0"; ?>"><strong><?php echo $cluster_item["spread_after"]; ?></strong></td>
-                          </tr>
-                          <?php if(!(($cluster_index+1) % 25) ){ ?>
-                          <tr class="bg_white">
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
-                          </tr>
-                          <?php } }
-				  if( (($cluster_index+1) % 25) ){ ?>
-                          <tr class="bg_white">
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
-                          </tr>
-                          <?php } ?>
-                        </table></td>
-                      </tr>
-                      <?php /*<!--<tr>
-                        <td><table width="100%" border="0" class="bg_black">
-                          <tr class="bg_white">
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Date</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Volume</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>First Block Ore?</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>PostBreaks</strong></td>
-                            </tr>
-	                  <?php 
-				  		foreach($player_mines_all as $mine_index => $mine_item)
-				  		{
-							foreach($colorbins as $column_name => $bins)
-							{
-								$tempcolor = 10;
-								$color[$column_name] = -3;
-								while($mine_item[$column_name . "_ratio"] < $colorbins[$column_name][$tempcolor] && $tempcolor > 0)
-								{
-									//echo "<br>$sortby_column_name >> " . $colorbins[$sortby_column_name][$tempcolor] . " [" . ($tempcolor) . "]";
-									$tempcolor--;	
-								}
-								//echo "<< <BR>";
-								$color[$column_name] = $tempcolor;
-							}
-						?>
-                          <tr class="bg_I_<?php echo $color[$sortby_column_name];?>">
-                            <td nowrap="nowrap"><strong><?php echo $mine_item["volume"]; ?></strong></td>
-                            <td nowrap="nowrap"><strong><?php echo $mine_item["volume"]; ?></strong></td>
-                            <td nowrap="nowrap"><strong><?php echo FixOutput_Bool($mine_item["first_block_ore"],"Yes","No","?"); ?></strong></td>
-                            <td nowrap="nowrap"><strong><?php echo $mine_item["volume"]; ?></strong></td>
-                            </tr>
-                          <?php if(!(($mine_index+1) % 25) ){ ?>
-                          <tr class="bg_white">
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Date</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Volume</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>First Block Ore?</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>PostBreaks</strong></td>
-                          </tr>
-                          <?php } }
-				  if( (($mine_index+1) % 25) ){ ?>
-                          <tr class="bg_white">
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Date</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Volume</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>First Block Ore?</strong></td>
-                            <td nowrap="nowrap" class="bg_AAA_x"><strong>PostBreaks</strong></td>
-                          </tr>
-                          <?php } ?>
-                        </table></td>
-                      </tr>-->*/ ?>
-                    </table>
-                    <?php } } ?></td>
-                  </tr>
-                </table></td>
-              </tr>
-            </table></td>
+            <td>&nbsp;</td>
           </tr>
           </table>
           <?php } ?></td>
@@ -1777,7 +1440,7 @@ google.setOnLoadCallback(Draw_Gauges);
       </tr>
 <tr>
   <td><?php if($command=="xsingle" || $command=="xglobal"){ ?>
-    <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
+    <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all" style="display:none">
       <tr>
         <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
           <tr>
