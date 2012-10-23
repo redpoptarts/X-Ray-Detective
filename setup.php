@@ -111,6 +111,7 @@ if($_POST['form']!="")
 				
 				$sql_NewTables = file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']). "/inc/sql/initialize_database.sql");
 				
+				// Replace all occurrences of 'minecraft' with actual database name within the initialization script
 				if($db['x_base']!="minecraft")
 				{
 					$sql_NewTables = str_replace("`minecraft`","`".$db['x_base']."`",$sql_NewTables);

@@ -130,6 +130,60 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 
+-- -----------------------------------------------------
+-- Table `minecraft`.`x-playerinfo`
+-- -----------------------------------------------------
+CREATE TABLE `x-playerinfo` (
+  `playerid` smallint(5) NOT NULL,
+  `watch` varchar(45) DEFAULT NULL,
+  `punish` varchar(45) DEFAULT NULL,
+  `firstlogin` datetime DEFAULT NULL,
+  `lastlogin` datetime DEFAULT NULL,
+  `onlinetime` datetime DEFAULT NULL,
+  `ip` varchar(45) DEFAULT NULL,
+  `total_stone` int(21) unsigned DEFAULT NULL,
+  `total_diamond` int(10) unsigned DEFAULT NULL,
+  `total_lapis` int(10) unsigned DEFAULT NULL,
+  `total_gold` int(10) unsigned DEFAULT NULL,
+  `total_mossy` int(10) unsigned DEFAULT NULL,
+  `total_iron` int(10) unsigned DEFAULT NULL,
+  `max_ratio_diamond` decimal(6,2) unsigned DEFAULT NULL,
+  `max_ratio_lapis` decimal(6,2) unsigned DEFAULT NULL,
+  `max_ratio_gold` decimal(6,2) unsigned DEFAULT NULL,
+  `max_ratio_mossy` decimal(6,2) unsigned DEFAULT NULL,
+  `max_ratio_iron` decimal(6,2) unsigned DEFAULT NULL,
+  `avg_ratio_diamond` decimal(6,2) unsigned DEFAULT NULL,
+  `avg_ratio_lapis` decimal(6,2) unsigned DEFAULT NULL,
+  `avg_ratio_gold` decimal(6,2) unsigned DEFAULT NULL,
+  `avg_ratio_mossy` decimal(6,2) unsigned DEFAULT NULL,
+  `avg_ratio_iron` decimal(6,2) unsigned DEFAULT NULL,
+  `postbreak_ratio` decimal(6,2) unsigned DEFAULT NULL,
+  `max_slope_before_pos` decimal(6,2) DEFAULT NULL,
+  `max_slope_before_neg` decimal(6,2) DEFAULT NULL,
+  `max_slope_after_pos` decimal(6,2) DEFAULT NULL,
+  `max_slope_after_neg` decimal(6,2) DEFAULT NULL,
+  `avg_slope_before_pos` decimal(6,2) DEFAULT NULL,
+  `avg_slope_before_neg` decimal(6,2) DEFAULT NULL,
+  `avg_slope_after_pos` decimal(6,2) DEFAULT NULL,
+  `avg_slope_after_neg` decimal(6,2) DEFAULT NULL,
+  `count_slope_before_pos` int(5) DEFAULT '0',
+  `count_slope_before_neg` int(5) DEFAULT '0',
+  `count_slope_after_pos` int(5) DEFAULT '0',
+  `count_slope_after_neg` int(5) DEFAULT '0',
+  `avg_spread_before` tinyint(2) unsigned DEFAULT NULL,
+  `avg_spread_after` tinyint(2) unsigned DEFAULT NULL,
+  `avg_mine_volume` int(5) unsigned DEFAULT NULL,
+  `avg_ore_begin` tinyint(2) unsigned DEFAULT NULL,
+  `avg_ore_length` tinyint(2) unsigned DEFAULT NULL,
+  `ratio_first_block_ore` decimal(4,2) unsigned DEFAULT NULL,
+  `slope_before_preference` decimal(5,2) unsigned DEFAULT NULL,
+  `slope_after_preference` decimal(5,2) unsigned DEFAULT NULL,
+  `total_ores` int(5) unsigned DEFAULT '0',
+  `total_clusters` int(5) unsigned DEFAULT '0',
+  PRIMARY KEY (`playerid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
