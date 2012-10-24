@@ -344,7 +344,7 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 <script type="text/javascript" src="styles/ui/jquery.ui.progressbar.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.effects.core.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.effects.blind.js"></script>
-<script type="text/javascript" src="inc/jquery.form.js"></script>
+<!--<script type="text/javascript" src="inc/jquery.form.js"></script>-->
 <!--<script type="text/javascript" src="http://www.google.com/jsapi"></script>-->
 <script type="text/javascript" src="scripts/jsapi.js"></script>
 <script type="text/javascript" src="scripts/date.js"></script>
