@@ -1,5 +1,4 @@
-<script>
-// JavaScript Document
+<script type="text/javascript">
 $(function(){
 	$('.ui-state-default').hover(
 		function(){ $(this).addClass('ui-state-hover'); }, 
@@ -66,111 +65,189 @@ $(function(){
 			value: 0,
 			disabled: false
 		});
-
-		// Get a list of worlds, and how many new users there are to process in each
+		
+		// Get a list of worlds, and the last break date in each
+		
+		var world_breakdate_array;
+		
 		$.ajax(
-		{ url: 'inc/live/count_dirtyusers_eachworld.php',
+		{ url: 'inc/live/get_world_latestbreakdate.php',
+				data: { 
+					world_id: 'ALL',
+					},
+				type: 'POST',
 				dataType: 'json',
 				async: false,
 				success: function(response)
 						 {
-								//alert(clicked_obj.attr('id'));
 								//alert(response);
-								
-								clicked_obj.switchClass( "ui-state-error", "ui-state-focus", 1000 );
-								document.getElementById("refresh_stats_text").innerHTML = "Refreshing...";
-
-								if($(response).size() > 0)
-								{
-									var updated_users = 0;
-									
-									$.each(response, function(response_index, world_array)
-									{ 
-										//alert('world_id' + ': ' + world_array.world_id); 
-										//alert('player_count' + ': ' + world_array.player_count); 
-										
-										var page = 1;
-										var max_pages = (Math.ceil(world_array.player_count / 10 ));
-										
-										//alert( 'Total Pages: ' + max_pages );
-										while(page <= max_pages )
-										{
-											//alert( 'Current Page: ' + page );
-											$.ajax(
-											{ url: 'inc/live/update_newbreaks_byworld_bypage.php',
-													data: { 
-														world_id: world_array.world_id,
-														page_num: page,
-														},
-													type: 'GET',
-													dataType: 'JSON',
-													async: false,
-													success: function(response)
-															 {
-																//alert( 'Current Page: ' + page );
-																//alert('OK - ' + response);
-																updated_users += response;
-																//alert('OK - ' + updated_users);
-															 },
-													error: function(response)
-															 {
-																//alert('ERROR - ' + response);
-															 }
-													 
-											}); // AJAX
-
-										//	$( "#refresh_stats_progressbar" ).progressbar.value((page / max_pages) * 100);
-									
-									$( "#refresh_stats_progressbar" ).progressbar({
-										value: ((page / max_pages) * 100)
-									});
-											
-											page++;
-										}
-
-									});
-									
-									//alert('Updated: ' + updated_users);
-									
-									$( "#refresh_stats_progressbar" ).progressbar({
-										value: 100
-									});
-									
-									clicked_obj.switchClass( "ui-state-default", "ui-state-highlight", 1000 );
-									clicked_obj.switchClass( "ui-state-error", "ui-state-highlight", 1000 );
-									
-									document.getElementById("refresh_stats_text").innerHTML = updated_users + " Users Updated";
-									$( "#refresh_stats_records" ).val(updated_users);
-								}
-								else
-								{
-									document.getElementById("refresh_stats_text").innerHTML = "No Changes Detected";
-								}
-
-								
-								if(response.message == "HOST OK")
+								world_breakdate_array = response;
+								if(response > 0)
 								{
 
-								} else {
-/*
-							
-									document.getElementById("source_db_error_main").innerHTML = "An error occurred while validating MySQL Server.<BR>Please check the information and try again.";
-									document.getElementById("source_db_error_specific").innerHTML = response.message;
-									$( "#db_setup_error_dialog" ).dialog({
-										autoOpen: true,
-										width: 500,
-										modal: false,
-										buttons: {
-											Ok: function() {
-												$( this ).dialog( "close" );
-											}
-										}
-									});
-									
-*/
 								}
+
 						 }
-		}); // AJAX
+		}); // AJAX, LatestBreakDate
+		
+		var count_month = [];
+		
+		// Segment processing of each world into time segments
+		$.each(world_breakdate_array, function(world_index, world_item)
+		{
+			// Calculate the diff between last break date and last processed date
+			// to determine how many segments to call
+			// If the dates are the same, the month is ommitted from processing
+			var date_start = new Date.parse(world_item.last_date_processed);
+			var date_current = date_start;
+			var date_end = new Date.parse(world_item.latest_break_date);
+			
+			//alert("Start: " + start);
+			//alert("Current: " + current);
+			//alert("End: " + end);
+			//alert(current.compareTo(end));
+			
+			
+			// Calculate how many months need to be processed
+			count_month[world_index] = 0 ;
+			while(date_current.compareTo(end) == -1)
+			{
+				date_current = date_current.addMonths(1);
+				count_month[world_index]++;
+			}
+			alert("Total months: " + count_month[world_index]);
+			
+			date_current = date_start; // reset the variable for processing
+			// Process the current world, segmented by one month increments
+			while(date_current.compareTo(end) == -1)
+			{
+				$.ajax(
+				{ url: 'inc/live/count_dirtyusers_byworld_bydate.php',
+						data: { 
+							world_id: world_item.world_id,  /// TODO: Check that this is passed correctly from JS -> PHP
+							start_date: date_current,
+							},
+						type: 'POST',
+						dataType: 'JSON',
+						async: false,
+						success: function(response)
+								 {
+										//alert(clicked_obj.attr('id'));
+										//alert(response);
+										
+										clicked_obj.switchClass( "ui-state-error", "ui-state-focus", 1000 );
+										document.getElementById("refresh_stats_text").innerHTML = "Refreshing...";
+		
+										if($(response).size() > 0)
+										{
+											var updated_users = 0;
+											
+											$.each(response, function(response_index, world_array)
+											{ 
+												//alert('world_id' + ': ' + world_array.world_id); 
+												//alert('player_count' + ': ' + world_array.player_count); 
+												
+												var page = 1;
+												var max_pages = (Math.ceil(world_array.player_count / 10 ));
+												
+												//alert( 'Total Pages: ' + max_pages );
+												while(page <= max_pages )
+												{
+													//alert( 'Current Page: ' + page );
+													$.ajax(
+													{ url: 'inc/live/update_newbreaks_byworld_bypage.php',
+															data: { 
+																world_id: world_array.world_id,
+																page_num: page,
+																},
+															type: 'GET',
+															dataType: 'JSON',
+															async: false,
+															success: function(response)
+																	 {
+																		//alert( 'Current Page: ' + page );
+																		//alert('OK - ' + response);
+																		updated_users += response;
+																		//alert('OK - ' + updated_users);
+																	 },
+															error: function(response)
+																	 {
+																		//alert('ERROR - ' + response);
+																	 }
+															 
+													}); // AJAX, update newbreaks, by world, by page
+		
+												//	$( "#refresh_stats_progressbar" ).progressbar.value((page / max_pages) * 100);
+											
+											$( "#refresh_stats_progressbar" ).progressbar({
+												value: ((page / max_pages) * 100)
+											});
+													
+													page++;
+												}
+		
+											});
+											
+											//alert('Updated: ' + updated_users);
+											
+											$( "#refresh_stats_progressbar" ).progressbar({
+												value: 100
+											});
+											
+											clicked_obj.switchClass( "ui-state-default", "ui-state-highlight", 1000 );
+											clicked_obj.switchClass( "ui-state-error", "ui-state-highlight", 1000 );
+											
+											document.getElementById("refresh_stats_text").innerHTML = updated_users + " Users Updated";
+											$( "#refresh_stats_records" ).val(updated_users);
+										}
+										else
+										{
+											document.getElementById("refresh_stats_text").innerHTML = "No Changes Detected";
+										}
+		
+										
+										if(response.message == "HOST OK")
+										{
+		
+										} else {
+		/*
+									
+											document.getElementById("source_db_error_main").innerHTML = "An error occurred while validating MySQL Server.<BR>Please check the information and try again.";
+											document.getElementById("source_db_error_specific").innerHTML = response.message;
+											$( "#db_setup_error_dialog" ).dialog({
+												autoOpen: true,
+												width: 500,
+												modal: false,
+												buttons: {
+													Ok: function() {
+														$( this ).dialog( "close" );
+													}
+												}
+											});
+											
+		*/
+										}
+								 }
+				}); // AJAX, get all worlds
+
+				// Advance the month iterator
+				date_current = date_current.addMonths(1);
+			}
+			
+
+			
+			
+			
+		});
+
+////////////////////////////////////////////////////////////////////////
+		alert("STOP");
+		return;
+////////////////////////////////////////////////////////////////////////
+
+		// Get a list of worlds, and how many new users there are to process in each
+
+		
 		// Paginate each list of users into groups
 
 		
@@ -225,6 +302,9 @@ $(function(){
 		*/
 		
 	});
+
+});
+
 	
 ////////////////////////////////
 // Single Player Stats
@@ -311,4 +391,6 @@ $(function(){
 		*/
 
 });
+
+
 </script>
