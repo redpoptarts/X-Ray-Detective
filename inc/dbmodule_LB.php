@@ -33,11 +33,10 @@ function Get_Count_DirtyUsers_ByWorld($world_id, $start_date, $end_date="END_OF_
 		$end_date = date("Y-m-t", strtotime($start_date)) . " 00:00:00";
 	}
 	
-	
 	$sql_getlatest = "";
 	foreach($GLOBALS['worlds'] as $world_index => $world_item)
 	{
-		if($world_index == $world_id)
+		if($world_item['worldid'] == $world_id)
 		{
 			$sql_getlatest .= " SELECT count(playerid) AS player_count ";
 			$sql_getlatest .= " FROM ";
@@ -62,7 +61,7 @@ function Get_Count_DirtyUsers_ByWorld($world_id, $start_date, $end_date="END_OF_
 
 	$return_updated = 0;
 
-	//echo "SQL_QUERY: <br>". $sql_getlatest . "<br>";
+	echo "SQL_QUERY: <br>". $sql_getlatest . "<br>";
 	$res_getlatest = mysql_query($sql_getlatest) or die("World-DirtyUsers: " . mysql_error());
 	while(($DirtyUsersArray[] = mysql_fetch_assoc($res_getlatest)) || array_pop($DirtyUsersArray));
 	//echo "DIRTY_USERS_ARRAY: <BR>"; print_r($DirtyUsersArray); echo "<BR>";

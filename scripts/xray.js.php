@@ -102,30 +102,43 @@ $(function(){
 			var date_current = date_start;
 			var date_end = new Date.parse(world_item.latest_break_date);
 			
-			//alert("Start: " + start);
-			//alert("Current: " + current);
-			//alert("End: " + end);
-			//alert(current.compareTo(end));
+			//alert("Start: " + date_start);
+			//alert("Current: " + date_current);
+			//alert("End: " + date_end);
+			//alert("C/S: " + date_current.compareTo(date_start));
+			//alert("C/E: " + date_current.compareTo(date_end));
 			
 			
 			// Calculate how many months need to be processed
 			count_month[world_index] = 0 ;
-			while(date_current.compareTo(end) == -1)
+			while(date_current.compareTo(date_end) == -1)
 			{
 				date_current = date_current.addMonths(1);
 				count_month[world_index]++;
 			}
 			alert("Total months: " + count_month[world_index]);
 			
-			date_current = date_start; // reset the variable for processing
+			var date_current = date_start; // reset the variable for processing
+			
+			var date_start = new Date.parse(world_item.last_date_processed);
+			var date_current = date_start;
+			var date_end = new Date.parse(world_item.latest_break_date);
+			
+			//alert("Current: " + date_current);
+			//alert("C/S: " + date_current.compareTo(date_start));
+			//alert("C/E: " + date_current.compareTo(date_end));
+			
 			// Process the current world, segmented by one month increments
-			while(date_current.compareTo(end) == -1)
+			while(date_current.compareTo(date_end) == -1)
 			{
+				alert("Inside...");
+				alert( $.format.date(date_current, "yyyy-mm-dd HH:MM:ss") );
+				
 				$.ajax(
 				{ url: 'inc/live/count_dirtyusers_byworld_bydate.php',
 						data: { 
 							world_id: world_item.world_id,  /// TODO: Check that this is passed correctly from JS -> PHP
-							start_date: date_current,
+							start_date: $.format.date(date_current, "yyyy-mm-dd HH:MM:ss"),
 							},
 						type: 'POST',
 						dataType: 'JSON',
@@ -133,7 +146,7 @@ $(function(){
 						success: function(response)
 								 {
 										//alert(clicked_obj.attr('id'));
-										//alert(response);
+										alert(response);
 										
 										clicked_obj.switchClass( "ui-state-error", "ui-state-focus", 1000 );
 										document.getElementById("refresh_stats_text").innerHTML = "Refreshing...";
@@ -154,6 +167,7 @@ $(function(){
 												while(page <= max_pages )
 												{
 													//alert( 'Current Page: ' + page );
+													
 													$.ajax(
 													{ url: 'inc/live/update_newbreaks_byworld_bypage.php',
 															data: { 
@@ -179,9 +193,9 @@ $(function(){
 		
 												//	$( "#refresh_stats_progressbar" ).progressbar.value((page / max_pages) * 100);
 											
-											$( "#refresh_stats_progressbar" ).progressbar({
-												value: ((page / max_pages) * 100)
-											});
+												$( "#refresh_stats_progressbar" ).progressbar({
+													value: ((page / max_pages) * 100)
+												});
 													
 													page++;
 												}
@@ -210,7 +224,8 @@ $(function(){
 										{
 		
 										} else {
-		/*
+		
+/*
 									
 											document.getElementById("source_db_error_main").innerHTML = "An error occurred while validating MySQL Server.<BR>Please check the information and try again.";
 											document.getElementById("source_db_error_specific").innerHTML = response.message;
@@ -225,13 +240,19 @@ $(function(){
 												}
 											});
 											
-		*/
+*/		
 										}
-								 }
+								 },
+						error: function(response)
+								{
+										alert("BAD");
+										alert(response);
+								}
 				}); // AJAX, get all worlds
 
 				// Advance the month iterator
-				date_current = date_current.addMonths(1);
+				//date_current = date_current.addMonths(1);
+				date_current = date_end;
 			}
 			
 
@@ -303,7 +324,7 @@ $(function(){
 		
 	});
 
-});
+
 
 	
 ////////////////////////////////

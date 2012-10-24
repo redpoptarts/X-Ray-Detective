@@ -5,6 +5,12 @@ Global_Init();
 
 Use_DB("source");
 
+$_GET['world_id']=3;
+$_GET['start_date']="2012-02-15 00:00:00";
+
+$_POST=$_GET;
+
+
 foreach($GLOBALS['worlds'] as $world_index => $world_item)
 {
 	if($_POST['world_id'] == "ALL" || $_POST['world_id'] == $world_item['worldid'])

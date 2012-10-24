@@ -348,7 +348,8 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 <!--<script type="text/javascript" src="http://www.google.com/jsapi"></script>-->
 <script type="text/javascript" src="scripts/jsapi.js"></script>
 <script type="text/javascript" src="scripts/date.js"></script>
-<?php /* include_once('scripts/xray.js.php'); */ ?>
+<script type="text/javascript" src="scripts/jquery.dateFormat-1.0.js"></script>
+<?php include_once('scripts/xray.js.php'); ?>
 
 <?php if($command == "xsingle"){ ?>
 <script type="text/javascript">
