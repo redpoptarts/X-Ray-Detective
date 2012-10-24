@@ -24,9 +24,16 @@ function World_IsValid($worldname)
 		{ return false; }	
 }
 
-function Get_Count_DirtyUsers_ByWorld($world_id)
+function Get_Count_DirtyUsers_ByWorld($world_id, $start_date, $end_date="END_OF_MONTH")
 {
 	$datetime_now = new DateTime;
+	
+	if($end_date=="END_OF_MONTH")
+	{
+		$end_date = date("Y-m-t", strtotime($start_date)) . " 00:00:00";
+	}
+	
+	
 	$sql_getlatest = "";
 	foreach($GLOBALS['worlds'] as $world_index => $world_item)
 	{
@@ -38,7 +45,8 @@ function Get_Count_DirtyUsers_ByWorld($world_id)
 			$sql_getlatest .= " 	SELECT playerid ";
 			$sql_getlatest .= " 	FROM `lb-".$world_item["worldname"]."` ";
 			$sql_getlatest .= " 	WHERE ";
-			$sql_getlatest .= " 	    (date > '2012-03-01 00:00:00') ";  // TODO: CHANGE THIS VALUE TO KNOWN LATEST_BREAK_DATE
+//			$sql_getlatest .= " 	    (date > '2012-03-01 00:00:00') ";  // TODO: CHANGE THIS VALUE TO KNOWN LATEST_BREAK_DATE
+			$sql_getlatest .= " 	    (date BETWEEN '".$start_date."' AND '".$end_date."') ";
 			$sql_getlatest .= " 	    AND (replaced = 1 ";
 			$sql_getlatest .= " 	    OR replaced = 15 ";
 			$sql_getlatest .= " 	    OR replaced = 14 ";
@@ -184,6 +192,45 @@ function Add_NewBreaks_ByWorld_ByPage($world_id, $page_num)
 //	return count($dirtyusers_array);
 }
 
+function Get_World_LatestBreakDate($world_id="ALL")
+{
+	$sql_getdate = "";
+	foreach($GLOBALS['worlds'] as $world_index => $world_item)
+	{
+		if($world_id == "ALL" || $world_item['worldid'] == $world_id)
+		{
+			if($world_index>0){ $sql_getdate .= " UNION ALL"; }
+			$sql_getdate .= " SELECT '".$world_item["worldid"]."' AS worldid, MAX(date) AS latest_break_date";
+			$sql_getdate .= " FROM `lb-".$world_item["worldname"]."`";
+			$sql_getdate .= " WHERE  replaced = 1";
+			$sql_getdate .= "     OR replaced = 15";
+			$sql_getdate .= "     OR replaced = 14";
+			$sql_getdate .= "     OR replaced = 56";
+			$sql_getdate .= "     OR replaced = 25";
+			$sql_getdate .= "     OR replaced = 48";
+			$sql_getdate .= "     AND type = 0";
+		}
+	}
+	
+	//echo "SQL_QUERY: <br>". $sql_getdate . "<br>";
+	$res_getdate = mysql_query($sql_getdate) or die("World-LatestBreakDate: " . mysql_error());
+	while(($LatestDateArray[] = mysql_fetch_assoc($res_getdate)) || array_pop($LatestDateArray));
+	//echo "LATEST_DATE_ARRAY: <BR>"; print_r($LatestDateArray); echo "<BR>";	
+
+	foreach($LatestDateArray as $world_index => &$world_item)
+	{
+		foreach($GLOBALS['worlds'] as $gworld_index => $gworld_item)
+		{
+			if($world_item['worldid'] == $gworld_item['worldid'])
+			{
+				$world_item['last_date_processed'] = $gworld_item['last_date_processed'];
+			}
+		}
+	}
+
+	return $LatestDateArray;
+}
+
 
 // Deprecated function
 function Add_NewBreaks()
@@ -192,27 +239,9 @@ function Add_NewBreaks()
 	// This prevents omitting any breaks that occurr during this script
 
 	$datetime_now = new DateTime;
-	$sql_getdate = "";
-	foreach($GLOBALS['worlds'] as $world_index => $world_item)
-	{
-		if($world_index>0){ $sql_getdate .= " UNION ALL"; }
-		$sql_getdate .= " SELECT '".$world_item["worldid"]."' AS worldid, MAX(date) AS latest_break_date";
-		$sql_getdate .= " FROM `lb-".$world_item["worldname"]."`";
-		$sql_getdate .= " WHERE  replaced = 1";
-		$sql_getdate .= "     OR replaced = 15";
-		$sql_getdate .= "     OR replaced = 14";
-		$sql_getdate .= "     OR replaced = 56";
-		$sql_getdate .= "     OR replaced = 25";
-		$sql_getdate .= "     OR replaced = 48";
-		$sql_getdate .= "     AND type = 0";
-	}
-
 	$return_updated = 0;
 
-	//echo "SQL_QUERY: <br>". $sql_getdate . "<br>";
-	$res_getdate = mysql_query($sql_getdate) or die("World-LatestBreakDate: " . mysql_error());
-	while(($LatestDateArray[] = mysql_fetch_assoc($res_getdate)) || array_pop($LatestDateArray));
-	//echo "LATEST_DATE_ARRAY: <BR>"; print_r($LatestDateArray); echo "<BR>";
+	$LatestDateArray = Get_World_LatestBreakDate();
 
 	foreach($GLOBALS['worlds'] as $world_index => $world_item)
 	{
