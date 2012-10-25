@@ -113,7 +113,7 @@ $(function(){
 			count_month[world_index] = 0 ;
 			while(date_current.compareTo(date_end) == -1)
 			{
-				date_current = date_current.addMonths(1);
+				date_current = date_current.addDays(7);
 				count_month[world_index]++;
 			}
 			alert("Total months: " + count_month[world_index]);
@@ -247,11 +247,12 @@ $(function(){
 								{
 										alert("BAD");
 										alert(response);
+										document.getElementById("refresh_stats_text").innerHTML = "Failed";
 								}
 				}); // AJAX, get all worlds
 
 				// Advance the month iterator
-				//date_current = date_current.addMonths(1);
+				//date_current = date_current.addDays(7);
 				date_current = date_end;
 			}
 			

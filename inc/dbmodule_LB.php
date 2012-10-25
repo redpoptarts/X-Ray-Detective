@@ -24,7 +24,7 @@ function World_IsValid($worldname)
 		{ return false; }	
 }
 
-function Get_Count_DirtyUsers_ByWorld($world_id, $start_date, $end_date="END_OF_MONTH")
+function Get_Count_DirtyUsers_ByWorld($world_id, $start_date, $end_date="ADD_1_WEEK")
 {
 	$datetime_now = new DateTime;
 	
@@ -32,6 +32,14 @@ function Get_Count_DirtyUsers_ByWorld($world_id, $start_date, $end_date="END_OF_
 	{
 		$end_date = date("Y-m-t", strtotime($start_date)) . " 00:00:00";
 	}
+	if($end_date=="ADD_1_WEEK")
+	{
+		$end_date = date_format(date_add(new DateTime($start_date), date_interval_create_from_date_string('7 days')), 'Y-m-d H:i:s'); 
+	}
+	
+//	echo "START DATE: [".$start_date."]<BR>";
+//	echo "END DATE: [".$end_date."]<BR>";
+//	return;
 	
 	$sql_getlatest = "";
 	foreach($GLOBALS['worlds'] as $world_index => $world_item)
@@ -61,7 +69,7 @@ function Get_Count_DirtyUsers_ByWorld($world_id, $start_date, $end_date="END_OF_
 
 	$return_updated = 0;
 
-	echo "SQL_QUERY: <br>". $sql_getlatest . "<br>";
+//	echo "SQL_QUERY: <br>". $sql_getlatest . "<br>";
 	$res_getlatest = mysql_query($sql_getlatest) or die("World-DirtyUsers: " . mysql_error());
 	while(($DirtyUsersArray[] = mysql_fetch_assoc($res_getlatest)) || array_pop($DirtyUsersArray));
 	//echo "DIRTY_USERS_ARRAY: <BR>"; print_r($DirtyUsersArray); echo "<BR>";
