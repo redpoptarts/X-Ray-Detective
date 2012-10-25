@@ -20,23 +20,23 @@ function Use_DB($choose)
 
 function GetMySQL_ResultStats($linkid = null){
     $linkid? $strInfo = mysql_info($linkid) : $strInfo = mysql_info();
-   
+	
     $return = array();
-    ereg("Records: ([0-9]*)", $strInfo, $records);
-    ereg("Duplicates: ([0-9]*)", $strInfo, $dupes);
-    ereg("Warnings: ([0-9]*)", $strInfo, $warnings);
-    ereg("Deleted: ([0-9]*)", $strInfo, $deleted);
-    ereg("Skipped: ([0-9]*)", $strInfo, $skipped);
-    ereg("Rows matched: ([0-9]*)", $strInfo, $rows_matched);
-    ereg("Changed: ([0-9]*)", $strInfo, $changed);
-   
-    $return['records'] = $records[1];
-    $return['duplicates'] = $dupes[1];
-    $return['warnings'] = $warnings[1];
-    $return['deleted'] = $deleted[1];
-    $return['skipped'] = $skipped[1];
-    $return['rows_matched'] = $rows_matched[1];
-    $return['changed'] = $changed[1];
+	$records = array(); $dupes = array(); $warnings = array(); $deleted = array(); $skipped = array(); $rows_matched = array(); $changed = array();
+
+	if(!preg_match("/\bRecords(\w*)\b: ([0-9]*)/", $strInfo, $matches['records'])){$matches['records'] = array();}
+	if(!preg_match("/\bDuplicates(\w*)\b: ([0-9]*)/", $strInfo, $matches['duplicates'])){$matches['duplicates'] = array();}
+	if(!preg_match("/\bWarnings(\w*)\b: ([0-9]*)/", $strInfo, $matches['warnings'])){$matches['warnings'] = array();}
+	if(!preg_match("/\bDeleted(\w*)\b: ([0-9]*)/", $strInfo, $matches['deleted'])){$matches['deleted'] = array();}
+	if(!preg_match("/\bSkipped(\w*)\b: ([0-9]*)/", $strInfo, $matches['skipped'])){$matches['skipped'] = array();}
+	if(!preg_match("/\bRows Matched(\w*)\b: ([0-9]*)/", $strInfo, $matches['rows_matched'])){$matches['rows_matched'] = array();}
+	if(!preg_match("/\bChanged(\w*)\b: ([0-9]*)/", $strInfo, $matches['changed'])){$matches['changed'] = array();}
+
+	$func_return_empty_pair_as_zero = function($input)
+	{
+		return empty($input) ? 0 : $input[2];
+	};
+	$return = array_map($func_return_empty_pair_as_zero, $matches);
    
     return $return;
 }

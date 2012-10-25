@@ -12,10 +12,11 @@ Global_Init();
 
 Use_DB("source");
 
+/*
 $_GET['world_id']=3;
 $_GET['start_date']="2012-02-15 00:00:00";
 
-$_POST=$_GET;
+$_POST=$_GET;*/
 
 
 foreach($GLOBALS['worlds'] as $world_index => $world_item)
