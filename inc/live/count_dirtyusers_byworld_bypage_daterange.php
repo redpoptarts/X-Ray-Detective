@@ -1,11 +1,4 @@
 <?php
-//////////////////////////////////////////////////////////////
-// THIS FUNCTION IS DEPRECATED
-//
-// REASON: The execution time is too high on some systems
-//
-// REPLACED BY: inc/live/count_dirtyusers_byworld_bypage_daterange.php
-//////////////////////////////////////////////////////////////
 require_once('../core_xdetector.php');
 
 Global_Init();
