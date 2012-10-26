@@ -188,19 +188,19 @@ $(function(){
 												
 												$.each(getlist_response, function(response_index, world_array)
 												{ 
-													//alert('Players ('+ $(world_array.player_list).size() +') : ' + world_array.player_list);
+													//alert('Players ('+ $(world_array.player_list).size() +') : ' + world_array.player_list.join() );
 													
 													clicked_obj.switchClass( "ui-state-error", "ui-state-focus", 1000 );
 													document.getElementById("refresh_stats_text").innerHTML = "Refreshing ["+segment_current+"/"+segment_total+"]["+ page + "/"+ max_pages +"]";
 													
 													if( $(world_array.player_list).size() > 0 )
 													{
-														//alert("SEND UPDATE -> ["+world_item.worldid+"]["+page+"]["+$.format.date(date_current, "yyyy-MM-dd HH:mm:ss")+"]");
+														//alert("SEND UPDATE -> ["+world_item.worldid+"]["+world_array.player_list.join()+"]["+$.format.date(date_current, "yyyy-MM-dd HH:mm:ss")+"]");
 														$.ajax(
-														{ url: 'inc/live/update_newbreaks_byworld_bypage_daterange.php',
+														{ url: 'inc/live/update_newbreaks_byworld_playerlist_daterange.php',
 																data: { 
 																	world_id: world_item.worldid,
-																	page_num: page,
+																	player_list: world_array.player_list.join(),
 																	start_date: $.format.date(date_current, "yyyy-MM-dd HH:mm:ss"),
 																	},
 																type: 'POST',
@@ -208,13 +208,13 @@ $(function(){
 																async: false,
 																success: function(update_response)
 																		 {
-																			//alert(debug + "OK UPDATE - P[" + page + "] : U[" + update_response) +"]");
+																			//alert(debug + "OK UPDATE - P[" + page + "] : U[" + update_response +"]");
 																			updated_users += parseInt(update_response);
 																		 },
 																error: function(update_response)
 																		{
-																			alert(debug + "BAD UPDATE -> ["+world_item.worldid+"]["+page+"]["+$.format.date(date_current, "yyyy-MM-dd HH:mm:ss")+"]");
-																			alert(update_response);
+																			alert(debug + "BAD UPDATE -> ["+world_item.worldid+"]["+world_array.player_list.join()+"]["+$.format.date(date_current, "yyyy-MM-dd HH:mm:ss")+"]");
+																			alert(debug + "BAD UPDATE <- ["+update_response+"]");
 																			document.getElementById("refresh_stats_text").innerHTML = "Failed";
 																		}
 																 
@@ -282,65 +282,9 @@ $(function(){
 		});
 
 ////////////////////////////////////////////////////////////////////////
-		alert("STOP");
-		return;
+		//alert("STOP");
+		//return;
 ////////////////////////////////////////////////////////////////////////
-
-		// Get a list of worlds, and how many new users there are to process in each
-
-		
-		// Paginate each list of users into groups
-
-		
-		// Deprecated method
-		/*
-		$.ajax(
-		{ url: 'inc/live/update_newbreaks.php',
-				dataType: 'json',
-				success: function(response, data)
-						 {
-								//alert(clicked_obj.attr('id'));
-								//alert(response);
-								
-								clicked_obj.switchClass( "ui-state-default", "ui-state-highlight", 1000 );
-								clicked_obj.switchClass( "ui-state-error", "ui-state-highlight", 1000 );
-								if(response > 0)
-								{
-									document.getElementById("refresh_stats_text").innerHTML = response + " Users Updated";
-									$( "#refresh_stats_records" ).val(response);
-									$( "#Get_Ratios_ByWorldID_form" ).submit();
-								}
-								else
-								{
-									document.getElementById("refresh_stats_text").innerHTML = "No Changes Detected";
-									//$( "#Get_Ratios_ByWorldID_form" ).submit();
-								}
-
-								
-								if(response.message == "HOST OK")
-								{
-
-								} else {
-
-							
-									document.getElementById("source_db_error_main").innerHTML = "An error occurred while validating MySQL Server.<BR>Please check the information and try again.";
-									document.getElementById("source_db_error_specific").innerHTML = response.message;
-									$( "#db_setup_error_dialog" ).dialog({
-										autoOpen: true,
-										width: 500,
-										modal: false,
-										buttons: {
-											Ok: function() {
-												$( this ).dialog( "close" );
-											}
-										}
-									});
-									
-
-								}
-						 }
-		}); // AJAX
-		*/
 		
 	});
 
