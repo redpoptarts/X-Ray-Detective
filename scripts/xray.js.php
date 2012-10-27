@@ -126,12 +126,12 @@ $(function(){
 			//alert("C/E: " + date_current.compareTo(date_end));
 			
 			// Process the current world, segmented by one week increments
-			var page = 0;
+			var page = 0; var max_pages = 0;
 			while(date_current.compareTo(date_end) == -1)
 			{
-				debug = "W["+world_item.worldid+"]S["+segment_current+"/"+segment_total+"]P["+page+"/?]";
+				debug = "W["+world_item.worldid+"]S["+segment_current+"/"+segment_total[world_index]+"]P["+page+"/?]";
 				//alert("Inside...");
-				//alert( $.format.date(date_current, "yyyy-MM-dd HH:mm:ss") );
+				//alert( debug );
 				//segment_current = 0;
 				var updated_users = 0;
 
@@ -148,13 +148,19 @@ $(function(){
 						async: false,
 						success: function(count_response)
 								 {
-
-									//alert(debug + 'OK COUNT - ' + count_response[0].player_count);
-									max_pages = (Math.ceil( count_response[0].player_count / 10 ));
+									if(count_response[0]>0)
+									{
+										//alert(debug + 'OK COUNT - ' + count_response[0].player_count);
+										max_pages = (Math.ceil( count_response[0].player_count / 10 ));
+									}
+									else
+									{
+										//alert("OK COUNT - (No Results)");
+									}
 								 },
 						error: function(count_response)
 								{
-									alert(debug + "BAD COUNT");
+									alert(debug + "BAD COUNT -> ["+world_item.worldid+"]["+$.format.date(date_current, "yyyy-MM-dd HH:mm:ss")+"]");
 									document.getElementById("refresh_stats_text").innerHTML = "Failed";
 									max_pages = 0;
 								}
@@ -164,7 +170,7 @@ $(function(){
 				page = 1;
 				while(page <= max_pages)
 				{
-					debug = "W["+world_item.worldid+"]S["+segment_current+"/"+segment_total+"]P["+page+"/"+max_pages+"]";
+					debug = "W["+world_item.worldid+"]S["+segment_current+"/"+segment_total[world_index]+"]P["+page+"/"+max_pages+"]";
 					//alert(debug);
 					
 					// AJAX, check next world/page/datesegment for users to update
@@ -191,7 +197,7 @@ $(function(){
 													//alert('Players ('+ $(world_array.player_list).size() +') : ' + world_array.player_list.join() );
 													
 													clicked_obj.switchClass( "ui-state-error", "ui-state-focus", 1000 );
-													document.getElementById("refresh_stats_text").innerHTML = "Refreshing ["+segment_current+"/"+segment_total+"]["+ page + "/"+ max_pages +"]";
+													document.getElementById("refresh_stats_text").innerHTML = "Refreshing ["+segment_current+"/"+segment_total[world_index]+"]["+ page + "/"+ max_pages +"]";
 													
 													if( $(world_array.player_list).size() > 0 )
 													{
@@ -264,9 +270,9 @@ $(function(){
 					//alert ("Response size: " + $(getlist_response).size() );
 				}
 
-				//alert( "Progress: " + (segment_current / segment_total) * 100);
+				//alert( "Progress: " + (segment_current / segment_total[world_index]) * 100);
 				$( "#refresh_stats_progressbar" ).progressbar({
-					value: ((segment_current) / segment_total) * 100
+					value: ((segment_current) / segment_total[world_index]) * 100
 				});
 
 				// Advance the segment iterator
@@ -282,7 +288,7 @@ $(function(){
 		});
 
 ////////////////////////////////////////////////////////////////////////
-		//alert("STOP");
+		alert("END OF WORLD " + world_item.worldid);
 		//return;
 ////////////////////////////////////////////////////////////////////////
 		
