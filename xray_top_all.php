@@ -3,11 +3,11 @@
 <?php
 
 //echo "Global Init...<BR>";
-echo "[".date("Y-m-t", strtotime('today')) . " 00:00:00]";
 Global_Init();
 //echo "Global Init Complete...<BR>";
 $auth = Do_Auth();
 
+//if(array_key_exists('command', $_POST)){ $_GET = $_POST; }
 if(array_key_exists('Submit', $_POST)){ $_GET = $_POST; }
 if(array_key_exists('command', $_POST)){ $_GET = $_POST; }
 $command = array_key_exists('command', $_GET) ? $_GET['command'] : "";
@@ -20,6 +20,9 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 	@mysql_connect($db['x_host'], $db['x_user'], $db['x_pass']) or die($_SERVER["REQUEST_URI"] . "Could not connect to XRAY DB host [".$db['x_host']."].");
 	@mysql_selectdb($db['x_base']) or die($_SERVER["REQUEST_URI"] . "Could not select XRAY DB [".$db['x_base']."]");
 
+
+	$sortby_column_name = array_key_exists('sortby', $_GET) ? $_GET['sortby'] : "diamond_ratio";
+	
 	$block_type = array_key_exists('block_type', $_GET) ? $_GET['block_type'] : 56;
 	$stone_threshold = array_key_exists('stone_threshold', $_GET) ? $_GET['stone_threshold'] : 500;
 	$limit_results = array_key_exists('limit_results', $_GET) ? $_GET['limit_results'] : 100;
@@ -29,14 +32,15 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 	$require_confirmation = false;
 	$_GET['confirm'] = array_key_exists('confirm', $_GET) ? $_GET['confirm'] : NULL;
 	
+	/*
 	switch($block_type){
 		case 56: $sortby_column_name = "diamond_ratio"; break;
 		case 25: $sortby_column_name = "lapis_ratio"; break;
 		case 14: $sortby_column_name = "gold_ratio"; break;
-		case 48: $sortby_column_name = "mossy_ratio"; break;
+		case 48: $sortby_column_name = "moss_ratioy"; break;
 		case 15: $sortby_column_name = "iron_ratio"; break;
 		default: $sortby_column_name = "invalid"; break;
-	}
+	} */
 	//echo "LIMIT BLOCK: $sortby_column_name<BR>";
 	//echo "WORLD ID: $world_id<BR>";
 	//echo "WORLD NAME: $world_name<BR>";
@@ -64,18 +68,18 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 	if($command == "xsingle" || $command == "xtoplist")
 	{
 		/////////////////////////////////////////[   ]///////////[    ]//////////[   ]/////
-		$colorbins["diamond_ratio"] = array(0 => 0,	3 => "0.5", 	6 => "1.25",	9 => "2");
-		$colorbins["lapis_ratio"] =   array(0 => 0,	3 => "1",		6 => "2",   	9 => "3");
-		$colorbins["gold_ratio"] =    array(0 => 0, 3 => "2.5",		6 => "4", 		9 => "6");
-		$colorbins["mossy_ratio"] =   array(0 => 0,	3 => "5",   	6 => "10",		9 => "15");
-		$colorbins["iron_ratio"] =    array(0 => 0,	3 => "15",  	6 => "20",		9 => "30");
+		$colorbins["diamond_ratio"]		= array(0 => 0,			3 => "0.5", 	6 => "1.25",	9 => "2");
+		$colorbins["lapis_ratio"]		= array(0 => 0,			3 => "1",		6 => "2",   	9 => "3");
+		$colorbins["gold_ratio"]		= array(0 => 0,			3 => "2.5",		6 => "4", 		9 => "6");
+		$colorbins["mossy_ratio"]		= array(0 => 0,			3 => "5",   	6 => "10",		9 => "15");
+		$colorbins["iron_ratio"]		= array(0 => 0,			3 => "15",  	6 => "20",		9 => "30");
 		/////////////////////////////////////////[   ]///////////[    ]//////////[   ]/////	
-	}
-	if($command == "xsingle")
-	{
-		$colorbins["slope_before|-"] =array(0 => 0,	3 => "-0.21", 	6 => "-0.35",	9 => "-0.45");
-		$colorbins["slope_before|+"] =array(0 => 0,	3 => "0.1", 	6 => "0.20",	9 => "0.30");
-		$colorbins["spread_before"] =	array(0 => 0, 	3 => "1",		6 => "2.1", 		9 => "4");
+		$colorbins["first_block_ore"] 	= array(0 =>  0,		3 =>  "0.20", 	6 =>  "0.40",	9 =>  "0.60");
+		$colorbins["slope_before_neg"]	= array(0 => "-0.17",	3 => "-0.20", 	6 => "-0.25",	9 => "-0.30");
+		$colorbins["slope_before_pos"]	= array(0 =>  "0.17",	3 =>  "0.20", 	6 =>  "0.25",	9 =>  "0.30");
+		$colorbins["slope_after_neg"]	= array(0 => "-0.17",	3 => "-0.20", 	6 => "-0.25",	9 => "-0.30");
+		$colorbins["slope_after_pos"]	= array(0 =>  "0.17",	3 =>  "0.20", 	6 =>  "0.25",	9 =>  "0.30");
+		$colorbins["spread_before"]		= array(0 => 0, 		3 => "1",		6 => "2.1", 	9 => "4");
 	}
 	/////////////////////////////////////////[   ]///////////[    ]//////////[   ]/////
 	
@@ -95,117 +99,15 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		//echo "[" . $column_name . "]<br>"; print_r($colorbins[$column_name]); echo "<br>";
 	}
 
-	if ($command == "xsingle")
+	if ($command == 'xsingle')
 	{
 	
 		
 		$_GET['xr_submit'] = array_key_exists('xr_submit', $_GET) ? $_GET['xr_submit'] : NULL;
-		//echo "XCHECK";
+//		echo "XCHECK";
 		if($_GET['xr_submit']=="Check" || $_GET['xr_submit']=="")
 		{
-			// Check user's totals from stats table
-			ob_start();
-			Add_Player_Mines($player_id);
-			Update_PlayerInfo($player_id);
-			ob_end_clean();	
-			
-			$player_world_stats = Get_Player_WorldRatios($player_id);
-			$player_mines_all = Get_Player_Mines_InWorld($player_id, $GLOBALS['worlds'][0]['worldid']);
-			$player_info = Get_Playerinfo($player_id);
 
-			$color_template_list = array("max_ratio_diamond" => "diamond_ratio", "max_ratio_gold" => "gold_ratio", "max_ratio_lapis" => "lapis_ratio", "max_ratio_mossy" => "mossy_ratio", "max_ratio_iron" => "iron_ratio",
-				 "avg_slope_before_pos" => "slope_before_pos", "avg_slope_before_neg" => "slope_before_neg", "avg_slope_after_pos" => "slope_after_pos", "avg_slope_after_neg" => "slope_after_neg", "ratio_first_block_ore"=>"first_block_ore");
-			$color_important_columns = array("max_ratio_diamond", "max_ratio_gold", "avg_slope_before_neg", "avg_slope_after_neg");	
-			Array_Apply_ColorMap($player_info, $color_template_list, $color_important_columns);
-			$player_info = Calc_Playerinfo_SuspicionLevel($player_info);
-			
-			foreach($GLOBALS['worlds'] as $world_index => $world_item)
-			{
-				$player_clusters_world[$world_index] = Get_Player_Clusters_InWorld($player_id, $world_item['worldid']);
-			}
-
-
-			foreach($player_world_stats as $dataset_rownum => &$dataset_row)
-			{
-				//echo "INDEX: $dataset_rownum <br>";
-				foreach($colorbins as $color_column_name => $bins)
-				{
-					//echo "COLOR_SEARCH: $color_column_name <br>";					
-					foreach($dataset_row as $row_column_name => &$row_column_value)
-					{
-						if(array_key_exists($color_column_name, $dataset_row) && $color_column_name == $row_column_name)
-						{
-							//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
-							$tempcolor = 10;
-							$dataset_row["color_" . $row_column_name] = -3;
-							while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
-							{
-								//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-								$tempcolor--;	
-							}
-							$dataset_row["color_" . $row_column_name] = $tempcolor;
-						}
-					}
-				}
-				$dataset_row["color_max"] = 
-					max(	$dataset_row["color_diamond_ratio"],
-							$dataset_row["color_lapis_ratio"],
-							$dataset_row["color_gold_ratio"],
-							$dataset_row["color_mossy_ratio"],
-							$dataset_row["color_iron_ratio"]);
-			}
-			
-			foreach($GLOBALS['worlds'] as $world_index => $world_item)
-			{
-				foreach($player_clusters_world[$world_index] as $dataset_rownum => &$dataset_row)
-				{
-					//echo "INDEX: $dataset_rownum <br>";
-					foreach($colorbins as $color_column_name => $bins)
-					{
-						//echo "COLOR_SEARCH: $color_column_name <br>";
-						$column_name_suffix = "";
-						foreach($dataset_row as $row_column_name => &$row_column_value)
-						{
-							if($row_column_name == "slope_before" && $row_column_value >= 0){$column_name_suffix = "|+";}
-							elseif($row_column_name == "slope_before" && $row_column_value < 0){$column_name_suffix = "|-";}
-							else {$column_name_suffix = "";}
-							$truncated_column_name = str_replace(mysql_real_escape_string($column_name_suffix), '', $color_column_name);
-							
-							//echo "Match? [". $truncated_column_name . "]<BR>";
-							if(array_key_exists($truncated_column_name, $dataset_row) && $truncated_column_name == $row_column_name)
-							{
-								//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
-								$dataset_row["color_" . $row_column_name] = -3;
-								$compare_value = ($colorbins[$color_column_name][9] < 0) ? abs($row_column_value) : $row_column_value;
-								if($colorbins[$color_column_name][9] > 0)
-								{
-									$tempcolor = 10;									
-									while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
-									{
-										//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-										$tempcolor--;	
-									}
-								}
-								else
-								{
-									$tempcolor = 0;
-									while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor < 10)
-									{
-										//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-										$tempcolor++;	
-									}	
-								}
-								
-								$dataset_row["color_" . $row_column_name] = $tempcolor;
-							}
-						}
-						//echo "<BR>";
-					}
-					$dataset_row["color_max"] = 
-						max(	$dataset_row["color_slope_before"],
-								$dataset_row["color_spread_before"]);
-				}
-			}
 		}
 		if($_GET['xr_submit']=="Analyze")
 		{
@@ -214,28 +116,7 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 	}
 	elseif ($command == 'xglobal')
 	{
-		// Check average ratios from stats table
 
-		// Calculate a ratio based on totals
-		if ($dias > 0) { $findrate["diamond"] = number_format($dias * 100 / $stones,2); } else { $findrate["diamond"] = number_format(0,4); }
-		if ($mossy > 0) { $findrate["mossy"] = number_format($mossy * 100 / $stones,2); } else { $findrate["mossy"] = number_format(0,4); }
-		if ($lapis > 0) { $findrate["lapis"] = number_format($lapis * 100 / $stones,2); } else { $findrate["lapis"] = number_format(0,4); }
-		if ($gold > 0) { $findrate["gold"] = number_format($gold * 100 / $stones,2); } else { $findrate["gold"] = number_format(0,4); }
-		if ($iron > 0) { $findrate["iron"] = number_format($iron * 100 / $stones,2); } else { $findrate["iron"] = number_format(0,4); }
-
-		foreach($colorbins as $column_name => $bins)
-		{
-			//echo "BLOCK: "; print_r($column_name); echo "<br>";
-			//echo "ARRAY: "; print_r($limt_array); echo "<br>";
-			$tempcolor = 10;
-			$color[$column_name] = -3;
-			while($findrate[$column_name] < $colorbins[$column_name][$tempcolor] && $tempcolor > 0)
-			{
-				//echo "$column_name >> " . $colorbins[$column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-				$tempcolor--;	
-			}
-			$color[$column_name] = $tempcolor;
-		}
 	}
 	elseif ($command == 'xtoplist')
 	{
@@ -251,18 +132,205 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		if($limit_results==""){$limit_results=50;}
 		if($stone_threshold==""){$stone_threshold=500;}
 		
-		$TopArray = Get_Ratios_ByWorldID($world_id, $limit_results, $block_type, $stone_threshold);
+/*
+		
+		Use_DB("xray");
+		$sql_PlayerStats  = "
+				SELECT
+					c.playerid,
+					p.playername,
+					x.stone_count,
+					x.diamond_count,
+					x.gold_count,
+					format(x.diamond_ratio,2) AS diamond_ratio,
+					format(x.gold_ratio,2) AS gold_ratio,
+					format(
+						SUM(
+								CASE c.ore_begin
+								WHEN 1 THEN 1
+								ELSE 0
+								END
+							) / COUNT(c.playerid), 2)
+						AS first_block_ore,
+					SUM(ore_length) AS total_ores,
+					COUNT(c.playerid) AS total_clusters,
+					#format(AVG(ABS(slope_before)),2) AS slope_before,
+					#format(AVG(ABS(slope_after)),2) AS slope_after,
+					#format(AVG(spread_before),2) AS spread_before,
+					#format( AVG(spread_after),2) AS spread_after,
+					avg_slope_before_pos AS slope_before_pos,
+					avg_slope_before_neg AS slope_before_neg,
+					format( (count_slope_before_neg / (count_slope_before_pos + count_slope_before_neg)), 2) AS slope_before_preference,
+					avg_slope_after_pos AS slope_after_pos,
+					avg_slope_after_neg AS slope_after_neg,
+					format( (count_slope_after_neg / (count_slope_after_pos + count_slope_after_neg)), 2) AS slope_after_preference,
+					count_slope_before_pos,
+					count_slope_before_neg    
+				FROM `x-clusters` AS c
+				
+				LEFT JOIN
+				(
+					SELECT * FROM `lb-players`
+				) AS p ON p.playerid = c.playerid
+				
+				LEFT JOIN
+				(
+					SELECT
+						playerid,
+						format(AVG(slope_before),2) AS avg_slope_before_pos,
+						count(playerid) AS count_slope_before_pos
+					FROM `x-clusters`
+					WHERE slope_before >= 0
+					GROUP BY playerid
+				) AS s_b_pos ON p.playerid = s_b_pos.playerid
+				
+				LEFT JOIN
+				(
+					SELECT
+						playerid,
+						format(AVG(slope_before),2) AS avg_slope_before_neg,
+						count(playerid) AS count_slope_before_neg
+					FROM `x-clusters`
+					WHERE slope_before < 0
+					GROUP BY playerid
+				) AS s_b_neg ON p.playerid = s_b_neg.playerid
+				
+				LEFT JOIN
+				(
+					SELECT
+						playerid,
+						format(AVG(slope_after),2) AS avg_slope_after_pos,
+						count(playerid) AS count_slope_after_pos
+					FROM `x-clusters`
+					WHERE slope_after >= 0
+					GROUP BY playerid
+				) AS s_a_pos ON p.playerid = s_a_pos.playerid
+				
+				LEFT JOIN
+				(
+					SELECT
+						playerid,
+						format(AVG(slope_after),2) AS avg_slope_after_neg,
+						count(playerid) AS count_slope_after_neg
+					FROM `x-clusters`
+					WHERE slope_after < 0
+					GROUP BY playerid
+				) AS s_a_neg ON p.playerid = s_a_neg.playerid
+				
+				LEFT JOIN
+				(
+					SELECT playerid, SUM(stone_count) AS stone_count, SUM(diamond_count) AS diamond_count, AVG(diamond_ratio) AS diamond_ratio, SUM(gold_count) AS gold_count, AVG(gold_ratio) AS gold_ratio
+					FROM `x-stats`
+					#WHERE diamond_count > 20
+					GROUP BY playerid
+				) AS x ON x.playerid = c.playerid
+				
+				#WHERE x.stone_count > 500
+				WHERE x.diamond_count > 1 OR x.gold_count > 1
+				
+				GROUP BY playerid
+				
+				HAVING total_clusters > 1
+				
+				ORDER BY ".$sortby_column_name ." DESC";
+		//echo "SQL QUERY: <BR>" . $sql_PlayerIDexists . "<BR>";
+		$res_PlayerStats = mysql_query($sql_PlayerStats) or die("Get_Player_Stats_ByWorld: " . mysql_error());
+		while(($PlayerStatsArray[] = mysql_fetch_assoc($res_PlayerStats)) || array_pop($PlayerStatsArray)); 
+	
+		$TopArray = $PlayerStatsArray;
+//		$TopArray = Get_Ratios_ByWorldID($world_id, $limit_results, $block_type, $stone_threshold);
+*/
+		$color_template_list = array("max_ratio_diamond" => "diamond_ratio", "max_ratio_gold" => "gold_ratio", "max_ratio_lapis" => "lapis_ratio", "max_ratio_mossy" => "mossy_ratio", "max_ratio_iron" => "iron_ratio",
+			 "avg_slope_before_pos" => "slope_before_pos", "avg_slope_before_neg" => "slope_before_neg", "avg_slope_after_pos" => "slope_after_pos", "avg_slope_after_neg" => "slope_after_neg", "ratio_first_block_ore"=>"first_block_ore");
+		$color_important_columns = array("max_ratio_diamond", "max_ratio_gold", "avg_slope_before_neg", "avg_slope_after_neg");	
 
+		$TopArray = Get_Playerinfo("ALL",9999,"max_ratio_diamond");
+		Array_Apply_ColorMap($TopArray, $color_template_list, $color_important_columns);
+		Calc_Playerinfo_SuspicionLevel($TopArray);
+		//Calc_Playerinfo_ColorSummary($TopArray, $color_important_columns);
+		//Array_Calc_Playerinfo_SuspicionLevel($TopArray);
+/*
+		foreach($TopArray as $dataset_rownum => &$dataset_row)
+		{
+			//echo "INDEX: $dataset_rownum <br>";
+			foreach($colorbins as $color_column_name => $bins)
+			{
+				//echo "COLOR_SEARCH: $color_column_name <br>";					
+				foreach($dataset_row as $row_column_name => &$row_column_value)
+				{
+					if(array_key_exists($color_column_name, $dataset_row) && $color_column_name == $row_column_name)
+					{
+						$tempcolor = -3;
+						$dataset_row["color_" . $row_column_name] = -3;
+						//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
+						$compare_value = ($colorbins[$color_column_name][9] < 0) ? abs($row_column_value) : $row_column_value;
+						
+						if(isset($row_column_value) && $row_column_value != "")
+						{
+							if($colorbins[$color_column_name][9] > 0)
+							{
+								$tempcolor = 10;									
+								while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
+								{
+									//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+									$tempcolor--;	
+								}
+							}
+							else
+							{
+								$tempcolor = 0;
+								while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor < 10)
+								{
+									//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+									$tempcolor++;	
+								}	
+							}
+							$dataset_row["color_" . $row_column_name] = $tempcolor;
+						}
+						else
+						{
+							$dataset_row["color_" . $row_column_name] = -3;
+						}
+					}
+				}
+				//echo "<BR>";
+			}
+			$row_color_stats_full = array();
+			$row_color_stats_top2 = array();
+			foreach($color_important_columns as $column_name)
+			{
+				if(isset($dataset_row["color_" . $column_name]) && $dataset_row["color_" . $column_name] >= 0)
+				{
+					array_push($row_color_stats_full, $dataset_row["color_" . $column_name]);
+				}
+			}
+			
+			arsort($row_color_stats_full);
+			$row_color_stats_top2 = array_slice($row_color_stats_full,0,2);
+			
+			if(count($row_color_stats_full) > 0)
+			{
+				$dataset_row["color_max"] = max($row_color_stats_full);
+				$dataset_row["color_avg"] = number_format(array_sum($row_color_stats_full) / count($row_color_stats_full),0);
+			}
+			if(count($row_color_stats_top2) > 0)
+			{
+				$dataset_row["color_avg_top2"] = number_format(array_sum($row_color_stats_top2) / count($row_color_stats_top2),0);
+			}
+			else
+			{
+				$dataset_row["color_max"] = -3;
+				$dataset_row["color_avg"] = -3;
+				$dataset_row["color_avg_top2"] = -3;
+			}
+		}
+*/
 	}
 	elseif ($command == 'xscan')
 	{
 		$show_process = true;
 	}
 	elseif ($command == 'xupdate')
-	{
-		$show_process = true;
-	}
-	elseif ($command == 'xrecalc')
 	{
 		$show_process = true;
 	}
@@ -277,10 +345,6 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 		$msg_confirmation = "You are about to delete all collected x-ray statistics (block counts) for all users!";
 	}
 	elseif ($command == 'xworlds')
-	{
-		
-	}
-	elseif ($command == '')
 	{
 		
 	}
@@ -324,9 +388,9 @@ body {
 body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 </style>
 <link type="text/css" href="styles/css/xray-default/jquery-ui-1.8.18.custom.css" rel="stylesheet">
-<link type="text/css" href="styles/css/xray-dark/jquery-ui-1.8.19.custom.css" rel="stylesheet">	
-<link type="text/css" href="styles/css/xray-light/jquery-ui-1.8.19.custom.css" rel="stylesheet">	
-<link type="text/css" href="styles/css/xray-whiteborder/jquery-ui-1.8.19.custom.css" rel="stylesheet">
+<link type="text/css" href="styles/css/xray-dark/jquery-ui-1.8.18.custom.css" rel="stylesheet">	
+<link type="text/css" href="styles/css/xray-light/jquery-ui-1.8.18.custom.css" rel="stylesheet">	
+<link type="text/css" href="styles/css/xray-whiteborder/jquery-ui-1.8.18.custom.css" rel="stylesheet">
 <script type="text/javascript" src="styles/jquery-1.7.1.js"></script>
 <script type="text/javascript" src="styles/external/jquery.bgiframe-2.1.2.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.core.js"></script>
@@ -334,163 +398,30 @@ body,td,th { font-family: Tahoma, Geneva, sans-serif; }
 <script type="text/javascript" src="styles/ui/jquery.ui.accordion.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.tabs.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.mouse.js"></script>
-<script type="text/javascript" src="styles/ui/jquery.ui.slider.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.button.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.draggable.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.position.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.resizable.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.dialog.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.ui.autocomplete.js"></script>
-<script type="text/javascript" src="styles/ui/jquery.ui.progressbar.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.effects.core.js"></script>
 <script type="text/javascript" src="styles/ui/jquery.effects.blind.js"></script>
-<!--<script type="text/javascript" src="inc/jquery.form.js"></script>-->
-<!--<script type="text/javascript" src="http://www.google.com/jsapi"></script>-->
-<script type="text/javascript" src="scripts/jsapi.js"></script>
-<script type="text/javascript" src="scripts/date.js"></script>
-<script type="text/javascript" src="scripts/jquery.dateFormat-1.0.js"></script>
-<?php include_once('scripts/xray.js.php'); ?>
+<script type="text/javascript" src="inc/jquery.form.js"></script>
+	<style type="text/css">
 
-<?php if($command == "xsingle"){ ?>
-<script type="text/javascript">
-  google.load('visualization', '1.1', {packages: ['gauge']});
-</script>
-<script type="text/javascript">
+	</style>
 
-function Draw_Gauges()
-{
-	var Accuracy_data = google.visualization.arrayToDataTable([
-	  ['Label', 'Value'],
-	  ['Accuracy', <?php if(isset($player_info["accuracy"])){ echo $player_info["accuracy"]; } ?>],
-	]);
-	
-	var Suspicion_data = google.visualization.arrayToDataTable([
-	  ['Label', 'Value'],
-	  ['Suspicion', <?php if(isset($player_info["suspicion"])){ echo $player_info["suspicion"]; } ?>],
-	]);
-	
-	// Create and populate the data table.
-	var Accuracy_options = {
-	  width: 180, height: 180,
-	  greenFrom: 2.5, greenTo: 3,
-	  yellowFrom:1.5, yellowTo: 2.5,
-	  redFrom: 0, redTo: 1.5,
-	  majorTicks: ['','','','','','','','','',''],
-	  minorTicks: 0,
-	  max: 3
-	};
-	
-	var Suspicion_options = {
-	  width: 180, height: 180,
-	  greenFrom: 0, greenTo: 5,
-	  yellowFrom:5, yellowTo: 8,
-	  redFrom: 8, redTo: 10,
-	  majorTicks: ['','','','','','','','','','',''],
-	  minorTicks: 0,
-	  max: 10
-	};
-	
-	// Create and draw the visualization.
-
-	vis_accuracy_g = new google.visualization.Gauge(document.getElementById('accuracy_gauge'));
-	vis_suspicion_g = new google.visualization.Gauge(document.getElementById('suspicion_gauge'));
-
-	vis_accuracy_g.draw(Accuracy_data, Accuracy_options);
-	vis_suspicion_g.draw(Suspicion_data, Suspicion_options);
-
-}
-
-google.setOnLoadCallback(Draw_Gauges);
-
-
-
-/*
-function Draw_Gauges
-{
-	var Accuracy_data = google.visualization.arrayToDataTable([
-	  ['Label', 'Value'],
-	  ['Accuracy', 0],
-	]);
-	
-	var Suspicion_data = google.visualization.arrayToDataTable([
-	  ['Label', 'Value'],
-	  ['Suspicion', 3],
-	]);
-	
-	// Create and populate the data table.
-	var Accuracy_options = {
-	  width: 180, height: 180,
-	  greenFrom: 2.5, greenTo: 3,
-	  yellowFrom:1.5, yellowTo: 2.5,
-	  redFrom: 0, redTo: 1.5,
-	  majorTicks: ['','','','','','','','','',''],
-	  minorTicks: 0,
-	  max: 3
-	};
-	
-	var Suspicion_options = {
-	  width: 180, height: 180,
-	  greenFrom: 0, greenTo: 5,
-	  yellowFrom:5, yellowTo: 8,
-	  redFrom: 8, redTo: 10,
-	  majorTicks: ['','','','','','','','','','',''],
-	  minorTicks: 0,
-	  max: 10
-	};
-	
-	new google.visualization.Gauge(document.getElementById('accuracy_gauge')).draw(Accuracy_data, Accuracy_options);
-	//new google.visualization.Gauge(document.getElementById('suspicion_gauge')).draw(Suspicion_data, Suspicion_options);
-
-
-}*/
-
-//google.setOnLoadCallback(Draw_Gauges);
-/*
-function Draw_Gauges(){
-  // Create and populate the data table.
-  var Accuracy_data = google.visualization.arrayToDataTable([
-	['Label', 'Value'],
-	['Accuracy', 2],
-  ]);
-  
-  var Accuracy_options = {
-	  width: 180, height: 180,
-	  greenFrom: 2.5, greenTo: 3,
-	  yellowFrom:1.5, yellowTo: 2.5,
-	  redFrom: 0, redTo: 1.5,
-	  majorTicks: ['','','','','','','','','',''],
-	  minorTicks: 0,
-	  max: 3
-  };
-  
-  var Suspicion_data = google.visualization.arrayToDataTable([
-	['Label', 'Value'],
-	['Suspicion', 6],
-  ]);
-  
-  var Suspicion_options = {
-	  width: 180, height: 180,
-	  greenFrom: 0, greenTo: 5,
-	  yellowFrom:5, yellowTo: 8,
-	  redFrom: 8, redTo: 10,
-	  majorTicks: ['','','','','','','','','','',''],
-	  minorTicks: 0,
-	  max: 10
-  };
-
-
-  // Create and draw the visualization.
-  new google.visualization.Gauge(document.getElementById('accuracy_gauge')).
-	  draw(Accuracy_data, Accuracy_options);
-  new google.visualization.Gauge(document.getElementById('suspicion_gauge')).
-	  draw(Suspicion_data, Suspicion_options);
-}
-
-google.setOnLoadCallback(Draw_Gauges);
-
-*/
-</script>
-<?php } ?>
+	<script type="text/javascript">
+		$(function(){
+			$('.ui-state-default').hover(
+				function(){ $(this).addClass('ui-state-hover'); }, 
+				function(){ $(this).removeClass('ui-state-hover'); }
+			);
+			$('.ui-state-default').click(function(){ $(this).toggleClass('ui-state-active'); });
+			$('.icons').append(' <a href="#">Toggle text</a>').find('a').click(function(){ $('.icon-collection li span.text').toggle(); return false; }).trigger('click');
+			$( "#tabs" ).tabs();
+		});
+	</script>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -672,7 +603,7 @@ google.setOnLoadCallback(Draw_Gauges);
             <td><a href="xray.php" target="_self"><img src="img/null15.gif" alt="" width="500" height="80" hspace="0" vspace="0" border="0" /></a></td>
             <td align="right"><table width="100%" border="0">
               <tr>
-                <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>IP Failsafe Login";} ?><br />
+                <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>ADMIN IP OVERRIDE";} ?><br />
                   </strong>
                   <form id="logoutform" name="logoutform" method="post" action="xray.php">
                     <strong>
@@ -727,11 +658,6 @@ google.setOnLoadCallback(Draw_Gauges);
 					if($command == "xupdate")
 					{
 						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"]) { Add_NewBreaks(); /* AutoFlagWatching(); TakeSnapshots();*/ }
-						else { $command_error .= "You do not have permission to do that.<BR>"; }
-					}
-					if($command == "xrecalc")
-					{
-						if($_SESSION["auth_admin"] || $_SESSION["auth_mod"]) { Update_Stats_RatioTotals(); }
 						else { $command_error .= "You do not have permission to do that.<BR>"; }
 					}
 					if($command == "xanalyze")
@@ -803,7 +729,7 @@ google.setOnLoadCallback(Draw_Gauges);
             <td><a href="xray.php" target="_self"><img src="img/null15.gif" alt="" width="500" height="80" hspace="0" vspace="0" border="0" /></a></td>
             <td align="right"><table width="100%" border="0">
               <tr>
-                <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>IP Failsafe Login";} ?><br />
+                <td align="right"><strong>Logged in as: <?php echo $_SESSION["auth_level"]; if($_SESSION["account"]["playername"]!=""){ echo "<BR>(".$_SESSION["account"]["playername"].")";}elseif($_SESSION["auth_type"]=="ip"){echo "<BR>ADMIN IP OVERRIDE";} ?><br />
                 </strong>
                   <form id="logoutform" name="logoutform" method="post" action="xray.php">
                     <strong>
@@ -835,27 +761,26 @@ google.setOnLoadCallback(Draw_Gauges);
               </tr>
               <tr class="bg_white">
                 <td><strong><a href="xray.php?command=xtoplist" style="color:#000000">Top User Statistics</a><a href="xray.php?command=xclear" style="color:#000000"></a></strong></td>
-                <td><a href="xray.php?command=xupdate" style="color:#000000"><strong>Manually Refresh Stats</strong></a></td>
+                <td><a href="xray.php?command=xupdate" style="color:#000000"><strong>Update  X-Ray Stats</strong></a></td>
                 <td><a href="setup.php" style="color:#000000"><strong>Change X-Ray Settings</strong></a></td>
               </tr>
               <tr class="bg_white">
                 <td>&nbsp;</td>
-                <td><a href="xray.php?command=xrecalc" style="color:#000000"><strong>Recalculate Percentages</strong></a></td>
+                <td>&nbsp;</td>
                 <td>&nbsp;</td>
               </tr>
               <tr class="bg_white">
-                <td><!--<strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong>--></td>
+                <td><strong><a href="xray.php?command=xglobal&amp;player=GlobalRates" style="color:#000000"><s>Check Global Averages</s></a></strong></td>
                 <td>&nbsp;</td>
                 <td><a href="xray.php?command=xclear" style="color:#000000"><strong>Clear X-Ray Stats</strong></a></td>
               </tr>
              </table></td>
           </tr>
-          <?php /*
           <tr>
             <td><form action="xray.php" method="post" name="XR_form" target="_self" id="XR_form">
               <table width="100%" border="0" class="borderblack_greybg_light_thin">
                 <tr>
-                  <td width="14%" nowrap="nowrap"><strong>Check Player By Name
+                  <td width="14%" nowrap="nowrap"><strong><s>Check Player By Name</s>
                     <input name="command" type="hidden" id="command" value="xsingle" />
                     <input name="form" type="hidden" id="form" value="XR_form" />
                   </strong></td>
@@ -866,14 +791,9 @@ google.setOnLoadCallback(Draw_Gauges);
               </table>
             </form></td>
           </tr>
-		  <?php */ ?>
         </table></td>
       </tr>
       <tr>
-<?php
-	/* echo "player_info: "; print_r($player_info); */
-	/* echo "POST: "; print_r($_POST); */
-?>
         <td><?php if($command=="xtoplist"){ ?>
           <form id="Get_Ratios_ByWorldID_form" name="Get_Ratios_ByWorldID_form" method="post" action="xray.php">
             <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
@@ -885,12 +805,9 @@ google.setOnLoadCallback(Draw_Gauges);
                 </table></td>
               </tr>
               <tr>
-                <td><!--<table width="100%" border="0">
+                <td><table width="100%" border="0">
                   <tr>
-                      <td><strong>Block Type
-                        <input name="form" type="hidden" id="form" value="form_Get_Ratios_ByWorldID" />
-                        <input name="command" type="hidden" id="command" value="xtoplist" />
-                      </strong></td>
+                      <td><strong>Block Type</strong></td>
                       <td><select name="block_type" id="block_type">
                         <option value="56"<?php if($block_type=="56"){echo " selected";}?>>Diamonds</option>
                         <option value="25"<?php if($block_type=="25"){echo " selected";}?>>Lapis</option>
@@ -898,7 +815,9 @@ google.setOnLoadCallback(Draw_Gauges);
                         <option value="48"<?php if($block_type=="48"){echo " selected";}?>>Mossy</option>
                         <option value="15"<?php if($block_type=="15"){echo " selected";}?>>Iron</option>
                       </select>
-                        <input type="submit" name="top_go" id="top_go" value="Go" /></td>
+                        <input type="submit" name="top_go" id="top_go" value="Go" />
+                        <input name="form" type="hidden" id="form" value="form_Get_Ratios_ByWorldID" />
+                        <input name="command" type="hidden" id="command" value="xtoplist" /></td>
                     </tr>
                     <tr>
                       <td><strong>World</strong></td>
@@ -946,107 +865,6 @@ google.setOnLoadCallback(Draw_Gauges);
                         <input type="submit" name="top_go" id="top_go" value="Go" /></td>
                     </tr>*/
 					?>
-                </table>-->
-                  <table width="100%" border="0">
-                    <tr>
-                      <td valign="middle"><strong>Update Stats
-                        <input name="refresh_stats_records" type="hidden" id="refresh_stats_records" value="NULL" />
-                      </strong></td>
-                      <td>
-	                      	<table width="100%">
-	                      		<tr>
-	                      			<td width="30%">
-										<div id="refresh_stats_button" class="<?php if(isset($_POST['refresh_stats_records']) && $_POST['refresh_stats_records']!="NULL"){ ?>ui-state-highlight<?php } else { ?>ui-state-default<?php } ?>">
-				                      		<span class="text" id="refresh_stats_text"><?php if(isset($_POST['refresh_stats_records']) && $_POST['refresh_stats_records']!="NULL"){ echo $_POST['refresh_stats_records']; ?> Users Updated<?php } else { ?>Refresh Stats<?php } ?></span>
-				            	        </div>
-	                      			</td>
-	                      			<td>
-	                      				<div id="refresh_stats_progressbar" width="100%"></div>
-	                      			</td>
-	                      		</tr>
-	                      	</table>
-                      	</td>
-                    </tr>
-                    <tr>
-                      <td valign="middle"><strong>Block Type
-                        <input name="form" type="hidden" id="form" value="form_Get_Ratios_ByWorldID" />
-                        <input name="command" type="hidden" id="command" value="xtoplist" />
-                      </strong></td>
-                      <td>
-                        <div id="sort_by_radio"> <br />
-                          <input name="block_type" type="radio" id="block_type_radio1" value="56" <?php if($block_type=="56"){?> checked="checked"<?php }?> />
-                          <label for="block_type_radio1">Diamonds</label>
-                          <input name="block_type" type="radio" id="block_type_radio2" value="25" <?php if($block_type=="25"){?> checked="checked"<?php }?> />
-                          <label for="block_type_radio2">Lapis</label>
-                          <input name="block_type" type="radio" id="block_type_radio3" value="14" <?php if($block_type=="14"){?> checked="checked"<?php }?> />
-                          <label for="block_type_radio3">Gold</label>
-                          <input name="block_type" type="radio" id="block_type_radio4" value="48" <?php if($block_type=="48"){?> checked="checked"<?php }?> />
-                          <label for="block_type_radio4">Mossy</label>
-                          <input name="block_type" type="radio" id="block_type_radio5" value="15" <?php if($block_type=="15"){?> checked="checked"<?php }?> />
-                          <label for="block_type_radio5">Iron</label>
-                      </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td valign="middle"><strong>World</strong></td>
-                      <td>
-                      <div id="worldid_radio">
-                        <?php 
-						$radio_index = 1;
-						foreach($GLOBALS['worlds'] as $world_key => $world_item ){ ?>
-                          <input name="worldid" type="radio" id="worldid_radio<?php echo $radio_index;?>" value="<?php echo $world_item["worldid"]; ?>" <?php if($world_id==$world_item["worldid"]){?> checked="checked"<?php }?> />
-                          <label for="worldid_radio<?php echo $radio_index;?>"><?php echo $world_item["worldalias"]; ?></label>
-                        <?php $radio_index++;
-						} ?>
-                      </div></td>
-                    </tr>
-                    <tr>
-                      <td valign="middle"><strong>Stone Threshold</strong></td>
-                      <td>
-                        <label for="amount" style="font-size: small; font-weight:bold; ">Stone Broken:</label>
-                        <input type="text" id="amount" style="border:0; color:#FFFFFF; background-color: transparent; font-weight:bold;" />
-                        <input type="hidden" name="stone_threshold" id="stone_threshold" value="1000"/>
-                        <div id="stone_threshold_slider"></div>
-                        <table width="100%" border="0">
-                          <tr>
-                            <td align="left"><span style="font-size: small; font-weight:bold; ">Less Accurate</span></td>
-                            <td align="right"><span style="font-size: small; font-weight:bold; ">More Accurate</span></td>
-                          </tr>
-                        </table>
-
-                      </td>
-                    </tr>
-                    <tr>
-                      <td valign="middle"><strong>Number Of Results</strong></td>
-                      <td>
-	                    <div id="limit_results_radio"> <br />
-                          <input name="limit_results" type="radio" id="limit_results_radio1" value="10" <?php if($limit_results=="10"){?> checked="checked"<?php }?> />
-                          <label for="limit_results_radio1">10</label>
-                          <input name="limit_results" type="radio" id="limit_results_radio2" value="25" <?php if($limit_results=="25"){?> checked="checked"<?php }?> />
-                          <label for="limit_results_radio2">25</label>
-                          <input name="limit_results" type="radio" id="limit_results_radio3" value="50" <?php if($limit_results=="50"){?> checked="checked"<?php }?> />
-                          <label for="limit_results_radio3">50</label>
-                          <input name="limit_results" type="radio" id="limit_results_radio4" value="75" <?php if($limit_results=="75"){?> checked="checked"<?php }?> />
-                          <label for="limit_results_radio4">75</label>
-                          <input name="limit_results" type="radio" id="limit_results_radio5" value="100" <?php if($limit_results=="100"){?> checked="checked"<?php }?> />
-                          <label for="limit_results_radio5">100</label>
-                          <input name="limit_results" type="radio" id="limit_results_radio6" value="250" <?php if($limit_results=="250"){?> checked="checked"<?php }?> />
-                          <label for="limit_results_radio6">250</label>
-                          <input name="limit_results" type="radio" id="limit_results_radio7" value="500" <?php if($limit_results=="500"){?> checked="checked"<?php }?> />
-                          <label for="limit_results_radio7">500</label>
-                          <input name="limit_results" type="radio" id="limit_results_radio8" value="-1" <?php if($limit_results=="-1"){?> checked="checked"<?php }?> />
-                          <label for="limit_results_radio8">All Users</label>
-                      </div></td>
-                    </tr>
-                    <?php 
-					// Feature currently hidden until future version
-					/*
-                    <tr>
-                      <td><s><strong>Hide Banned Users</strong></s></td>
-                      <td><input name="hide_banned" type="checkbox" id="hide_banned" value="1" />
-                        <input type="submit" name="top_go" id="top_go" value="Go" /></td>
-                    </tr>*/
-					?>
                 </table></td>
               </tr>
               <tr>
@@ -1059,71 +877,86 @@ google.setOnLoadCallback(Draw_Gauges);
                   <tr class="bg_white">
                     <td class="bg_AAA_x"><strong>Username</strong></td>
                     <td class="bg_AAA_x"><strong>Stones</strong></td>
-                    <td class="bg_AAA_x"><strong>Info</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="lapis_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="gold_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="mossy_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="iron_ratio"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>Max</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>A</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>B</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>C</strong></td>
+                    <td align="center" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_ratio_gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SB +</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_neg"){echo"I";}else{echo"AAA";}?>_x"><strong>SB -</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SA +</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_neg"){echo"I";}else{echo"AAA";}?>_x"><strong>SA -</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="first_block_ore"){echo"I";}else{echo"AAA";}?>_x"><strong>1st Ore</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>PB</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Clusters</strong></td>
                     </tr>
-                  <?php foreach($TopArray as $key => $top)
+                  <?php 
+				  
+				  
+				  		$sortby_column_name = "max_ratio_diamond";
+				  		foreach($TopArray as $key => $top)
 				  		{
-							foreach($colorbins as $column_name => $bins)
-							{
-								$tempcolor = 10;
-								$color[$column_name] = -3;
-								while($top[$column_name] < $colorbins[$column_name][$tempcolor] && $tempcolor > 0)
-								{
-									//echo "<br>$sortby_column_name >> " . $colorbins[$sortby_column_name][$tempcolor] . " [" . ($tempcolor) . "]";
-									$tempcolor--;	
-								}
-								//echo "<< <BR>";
-								$color[$column_name] = $tempcolor;
-							}
-							$top["firstlogin"] = date_create_from_format("Y-m-d H:i:s", $top["firstlogin"]);
+							//$top["firstlogin"] = date_create_from_format("Y-m-d H:i:s", $top["firstlogin"]);
 ?>
-                  <tr class="bg_I_<?php echo $color[$sortby_column_name];?>">
-<!--                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$sortby_column_name];?>"><strong><?php echo $top["playername"]; ?></strong></td> -->
-                <td nowrap="nowrap" class="bg_I_<?php echo $color[$sortby_column_name];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
-                    <td nowrap="nowrap" class="bg_I_<?php echo $color[$sortby_column_name];?>"><strong><?php echo $top["stone_count"]; ?></strong></td>
-                    <td nowrap="nowrap"><span class="bg_I_<?php echo $color[$sortby_column_name];?>&gt;&lt;strong&gt;&lt;a href=">
-                      <?php if($top["firstlogin"] > $datetime_week_ago){ ?>
-                      <img src="img/green.png" width="15" height="15" alt="New User" />
-                      <?php } else { /*echo $top["firstlogin"];*/ } ?>
-                    </span></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["diamond_ratio"];?>"><?php if($sortby_column_name=="diamond"){echo"<strong>";}?><?php echo $top["diamond_count"]; ?><?php if($sortby_column_name=="diamond"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="diamond_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["diamond_ratio"];?>"><?php if($sortby_column_name=="diamond"){echo"<strong>";}?><?php echo number_format($top["diamond_ratio"], 2); ?> %<?php if($sortby_column_name=="diamond"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="lapis_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["lapis_ratio"];?>"><?php if($sortby_column_name=="lapis"){echo"<strong>";}?><?php echo $top["lapis_count"]; ?><?php if($sortby_column_name=="lapis"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="lapis_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["lapis_ratio"];?>"><?php if($sortby_column_name=="lapis"){echo"<strong>";}?><?php echo number_format($top["lapis_ratio"], 2); ?> %<?php if($sortby_column_name=="lapis"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="gold_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["gold_ratio"];?>"><?php if($sortby_column_name=="gold"){echo"<strong>";}?><?php echo $top["gold_count"]; ?><?php if($sortby_column_name=="gold"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="gold_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["gold_ratio"];?>"><?php if($sortby_column_name=="gold"){echo"<strong>";}?><?php echo number_format($top["gold_ratio"], 2); ?> %<?php if($sortby_column_name=="gold"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="mossy_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["mossy_ratio"];?>"><?php if($sortby_column_name=="mossy"){echo"<strong>";}?><?php echo $top["mossy_count"]; ?><?php if($sortby_column_name=="mossy"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="mossy_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["mossy_ratio"];?>"><?php if($sortby_column_name=="mossy"){echo"<strong>";}?><?php echo number_format($top["mossy_ratio"], 2); ?> %<?php if($sortby_column_name=="mossy"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="iron_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["iron_ratio"];?>"><?php if($sortby_column_name=="iron"){echo"<strong>";}?><?php echo $top["iron_count"]; ?><?php if($sortby_column_name=="iron"){echo"</strong>";}?></td>
-                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="iron_ratio"){echo"E";}else{echo"I";}?>_<?php echo $color["iron_ratio"];?>"><?php if($sortby_column_name=="iron"){echo"<strong>";}?><?php echo number_format($top["iron_ratio"], 2); ?> %<?php if($sortby_column_name=="iron"){echo"</strong>";}?></td>
+                  <tr class="bg_I_-3">
+<!--                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_" . $sortby_column_name];?>"><strong><?php echo $top["playername"]; ?></strong></td> -->
+                <td nowrap="nowrap" class="bg_I_<?php echo $top["color_method_A"];?>"><a href="xray.php?command=xsingle&amp;player=<?php echo $top["playername"]; ?>"><strong><?php echo $top["playername"]; ?></strong></a></td>
+                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_method_A"];?>"><strong><?php echo $top["total_stone"]; ?></strong></td>
+                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_max"];?>"><?php echo $top["color_max"];?></td>
+                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_method_A"];?>"><?php echo $top["color_method_A"];?></td>
+                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_avg"];?>"><?php echo $top["color_avg"];?></td>
+                    <td nowrap="nowrap" class="bg_I_<?php echo $top["color_avg_top2"];?>"><?php echo $top["color_avg_top2"];?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"E";}else{echo"I";}?>_<?php echo $top["color_max_ratio_diamond"];?>"><?php echo $top["max_ratio_diamond"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_ratio_gold"){echo"E";}else{echo"I";}?>_<?php echo $top["color_max_ratio_gold"];?>"><?php echo $top["max_ratio_gold"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_before_pos"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_before_pos"];?>"><?php echo $top["avg_slope_before_pos"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_before_neg"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_before_neg"];?>"><?php echo $top["avg_slope_before_neg"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_after_pos"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_after_pos"];?>"><?php echo $top["avg_slope_after_pos"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="avg_slope_after_neg"){echo"E";}else{echo"I";}?>_<?php echo $top["color_avg_slope_after_neg"];?>"><?php echo $top["avg_slope_after_neg"]; ?></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="ratio_first_block_ore"){echo"E";}else{echo"I";}?>_<?php echo $top["color_ratio_first_block_ore"];?>"><?php echo $top["ratio_first_block_ore"]; ?></td>
+                    <td nowrap="nowrap" class="bg_I_0"><?php echo $top["postbreak_ratio"]; ?></td>
+                    <td nowrap="nowrap" class="bg_I_0"><?php echo $top["total_ores"]; ?></td>
+                    <td nowrap="nowrap" class="bg_I_0"><?php echo $top["total_clusters"]; ?></td>
                     </tr>
                   <?php if(!(($key+1) % 25) ){ ?>
                   <tr class="bg_white">
                     <td class="bg_AAA_x"><strong>Username</strong></td>
                     <td class="bg_AAA_x"><strong>Stones</strong></td>
-                    <td class="bg_AAA_x"><strong>Info</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>Max</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>A</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>B</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>C</strong></td>
+                    <td align="center" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_gold_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SB +</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_neg"){echo"I";}else{echo"AAA";}?>_x"><strong>SB -</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SA +</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_neg"){echo"I";}else{echo"AAA";}?>_x"><strong>SA -</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="first_block_ore"){echo"I";}else{echo"AAA";}?>_x"><strong>1st Ore</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Clusters</strong></td>
                     </tr>
-                  <?php } }
+                  <?php } } // End For Loop
 				  if( (($key+1) % 25) ){ ?>
                   <tr class="bg_white">
                     <td class="bg_AAA_x"><strong>Username</strong></td>
                     <td class="bg_AAA_x"><strong>Stones</strong></td>
-                    <td class="bg_AAA_x"><strong>Info</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamonds</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="lapis"){echo"I";}else{echo"AAA";}?>_x"><strong>Lapis</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="gold"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="mossy"){echo"I";}else{echo"AAA";}?>_x"><strong>Mossy</strong></td>
-                    <td colspan="2" align="center" class="bg_<?php if($sortby_column_name=="iron"){echo"I";}else{echo"AAA";}?>_x"><strong>Iron</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>Max</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>A</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>B</strong></td>
+                    <td align="center" class="bg_AAA_x"><strong>C</strong></td>
+                    <td align="center" class="bg_<?php if($sortby_column_name=="max_ratio_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Diamond</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="max_gold_diamond"){echo"I";}else{echo"AAA";}?>_x"><strong>Gold</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SB +</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_before_neg"){echo"I";}else{echo"AAA";}?>_x"><strong>SB -</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_pos"){echo"I";}else{echo"AAA";}?>_x"><strong>SA +</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="slope_after_neg"){echo"I";}else{echo"AAA";}?>_x"><strong>SA -</strong></td>
+                    <td nowrap="nowrap" class="bg_<?php if($sortby_column_name=="first_block_ore"){echo"I";}else{echo"AAA";}?>_x"><strong>1st Ore</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
+                    <td nowrap="nowrap" class="bg_AAA_x"><strong>Clusters</strong></td>
                     </tr>
                   <?php } ?>
                 </table>
@@ -1148,7 +981,7 @@ google.setOnLoadCallback(Draw_Gauges);
           </tr>
           <tr>
             <td><form action="xray.php" method="post" name="useraction_form" target="_self" id="useraction_form">
-              <table width="100%" border="0" style="display:none">
+              <table width="100%" border="0">
                 <tr>
                   <td valign="top"><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
                     <tr>
@@ -1161,7 +994,7 @@ google.setOnLoadCallback(Draw_Gauges);
                     <tr>
                       <td><table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
                         <tr>
-                          <td><strong>Punishment Status</strong></td>
+                          <td><s><strong>Punishment Status</strong></s></td>
                           <td><select name="playerstatus" id="playerstatus">
                             <option value="0" selected="selected">Normal</option>
                             <option value="1">Warned</option>
@@ -1171,7 +1004,7 @@ google.setOnLoadCallback(Draw_Gauges);
                             </select></td>
                           </tr>
                         <tr>
-                          <td><strong>Watching</strong></td>
+                          <td><s><strong>Watching</strong></s></td>
                           <td><label for="watchingplayer"></label>
                             <select name="watchingplayer" id="watchingplayer">
                               <option value="0">Hide User</option>
@@ -1208,139 +1041,82 @@ google.setOnLoadCallback(Draw_Gauges);
                       <tr>
                         <td><table width="100%" border="0">
                           <tr>
-                            <td><table width="100%" border="0" class="borderblack_greybg_dark_thin ui-corner-all">
-                              <tr>
-                                <td><div id="accuracy_gauge" style="width: 180px; height: 180px;"></div></td>
-                                <td><table width="100%" border="0">
-                                  <?php if(isset($player_info["accuracy"]) )
-								  { ?>
-                                  <tr>
-                                    <td><?php
-                                	switch($player_info["accuracy"])
-									{
-										case "3": ?>
-										<div class="ui-widget-content ui-corner-all" style="padding: 10">
-											<div style="float:left" class="ui-icon ui-icon-info"></div>
-                                            <img src="img/null15.gif" width="15" height="15" />
-                                            <strong>The information about this player is almost certainly accurate.</strong>
-                                        </div>
-                                      <?php break;
-										case "2": ?>
-										<div class="ui-widget-content ui-corner-all" style="padding: 10">
-											<div style="float:left" class="ui-icon ui-icon-info"></div>
-                                            <img src="img/null15.gif" width="15" height="15" />
-                                            <strong>The information about this player is probably accurate.</strong>
-                                        </div>
-                                      <?php break;
-										case "1": ?>
-										<div class="ui-state-error ui-corner-all" style="padding: 10">
-											<div style="float:left" class="ui-icon ui-icon-alert"></div>
-                                            <img src="img/null15.gif" width="15" height="15" />
-                                            <strong>This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate.</strong>
-                                        </div>
-                                      <?php break;
-										case "0": ?>
-										<div class="ui-state-error ui-corner-all" style="padding: 10">
-											<div style="float:left" class="ui-icon ui-icon-alert"></div>
-                                            <img src="img/null15.gif" width="15" height="15" />
-                                            <strong> This user does not have enough mining data to come to any conclusions.</strong>
-                                        </div>
-                                      <?php break;
-										default: ?>
-										<div class="ui-state-error ui-corner-all" style="padding: 10">
-											<div style="float:left" class="ui-icon ui-icon-alert"></div>
-                                            <img src="img/null15.gif" width="15" height="15" />
-                                            <strong> ERROR: Accuracy value undefined</strong>
-                                        </div>
-                                      <?php break;
-									}?></td>
-                                  <td></td>
-                                  </tr>
-                                  <?php } ?>
-                                  </table>
-                                    <table width="100%" border="0">
-                                        <tr>
-                                            <td>
-                                                <?php if(count($player_clusters_world) == 0)
-                                                { ?>
-                                                <div class="ui-widget-content ui-corner-all" style="padding: 10">
-                                                  <div style="float:left" class="ui-icon ui-icon-info"></div>
-                                                  <img src="img/null15.gif" width="15" height="15" />
-                                                  <strong>You have not yet scanned this players' mining behavior.</strong><br /><br />
-                                                    <div align="center"><button id="xsingle_scan_player_now">Scan Now</button></div>
-                                                  </div>
-                                          <?php } ?>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                  </td>
-                                </tr>
-                              </table></td>
+                            <td width="11%"><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td width="89%">User's Diamond ratio is extremely high.</td>
                           </tr>
                           <tr>
-                            <td><table width="100%" border="0" class="borderblack_greybg_dark_thin ui-corner-all">
-                              <tr>
-                                <td>
-                                  <div id="suspicion_gauge" style="width: 180px; height: 180px;"></div>
-                                  </td>
-                                <td><table width="100%" border="0">
-                                  <tr>
-                                    <td>
-                                      <?php if(isset($player_info["traits"]) && count($player_info["traits"])>0){ foreach($player_info["traits"] as $trait_index => $trait_item)
-						 			 { ?>
-                                      <table width="100%" border="0">
-                                        <tr>
-                                          <td><?php
-											switch($trait_item["type"])
-											{
-												case "disclaimer": ?>
-													<div class="ui-widget-content ui-corner-all xray-dark" style="padding: 10">
-													  <div style="float:left" class="ui-icon ui-icon-info"></div>
-													  <img src="img/null15.gif" width="15" height="15" />
-													  <strong><?php echo $trait_item["message"];?></strong>
-													  </div>
-													<?php break;
-												case "bad": ?>
-													<div class="ui-state-error ui-corner-all" style="padding: 10">
-													  <div style="float:left" class="ui-icon ui-icon-info"></div>
-													  <img src="img/null15.gif" width="15" height="15" />
-													  <strong><?php echo $trait_item["message"];?></strong>
-													  </div>
-													<?php break;
-												case "neutral": ?>
-													<div class="ui-widget-content ui-corner-all" style="padding: 10">
-													  <div style="float:left" class="ui-icon ui-icon-info"></div>
-													  <img src="img/null15.gif" width="15" height="15" />
-													  <strong><?php echo $trait_item["message"];?></strong>
-													  </div>
-													<?php break;
-												case "good": ?>
-													<div class="ui-state-highlight ui-corner-all" style="padding: 10">
-													  <div style="float:left" class="ui-icon ui-icon-plus"></div>
-													  <img src="img/null15.gif" width="15" height="15" />
-													  <strong><?php echo $trait_item["message"];?></strong>
-													  </div>
-													<?php break;
-												default: ?>
-													<div class="ui-widget-content ui-corner-all" style="padding: 10">
-													  <div style="float:left" class="ui-icon ui-icon-info"></div>
-													  <img src="img/null15.gif" width="15" height="15" />
-													  <strong><?php echo $trait_item["message"];?></strong>
-													  </div>
-													<?php break; }?>
-											</td>
-                                          <td></td>
-                                          </tr>
-                                        <?php } ?>
-                                        </table>
-                                      <?php } ?>
-                                      </td>
-                                    </tr>
-                                  </table></td>
-                                </tr>
-                              </table></td>
+                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td>User's Lapis ratio is extremely high.</td>
                           </tr>
-                          </table></td>
+                          <tr>
+                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td>User's Gold ratio is extremely high.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td>User's Mossy ratio is extremely high.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td>User's Iron ratio is extremely high.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Diamond ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Lapis ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Gold ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Mossy ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Iron ratio is unusually high, but this alone does not necessarily prove use of X-Ray.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Diamond ratio is normal.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Lapis ratio is normal.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Gold ratio is normal.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Mossy ratio is normal.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User's Iron ratio is normal.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td>User often  stops mining nearby after finding ores.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/add.png" width="15" height="15" alt="Good Attribute" /></td>
+                            <td>User continues mining nearby after finding ores.</td>
+                          </tr>
+                          <tr>
+                            <td><img src="img/delete.png" width="15" height="15" alt="Bad Attribute" /></td>
+                            <td>User frequently mines only ores that are visible. This could suggest an x-ray texture pack, but could also simply indicate a preference to mine in exposed caverns.</td>
+                          </tr>
+                          <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                        </table></td>
                       </tr>
                     </table></td>
                     </tr>
@@ -1349,7 +1125,7 @@ google.setOnLoadCallback(Draw_Gauges);
               </table></td>
           </tr>
           <tr>
-            <td><table width="100%" border="0" style="display:none">
+            <td><table width="100%" border="0">
               <tr>
                 <td><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
                   <tr>
@@ -1363,8 +1139,16 @@ google.setOnLoadCallback(Draw_Gauges);
                     <td>
                       <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
                         <tr>
-                          <th width="22%" align="right" scope="row">Join Date</th>
-                          <td width="78%">&nbsp;</td>
+                          <th width="22%" align="right" scope="row"><s>Location</s></th>
+                          <td width="78%">Future Feature</td>
+                        </tr>
+                        <tr>
+                          <th align="right" scope="row">IP Address</th>
+                          <td><?php ?></td>
+                        </tr>
+                        <tr>
+                          <th align="right" scope="row">Join Date</th>
+                          <td>&nbsp;</td>
                         </tr>
                         <tr>
                           <th align="right" scope="row">Online Time</th>
@@ -1396,36 +1180,46 @@ google.setOnLoadCallback(Draw_Gauges);
                       <tr class="bg_white">
                         <td class="bg_I_x"><strong>World</strong></td>
                         <td class="bg_I_x"><strong>Stones</strong></td>
-                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Diamonds</strong></td>
-                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Lapis</strong></td>
-                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Gold</strong></td>
-                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Mossy</strong></td>
-                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Iron</strong></td>
+                        <td align="center" class="bg_AAA_x"><strong>D%</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>SB+</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>SB-</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
                         </tr>
                       <?php foreach($player_world_stats as $pw_index => $pw_item) {?>
                       <tr class="bg_I_<?php echo $color[$sortby_column_name];?>">
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_max"];?>"><?php echo $pw_item["worldalias"]; ?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_max"];?>"><?php echo $pw_item["stone_count"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_diamond_ratio"];?>"><?php echo $pw_item["diamond_count"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_method_A"];?>"><?php echo $pw_item["stone_count"];?></td>
                         <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_diamond_ratio"];?>"><?php echo $pw_item["diamond_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_lapis_ratio"];?>"><?php echo $pw_item["lapis_count"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_lapis_ratio"];?>"><?php echo $pw_item["lapis_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_gold_ratio"];?>"><?php echo $pw_item["gold_count"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_gold_ratio"];?>"><?php echo $pw_item["gold_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_mossy_ratio"];?>"><?php echo $pw_item["mossy_count"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_mossy_ratio"];?>"><?php echo $pw_item["mossy_ratio"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_iron_ratio"];?>"><?php echo $pw_item["iron_count"];?></td>
-                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_iron_ratio"];?>"><?php echo $pw_item["iron_ratio"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_slope_before_pos"];?>"><?php echo $pw_item["slope_before_pos"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_slope_before_neg"];?>"><?php echo $pw_item["slope_before_neg"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_spread_before"];?>"><?php echo $pw_item["spread_before"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_spread_before"];?>">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_spread_before"];?>">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_spread_before"];?>">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_spread_before"];?>">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_slope_after"];?>"><?php echo $pw_item["slope_after"];?></td>
+                        <td nowrap="nowrap" class="bg_H_<?php echo $pw_item["color_spread_after"];?>"><?php echo $pw_item["spread_after"];?></td>
                         </tr>
                       <?php } ?>
                       <tr class="bg_white">
                         <td class="bg_I_x"><strong>World</strong></td>
                         <td class="bg_I_x"><strong>Stones</strong></td>
-                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Diamonds</strong></td>
-                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Lapis</strong></td>
-                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Gold</strong></td>
-                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Mossy</strong></td>
-                        <td colspan="2" align="center" class="bg_AAA_x"><strong>Iron</strong></td>
+                        <td align="center" class="bg_AAA_x"><strong>D%</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>SB+</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>SB-</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x">&nbsp;</td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
+                        <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
                         </tr>
                       </table></td>
                     </tr>
@@ -1435,7 +1229,138 @@ google.setOnLoadCallback(Draw_Gauges);
             </td>
           </tr>
           <tr>
-            <td>&nbsp;</td>
+            <td><table width="100%" border="0" class="borderblack_greybg_light_thick ui-corner-all">
+              <tr>
+                <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
+                  <tr>
+                    <td><strong><?php echo $player_name; ?>'s Advanced Stats</strong></td>
+                  </tr>
+                </table></td>
+              </tr>
+              <tr>
+                <td><table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
+                  <tr>
+                    <td><table width="100%" border="0">
+                      <tr>
+                        <td align="center">&nbsp;</td>
+                      </tr>
+                      <tr>
+                        <td align="center" class="bg_H_-3"><p>You have not yet analyzed this players mining behavior. Would you like to do that now?</p>
+                          <p>&nbsp;</p>
+                          <form action="xray.php" method="post" name="form_startanalysis" target="_self" id="form_startanalysis">
+                            <input name="form" type="hidden" id="form" value="form_analyze_mines_now" />
+                            <input type="submit" name="Submit" id="Submit" value="Analyze Mining Behavior" />
+                            <input name="command" type="hidden" id="command" value="xanalyze" />
+                            <input name="player" type="hidden" id="player" value="<?php echo $player_name;?>" />
+                          </form>
+                          </p></td>
+                      </tr>
+                      <tr>
+                        <td align="center">&nbsp;</td>
+                      </tr>
+                    </table>
+                      <?php foreach($GLOBALS['worlds'] as $world_index => $world_item)
+					  { 
+					  	if(count( $player_clusters_world[$world_index]) > 0)
+						{ ?>
+                      <table width="100%" border="0">
+                      <tr>
+                        <td>&nbsp;</td>
+                      </tr>
+                      <tr>
+                        <td><table width="100%" border="0" class="bg_black">
+                          <tr class="bg_white">
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
+                          </tr>
+                          <?php 
+				  		foreach($player_clusters_world[$world_index] as $cluster_index => $cluster_item)
+				  		{
+						?>
+                          <tr class="bg_I_0">
+                            <td nowrap="nowrap" class="bg_H_<?php echo (!isset($cluster_item["slope_before"]) ) ? "-3" : $cluster_item["color_slope_before"];?>"><strong><?php echo $cluster_item["slope_before"]; ?></strong></td>
+                            <td nowrap="nowrap" class="bg_H_<?php echo (!isset($cluster_item["spread_before"]) ) ? "-3" : $cluster_item["color_spread_before"];?>"><strong><?php echo $cluster_item["spread_before"]; ?></strong></td>
+                            <td nowrap="nowrap"><strong><?php echo $cluster_item["ore_length"]; ?></strong></td>
+                            <td nowrap="nowrap" class="bg_H_<?php echo (!isset($cluster_item["slope_after"]) ) ? "-3" : "0"; ?>"><strong><?php echo $cluster_item["slope_after"]; ?></strong></td>
+                            <td nowrap="nowrap" class="bg_H_<?php echo (!isset($cluster_item["spread_after"]) ) ? "-3" : "0"; ?>"><strong><?php echo $cluster_item["spread_after"]; ?></strong></td>
+                          </tr>
+                          <?php if(!(($cluster_index+1) % 25) ){ ?>
+                          <tr class="bg_white">
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
+                          </tr>
+                          <?php } }
+				  if( (($cluster_index+1) % 25) ){ ?>
+                          <tr class="bg_white">
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope Before</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread Before</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Ores</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Slope After</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Spread After</strong></td>
+                          </tr>
+                          <?php } ?>
+                        </table></td>
+                      </tr>
+                      <?php /*<!--<tr>
+                        <td><table width="100%" border="0" class="bg_black">
+                          <tr class="bg_white">
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Date</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Volume</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>First Block Ore?</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>PostBreaks</strong></td>
+                            </tr>
+	                  <?php 
+				  		foreach($player_mines_all as $mine_index => $mine_item)
+				  		{
+							foreach($colorbins as $column_name => $bins)
+							{
+								$tempcolor = 10;
+								$color[$column_name] = -3;
+								while($mine_item[$column_name . "_ratio"] < $colorbins[$column_name][$tempcolor] && $tempcolor > 0)
+								{
+									//echo "<br>$sortby_column_name >> " . $colorbins[$sortby_column_name][$tempcolor] . " [" . ($tempcolor) . "]";
+									$tempcolor--;	
+								}
+								//echo "<< <BR>";
+								$color[$column_name] = $tempcolor;
+							}
+						?>
+                          <tr class="bg_I_<?php echo $color[$sortby_column_name];?>">
+                            <td nowrap="nowrap"><strong><?php echo $mine_item["volume"]; ?></strong></td>
+                            <td nowrap="nowrap"><strong><?php echo $mine_item["volume"]; ?></strong></td>
+                            <td nowrap="nowrap"><strong><?php echo FixOutput_Bool($mine_item["first_block_ore"],"Yes","No","?"); ?></strong></td>
+                            <td nowrap="nowrap"><strong><?php echo $mine_item["volume"]; ?></strong></td>
+                            </tr>
+                          <?php if(!(($mine_index+1) % 25) ){ ?>
+                          <tr class="bg_white">
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Date</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Volume</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>First Block Ore?</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>PostBreaks</strong></td>
+                          </tr>
+                          <?php } }
+				  if( (($mine_index+1) % 25) ){ ?>
+                          <tr class="bg_white">
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Date</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>Volume</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>First Block Ore?</strong></td>
+                            <td nowrap="nowrap" class="bg_AAA_x"><strong>PostBreaks</strong></td>
+                          </tr>
+                          <?php } ?>
+                        </table></td>
+                      </tr>-->*/ ?>
+                    </table>
+                    <?php } } ?></td>
+                  </tr>
+                </table></td>
+              </tr>
+            </table></td>
           </tr>
           </table>
           <?php } ?></td>
@@ -1445,7 +1370,7 @@ google.setOnLoadCallback(Draw_Gauges);
       </tr>
 <tr>
   <td><?php if($command=="xsingle" || $command=="xglobal"){ ?>
-    <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all" style="display:none">
+    <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
       <tr>
         <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
           <tr>
@@ -1524,7 +1449,10 @@ for ($col = 0; $col <= 10 ; $col++)
       </table>
     <?php } ?></td>
 </tr>
+</table></td>
+  </tr>
 </table>
 <br />
+<p>
   <?php } ?>
 </body>

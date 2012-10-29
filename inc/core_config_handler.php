@@ -30,6 +30,11 @@ function Load_Configs()
 		$GLOBALS['db']['x_user']=$GLOBALS['config_db']['db_xray']['user'];
 		$GLOBALS['db']['x_pass']=$GLOBALS['config_db']['db_xray']['pass'];
 		$GLOBALS['db']['x_prefix']=$GLOBALS['config_db']['db_xray']['prefix'];
+
+		//$GLOBALS['db']['s_resource'] = @mysql_connect($GLOBALS['db']['s_host'], $GLOBALS['db']['s_user'], $GLOBALS['db']['s_pass']);
+		//$GLOBALS['db']['x_resource'] = @mysql_connect($GLOBALS['db']['x_host'], $GLOBALS['db']['x_user'], $GLOBALS['db']['x_pass']);
+		//$GLOBALS['db']['s_link'] = @mysqli_connect($GLOBALS['db']['s_host'], $GLOBALS['db']['s_user'], $GLOBALS['db']['s_pass'], $GLOBALS['db']['s_base']);
+		//$GLOBALS['db']['x_link'] = @mysqli_connect($GLOBALS['db']['x_host'],$GLOBALS['db']['x_user'],$GLOBALS['db']['x_pass'], $GLOBALS['db']['x_base']);
 		
 		$GLOBALS['db']['same'] = FixInput_Bool($GLOBALS['config_db']['db_config']['db_use_same']);
 		$GLOBALS['db']['type'] = $GLOBALS['config_db']['db_config']['db_module_type'];

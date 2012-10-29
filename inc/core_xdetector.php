@@ -55,6 +55,7 @@ function Global_Init()
 	//echo "GLOBALS: <BR>"; print_r($GLOBALS['db']); echo "<BR>";
 	
 	$source_db_ok = SQL_DB_OK("source");
+	$config_error = "";
 	
 	if($source_db_ok['error'] === false)
 	{
@@ -175,7 +176,7 @@ function Get_Player_NameByID(&$playerid)
 	else
 	{
 		return false;
-	}	
+	}
 	
 	return $playername;
 }
@@ -230,6 +231,22 @@ function Get_Player_WorldRatios($playerid)
 	return false;
 }
 
+function Get_Player_Stats_General($playerid)
+{
+	// Get ID of players whose names partially match the search parameter
+	Use_DB("xray");
+	$sql_PlayerStats  = "SELECT * FROM `x-stats`";
+	$sql_PlayerStats .= "    WHERE `playerid` = $playerid AND `worldid` = $worldid";
+	//echo "SQL QUERY: <BR>" . $sql_PlayerIDexists . "<BR>";
+	$res_PlayerStats = mysql_query($sql_PlayerStats) or die("Get_Player_Stats_ByWorld: " . mysql_error());
+	while(($PlayerStatsArray[] = mysql_fetch_assoc($res_PlayerStats)) || array_pop($PlayerStatsArray)); 
+
+	if( mysql_num_rows($res_PlayerStats) > 0 )
+		{ return $PlayerStatsArray; }
+	else
+		{ return false; }
+}
+
 function Get_Player_Stats_ByWorld($playerid, $worldid)
 {
 	// Get ID of players whose names partially match the search parameter
@@ -245,6 +262,21 @@ function Get_Player_Stats_ByWorld($playerid, $worldid)
 	else
 		{ return false; }
 }
+
+function Get_Player_ListAll()
+{
+	Use_DB("xray");
+	$sql_PlayerList  = "SELECT * FROM `x-stats`";
+	//echo "SQL QUERY: <BR>" . $sql_PlayerList . "<BR>";
+	$res_PlayerList = mysql_query($sql_PlayerList) or die("Get_Player_ListAll: " . mysql_error());
+	while(($PlayerList_Array[] = mysql_fetch_assoc($res_PlayerList)) || array_pop($PlayerList_Array)); 
+
+	if( mysql_num_rows($res_PlayerList) > 0 )
+		{ return $PlayerList_Array; }
+	else
+		{ return false; }
+}
+
 
 function Get_Ratios_ByWorldID($world_id, $limit_results, &$block_type, &$stone_threshold)
 {
@@ -283,9 +315,307 @@ function Get_Ratios_ByWorldID($world_id, $limit_results, &$block_type, &$stone_t
 
 function Update_Stats_RatioTotals()
 {
-	$sql_Update_Stats_RatioTotals = file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']). "/inc/sql/update_totals.sql");
+	$sql_Update_Stats_RatioTotals = file_get_contents(dirname(__FILE__). "/sql/update_totals.sql");
 	//echo "SQL QUERY: <BR>" . $sql_Update_Stats_RatioTotals . "<BR>";
 	return $res_Update_Stats_RatioTotals = mysql_query($sql_Update_Stats_RatioTotals) or die("Update_Stats_RatioTotals: " . mysql_error());
+}
+
+function Update_Playerinfo($player_id="ALL")
+{
+	$sql_Update_Playerinfo  = " INSERT INTO `".$GLOBALS['db']['x_base']."`.`x-playerinfo` ";
+	$sql_Update_Playerinfo .= " ( ";
+	$sql_Update_Playerinfo .= "     `playerid`, ";
+	$sql_Update_Playerinfo .= "     `watch`, ";
+	$sql_Update_Playerinfo .= "     `punish`, ";
+	$sql_Update_Playerinfo .= "     `firstlogin`, "; // This item may need to be separated into a separate query for HawkEye
+	$sql_Update_Playerinfo .= "     `lastlogin`, "; // This item may need to be separated into a separate query for HawkEye
+	$sql_Update_Playerinfo .= "     `ip`, "; // This item may need to be separated into a separate query for HawkEye
+	$sql_Update_Playerinfo .= "     `total_stone`, ";
+	$sql_Update_Playerinfo .= "     `total_diamond`, ";
+	$sql_Update_Playerinfo .= "     `total_lapis`, ";
+	$sql_Update_Playerinfo .= "     `total_gold`, ";
+	$sql_Update_Playerinfo .= "     `total_mossy`, ";
+	$sql_Update_Playerinfo .= "     `total_iron`, ";
+	$sql_Update_Playerinfo .= "     `max_ratio_diamond`, ";
+	$sql_Update_Playerinfo .= "     `max_ratio_lapis`, ";
+	$sql_Update_Playerinfo .= "     `max_ratio_gold`, ";
+	$sql_Update_Playerinfo .= "     `max_ratio_mossy`, ";
+	$sql_Update_Playerinfo .= "     `max_ratio_iron`, ";
+	$sql_Update_Playerinfo .= "     `avg_ratio_diamond`, ";
+	$sql_Update_Playerinfo .= "     `avg_ratio_lapis`, ";
+	$sql_Update_Playerinfo .= "     `avg_ratio_gold`, ";
+	$sql_Update_Playerinfo .= "     `avg_ratio_mossy`, ";
+	$sql_Update_Playerinfo .= "     `avg_ratio_iron`, ";
+	$sql_Update_Playerinfo .= "     `postbreak_ratio`, ";
+	$sql_Update_Playerinfo .= "     `max_slope_before_pos`, ";
+	$sql_Update_Playerinfo .= "     `max_slope_before_neg`, ";
+	$sql_Update_Playerinfo .= "     `max_slope_after_pos`, ";
+	$sql_Update_Playerinfo .= "     `max_slope_after_neg`, ";
+	$sql_Update_Playerinfo .= "     `avg_slope_before_pos`, ";
+	$sql_Update_Playerinfo .= "     `avg_slope_before_neg`, ";
+	$sql_Update_Playerinfo .= "     `avg_slope_after_pos`, ";
+	$sql_Update_Playerinfo .= "     `avg_slope_after_neg`, ";
+	$sql_Update_Playerinfo .= "     `count_slope_before_pos`, ";
+	$sql_Update_Playerinfo .= "     `count_slope_before_neg`, ";
+	$sql_Update_Playerinfo .= "     `count_slope_after_pos`, ";
+	$sql_Update_Playerinfo .= "     `count_slope_after_neg`, ";
+	$sql_Update_Playerinfo .= "     `avg_spread_before`, ";
+	$sql_Update_Playerinfo .= "     `avg_spread_after`, ";
+	$sql_Update_Playerinfo .= "     `avg_ore_begin`, ";
+	$sql_Update_Playerinfo .= "     `avg_ore_length`,     ";
+	$sql_Update_Playerinfo .= "     `avg_mine_volume`, ";
+	$sql_Update_Playerinfo .= "     `ratio_first_block_ore`, ";
+	$sql_Update_Playerinfo .= "     `slope_before_preference`, ";
+	$sql_Update_Playerinfo .= "     `slope_after_preference`, ";
+	$sql_Update_Playerinfo .= "     `total_ores`, ";
+	$sql_Update_Playerinfo .= "     `total_clusters` ";
+	$sql_Update_Playerinfo .= " ) ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= " SELECT ";
+	$sql_Update_Playerinfo .= "     c.playerid AS playerid, ";
+	$sql_Update_Playerinfo .= "     xp.watch AS watch, ";
+	$sql_Update_Playerinfo .= "     xp.punish AS punish, ";
+	$sql_Update_Playerinfo .= "     xp.firstlogin AS firstlogin, ";
+	$sql_Update_Playerinfo .= "     xp.lastlogin AS lastlogin, ";
+	$sql_Update_Playerinfo .= "     xp.ip AS ip, ";
+	$sql_Update_Playerinfo .= "     x.stone_count AS total_stone, ";
+	$sql_Update_Playerinfo .= "     x.diamond_count AS total_diamond, ";
+	$sql_Update_Playerinfo .= "     x.lapis_count AS total_lapis, ";
+	$sql_Update_Playerinfo .= "     x.gold_count AS total_gold, ";
+	$sql_Update_Playerinfo .= "     x.mossy_count AS total_mossy, ";
+	$sql_Update_Playerinfo .= "     x.iron_count AS total_iron, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(x.max_diamond_ratio,2) AS max_ratio_diamond, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(x.max_lapis_ratio,2) AS max_ratio_lapis, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(x.max_gold_ratio,2) AS max_ratio_gold, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(x.max_mossy_ratio,2) AS max_ratio_mossy, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(x.max_iron_ratio,2) AS max_ratio_iron, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(x.avg_diamond_ratio,2) AS avg_ratio_diamond, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(x.avg_lapis_ratio,2) AS avg_ratio_lapis, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(x.avg_gold_ratio,2) AS avg_ratio_gold, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(x.avg_mossy_ratio,2) AS avg_ratio_mossy, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(x.avg_iron_ratio,2) AS avg_ratio_iron, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE((m.postbreak_total / m.postbreak_possible),2) AS postbreak_ratio, ";
+	$sql_Update_Playerinfo .= "     max_slope_before_pos AS max_slope_before_pos, ";
+	$sql_Update_Playerinfo .= "     max_slope_before_neg AS max_slope_before_neg, ";
+	$sql_Update_Playerinfo .= "     max_slope_after_pos AS max_slope_after_pos, ";
+	$sql_Update_Playerinfo .= "     max_slope_after_neg AS max_slope_after_neg, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(avg_slope_before_pos,2) AS avg_slope_before_pos, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(avg_slope_before_neg,2) AS avg_slope_before_neg, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(avg_slope_after_pos,2) AS avg_slope_after_pos, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(avg_slope_after_neg,2) AS avg_slope_after_neg, ";
+	$sql_Update_Playerinfo .= "     count_slope_before_pos, ";
+	$sql_Update_Playerinfo .= "     count_slope_before_neg, ";
+	$sql_Update_Playerinfo .= "     count_slope_after_pos, ";
+	$sql_Update_Playerinfo .= "     count_slope_after_neg, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(AVG(spread_before),2) AS avg_spread_before, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(AVG(spread_after),2) AS avg_spread_after, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(AVG(ore_begin),2) AS avg_ore_begin, ";
+	$sql_Update_Playerinfo .= "     TRUNCATE(AVG(ore_length),2) AS avg_ore_length, ";
+	$sql_Update_Playerinfo .= "     m.avg_mine_volume AS avg_mine_volume, ";
+	$sql_Update_Playerinfo .= "     format( ";
+	$sql_Update_Playerinfo .= "     SUM( ";
+	$sql_Update_Playerinfo .= "             CASE c.ore_begin ";
+	$sql_Update_Playerinfo .= "             WHEN 1 THEN 1 ";
+	$sql_Update_Playerinfo .= "             ELSE 0 ";
+	$sql_Update_Playerinfo .= "             END ";
+	$sql_Update_Playerinfo .= "         ) / COUNT(c.playerid), 2) ";
+	$sql_Update_Playerinfo .= "     AS ratio_first_block_ore, ";
+	$sql_Update_Playerinfo .= "     format( (count_slope_before_neg / (count_slope_before_pos + count_slope_before_neg)), 2) AS slope_before_preference, ";
+	$sql_Update_Playerinfo .= "     format( (count_slope_after_neg / (count_slope_after_pos + count_slope_after_neg)), 2) AS slope_after_preference, ";
+	$sql_Update_Playerinfo .= "     SUM(ore_length) AS total_ores, ";
+	$sql_Update_Playerinfo .= "     COUNT(c.playerid) AS total_clusters ";
+	$sql_Update_Playerinfo .= " FROM `x-clusters` AS c ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= " LEFT JOIN ";
+	$sql_Update_Playerinfo .= " ( ";
+	$sql_Update_Playerinfo .= "     SELECT * FROM `lb-players` ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	WHERE `playerid` = ".$player_id." "; }
+	$sql_Update_Playerinfo .= " ) AS p ON p.playerid = c.playerid ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= " LEFT JOIN ";
+	$sql_Update_Playerinfo .= " ( ";
+	$sql_Update_Playerinfo .= "     SELECT ";
+	$sql_Update_Playerinfo .= "         playerid, ";
+	$sql_Update_Playerinfo .= "         format(MAX(slope_before),2) AS max_slope_before_pos, ";
+	$sql_Update_Playerinfo .= "         format(AVG(slope_before),2) AS avg_slope_before_pos, ";
+	$sql_Update_Playerinfo .= "         count(playerid) AS count_slope_before_pos ";
+	$sql_Update_Playerinfo .= "     FROM `x-clusters` ";
+	$sql_Update_Playerinfo .= "     WHERE slope_before >= 0 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	AND `playerid` = ".$player_id." "; }
+	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
+	$sql_Update_Playerinfo .= " ) AS s_b_pos ON p.playerid = s_b_pos.playerid ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= " LEFT JOIN ";
+	$sql_Update_Playerinfo .= " ( ";
+	$sql_Update_Playerinfo .= "     SELECT ";
+	$sql_Update_Playerinfo .= "         playerid, ";
+	$sql_Update_Playerinfo .= "         format(MIN(slope_before),2) AS max_slope_before_neg, ";
+	$sql_Update_Playerinfo .= "         format(AVG(slope_before),2) AS avg_slope_before_neg, ";
+	$sql_Update_Playerinfo .= "         count(playerid) AS count_slope_before_neg ";
+	$sql_Update_Playerinfo .= "     FROM `x-clusters` ";
+	$sql_Update_Playerinfo .= "     WHERE slope_before < 0 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	AND `playerid` = ".$player_id." "; }
+	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
+	$sql_Update_Playerinfo .= " ) AS s_b_neg ON p.playerid = s_b_neg.playerid ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= " LEFT JOIN ";
+	$sql_Update_Playerinfo .= " ( ";
+	$sql_Update_Playerinfo .= "     SELECT ";
+	$sql_Update_Playerinfo .= "         playerid, ";
+	$sql_Update_Playerinfo .= "         format(MAX(slope_after),2) AS max_slope_after_pos, ";
+	$sql_Update_Playerinfo .= "         format(AVG(slope_after),2) AS avg_slope_after_pos, ";
+	$sql_Update_Playerinfo .= "         count(playerid) AS count_slope_after_pos ";
+	$sql_Update_Playerinfo .= "     FROM `x-clusters` ";
+	$sql_Update_Playerinfo .= "     WHERE slope_after >= 0 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	AND `playerid` = ".$player_id." "; }
+	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
+	$sql_Update_Playerinfo .= " ) AS s_a_pos ON p.playerid = s_a_pos.playerid ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= " LEFT JOIN ";
+	$sql_Update_Playerinfo .= " ( ";
+	$sql_Update_Playerinfo .= "     SELECT ";
+	$sql_Update_Playerinfo .= "         playerid, ";
+	$sql_Update_Playerinfo .= "         format(MIN(slope_after),2) AS max_slope_after_neg, ";
+	$sql_Update_Playerinfo .= "         format(AVG(slope_after),2) AS avg_slope_after_neg, ";
+	$sql_Update_Playerinfo .= "         count(playerid) AS count_slope_after_neg ";
+	$sql_Update_Playerinfo .= "     FROM `x-clusters` ";
+	$sql_Update_Playerinfo .= "     WHERE slope_after < 0 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	AND `playerid` = ".$player_id." "; }
+	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
+	$sql_Update_Playerinfo .= " ) AS s_a_neg ON p.playerid = s_a_neg.playerid ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= " LEFT JOIN ";
+	$sql_Update_Playerinfo .= " ( ";
+	$sql_Update_Playerinfo .= "     SELECT ";
+	$sql_Update_Playerinfo .= "         playerid, ";
+	$sql_Update_Playerinfo .= "         SUM(stone_count) AS stone_count, ";
+	$sql_Update_Playerinfo .= "         SUM(diamond_count) AS diamond_count, ";
+	$sql_Update_Playerinfo .= "         SUM(lapis_count) AS lapis_count, ";
+	$sql_Update_Playerinfo .= "         SUM(gold_count) AS gold_count, ";
+	$sql_Update_Playerinfo .= "         SUM(mossy_count) AS mossy_count, ";
+	$sql_Update_Playerinfo .= "         SUM(iron_count) AS iron_count, ";
+	$sql_Update_Playerinfo .= "         MAX(diamond_ratio) AS max_diamond_ratio, ";
+	$sql_Update_Playerinfo .= "         MAX(lapis_ratio) AS max_lapis_ratio, ";
+	$sql_Update_Playerinfo .= "         MAX(gold_ratio) AS max_gold_ratio, ";
+	$sql_Update_Playerinfo .= "         MAX(mossy_ratio) AS max_mossy_ratio, ";
+	$sql_Update_Playerinfo .= "         MAX(iron_ratio) AS max_iron_ratio, ";
+	$sql_Update_Playerinfo .= "         AVG(diamond_ratio) AS avg_diamond_ratio, ";
+	$sql_Update_Playerinfo .= "         AVG(lapis_ratio) AS avg_lapis_ratio, ";
+	$sql_Update_Playerinfo .= "         AVG(gold_ratio) AS avg_gold_ratio, ";
+	$sql_Update_Playerinfo .= "         AVG(mossy_ratio) AS avg_mossy_ratio, ";
+	$sql_Update_Playerinfo .= "         AVG(iron_ratio) AS avg_iron_ratio ";
+	$sql_Update_Playerinfo .= "     FROM `x-stats` ";
+	$sql_Update_Playerinfo .= "     WHERE stone_count > 500 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	AND `playerid` = ".$player_id." "; }
+	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
+	$sql_Update_Playerinfo .= " ) AS x ON x.playerid = p.playerid ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= " LEFT JOIN ";
+	$sql_Update_Playerinfo .= " ( ";
+	$sql_Update_Playerinfo .= "     SELECT ";
+	$sql_Update_Playerinfo .= "         playerid, ";
+	$sql_Update_Playerinfo .= "         watch, ";
+	$sql_Update_Playerinfo .= "         punish, ";
+	$sql_Update_Playerinfo .= "         firstlogin, ";
+	$sql_Update_Playerinfo .= "         lastlogin, ";
+	$sql_Update_Playerinfo .= "         ip ";
+	$sql_Update_Playerinfo .= "     FROM `x-playerinfo` ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	WHERE `playerid` = ".$player_id." "; }
+	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
+	$sql_Update_Playerinfo .= " ) AS xp ON xp.playerid = p.playerid ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= " LEFT JOIN ";
+	$sql_Update_Playerinfo .= " ( ";
+	$sql_Update_Playerinfo .= "     SELECT ";
+	$sql_Update_Playerinfo .= "         playerid, ";
+	$sql_Update_Playerinfo .= "         SUM(postbreak_total) AS postbreak_total, ";
+	$sql_Update_Playerinfo .= "         SUM(postbreak_possible) AS postbreak_possible, ";
+	$sql_Update_Playerinfo .= "         AVG(volume) AS avg_mine_volume ";
+	$sql_Update_Playerinfo .= "     FROM `x-mines` ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	WHERE `playerid` = ".$player_id." "; }
+	$sql_Update_Playerinfo .= "     GROUP BY playerid ";
+	$sql_Update_Playerinfo .= " ) AS m ON m.playerid = p.playerid ";
+	$sql_Update_Playerinfo .= "  ";
+//	$sql_Update_Playerinfo .= " WHERE x.stone_count > 500 ";
+	if($player_id!="ALL"){ $sql_Update_Playerinfo .= "  	WHERE c.`playerid` = ".$player_id." "; }
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= " GROUP BY playerid ";
+	$sql_Update_Playerinfo .= "  ";
+//	$sql_Update_Playerinfo .= " HAVING total_clusters > 1 ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= " ORDER BY avg_ratio_diamond DESC ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= "  ";
+	$sql_Update_Playerinfo .= " ON DUPLICATE KEY UPDATE ";
+	$sql_Update_Playerinfo .= " `total_stone` = total_stone, ";
+	$sql_Update_Playerinfo .= " `total_diamond` = total_diamond, ";
+	$sql_Update_Playerinfo .= " `total_lapis` = total_lapis, ";
+	$sql_Update_Playerinfo .= " `total_gold` = total_gold, ";
+	$sql_Update_Playerinfo .= " `total_mossy` = total_mossy, ";
+	$sql_Update_Playerinfo .= " `total_iron` = total_iron, ";
+	$sql_Update_Playerinfo .= " `max_ratio_diamond` = max_ratio_diamond, ";
+	$sql_Update_Playerinfo .= " `max_ratio_lapis` = max_ratio_lapis, ";
+	$sql_Update_Playerinfo .= " `max_ratio_gold` = max_ratio_gold, ";
+	$sql_Update_Playerinfo .= " `max_ratio_mossy` = max_ratio_mossy, ";
+	$sql_Update_Playerinfo .= " `max_ratio_iron` = max_ratio_iron, ";
+	$sql_Update_Playerinfo .= " `avg_ratio_diamond` = avg_ratio_diamond, ";
+	$sql_Update_Playerinfo .= " `avg_ratio_lapis` = avg_ratio_lapis, ";
+	$sql_Update_Playerinfo .= " `avg_ratio_gold` = avg_ratio_gold, ";
+	$sql_Update_Playerinfo .= " `avg_ratio_mossy` = avg_ratio_mossy, ";
+	$sql_Update_Playerinfo .= " `avg_ratio_iron` = avg_ratio_iron, ";
+	$sql_Update_Playerinfo .= " `postbreak_ratio` = postbreak_ratio, ";
+	$sql_Update_Playerinfo .= " `max_slope_before_pos` = max_slope_before_pos, ";
+	$sql_Update_Playerinfo .= " `max_slope_before_neg` = max_slope_before_neg, ";
+	$sql_Update_Playerinfo .= " `max_slope_after_pos` = max_slope_after_pos, ";
+	$sql_Update_Playerinfo .= " `max_slope_after_neg` = max_slope_after_neg, ";
+	$sql_Update_Playerinfo .= " `avg_slope_before_pos` = avg_slope_before_pos, ";
+	$sql_Update_Playerinfo .= " `avg_slope_before_neg` = avg_slope_before_neg, ";
+	$sql_Update_Playerinfo .= " `avg_slope_after_pos` = avg_slope_after_pos, ";
+	$sql_Update_Playerinfo .= " `avg_slope_after_neg` = avg_slope_after_neg, ";
+	$sql_Update_Playerinfo .= " `count_slope_before_pos` = count_slope_before_pos, ";
+	$sql_Update_Playerinfo .= " `count_slope_before_neg` = count_slope_before_neg, ";
+	$sql_Update_Playerinfo .= " `count_slope_after_pos` = count_slope_after_pos, ";
+	$sql_Update_Playerinfo .= " `count_slope_after_neg` = count_slope_after_neg, ";
+	$sql_Update_Playerinfo .= " `avg_spread_before` = avg_spread_before, ";
+	$sql_Update_Playerinfo .= " `avg_spread_after` = avg_spread_after, ";
+	$sql_Update_Playerinfo .= " `avg_ore_begin` = avg_ore_begin, ";
+	$sql_Update_Playerinfo .= " `avg_ore_length` = avg_ore_length,     ";
+	$sql_Update_Playerinfo .= " `avg_mine_volume` = avg_mine_volume, ";
+	$sql_Update_Playerinfo .= " `ratio_first_block_ore` = ratio_first_block_ore, ";
+	$sql_Update_Playerinfo .= " `slope_before_preference` = slope_before_preference, ";
+	$sql_Update_Playerinfo .= " `slope_after_preference` = slope_after_preference, ";
+	$sql_Update_Playerinfo .= " `total_ores` = total_ores, ";
+	$sql_Update_Playerinfo .= " `total_clusters` = total_clusters ";
+	
+	//echo "SQL QUERY: <BR>" . $sql_Update_Playerinfo . "<BR>";
+	return $res_Update_Playerinfo = mysql_query($sql_Update_Playerinfo) or die("Update_Playerinfo: " . mysql_error());
+}
+
+function Get_Playerinfo($player_id="ALL", $limit_results="50", $sort_by="max_ratio_diamond", $min_stones = "500", $min_clusters = "2")
+{
+	Use_DB("xray");
+	$sql_Get_Playerinfo  = " SELECT * FROM `x-playerinfo` AS x";
+	$sql_Get_Playerinfo .= " LEFT JOIN ";
+	$sql_Get_Playerinfo .= " (";
+	$sql_Get_Playerinfo .= " 	SELECT `playerid`, `playername` ";
+	$sql_Get_Playerinfo .= " 	FROM `lb-players` ";
+	if($player_id!="ALL"){$sql_Get_Playerinfo .= " WHERE `playerid` = '".$player_id."' ";}
+	$sql_Get_Playerinfo .= " ) AS p ON p.playerid = x.playerid";
+	if($player_id!="ALL"){$sql_Get_Playerinfo .= " WHERE x.`playerid` = '".$player_id."' ";}
+	if($player_id=="ALL"){
+	$sql_Get_Playerinfo .= " WHERE `total_stone` > $min_stones AND `total_clusters` > $min_clusters ";
+	$sql_Get_Playerinfo .= " ORDER BY `" . $sort_by. "` DESC, `playername` DESC ";
+	$sql_Get_Playerinfo .= " LIMIT ". $limit_results. " ";
+	}
+	//echo "SQL QUERY: <BR>" . $sql_Get_Playerinfo . "<BR>";
+	$res_Get_Playerinfo = mysql_query($sql_Get_Playerinfo) or die("Get_Playerinfo: " . mysql_error());
+	while(($PlayerInfo_Array[] = mysql_fetch_assoc($res_Get_Playerinfo)) || array_pop($PlayerInfo_Array)); 
+
+	if( mysql_num_rows($res_Get_Playerinfo) > 0 )
+		{ return $PlayerInfo_Array; }
+	else
+		{ return false; }
 }
 
 function Add_Player_Mines($playerid)
@@ -296,16 +626,22 @@ function Add_Player_Mines($playerid)
 		echo "ERROR: The player you specified does not exist. (Player ID: '$playerid')<BR>";
 	} else
 	{
-		//die("VARIABLES NOT IMPLEMENTED");
 		$datetime_now = new DateTime;
 		$datetime_hour_ago = new DateTime;
 		$datetime_hour_ago->modify( '-1 hour' );
 		
+		$final_postbreak_total = 0;
+		$final_postbreak_possible = 0;
+		$final_postbreak_ratio = 0;
+		
 		foreach($GLOBALS['worlds'] as $world_index => $world_item)
 		{
 				
-			$latest_mine_date = Get_Mine_Latest($playerid, $world_item['worldid']);
+			$latest_mine_date = Get_Player_LatestMine($playerid, $world_item['worldid']);
 			
+			echo "<BR><BR>[========================[WORLD ".$world_item["worldalias"]."]========================]<BR>";
+			echo "Analyzing mining behavior of player [".Get_Player_NameByID($playerid)."] in World [".$world_item["worldalias"]."]...<br>";
+			echo "<BR><BR>[------------------------PROCESS------------------------]<BR>";
 			
 			// Get all breaks after date
 			// ------------------------------
@@ -316,8 +652,8 @@ function Add_Player_Mines($playerid)
 			$sql_getPlayerBreaks .= "	    OR replaced = 15";
 			$sql_getPlayerBreaks .= "	    OR replaced = 14";
 			$sql_getPlayerBreaks .= "	    OR replaced = 56";
-			$sql_getPlayerBreaks .= "	    OR replaced = 25";
-			$sql_getPlayerBreaks .= "	    OR replaced = 48 ) ";
+//			$sql_getPlayerBreaks .= "	    OR replaced = 48 "; // Ignore mossy cobblestone when calculating mines
+			$sql_getPlayerBreaks .= "	    OR replaced = 25 )";
 			$sql_getPlayerBreaks .= "	    AND type = 0 ";
 			$sql_getPlayerBreaks .= "	    AND y <= 50 ";
 			$sql_getPlayerBreaks .= "	    AND date > '$latest_mine_date' ";
@@ -332,12 +668,10 @@ function Add_Player_Mines($playerid)
 			
 			// Process all breaks into chunks
 			// ------------------------------
-			echo "<BR><BR>[========================[WORLD ".$world_item["worldalias"]."]========================]<BR>";
-			echo "Analyzing mining behavior of player [".Get_Player_NameByID($playerid)."] in World [".$world_item["worldalias"]."]...<br>";
-			echo "<BR><BR>[------------------------PROCESS------------------------]<BR>";
+
 			// Initiate statistic arrays and variables
 			$init_prev_break = array("replaced"=>"0", "beforeblock"=>"0", "x"=>"0","y"=>"64","z"=>"0");
-			$init_current_mine = array("breaks"=>array(),"ores"=>array(),"stats"=>array("first_block_ore"=>false,"total_volume"=>0,"adjusted_volume"=>0,"total_ores"=>0,"total_notores"=>0,"postbreak_possible"=>0,"postbreak_total"=>0), "clusters"=>array() );
+			$init_current_mine = array("breaks"=>array(),"ores"=>array(),"stats"=>array("first_block_ore"=>false,"total_volume"=>0,"adjusted_volume"=>0,"total_ores"=>0,"adjusted_ores"=>0,"total_notores"=>0,"adjusted_notores"=>0,"postbreak_possible"=>0,"postbreak_total"=>0,"depth_total"=>0,"depth_avg"=>0,"postbreak_total"=>0,"postbreak_possible"=>0),"clusters"=>array() );
 			$init_cluster = array("nearby_before"=>array(), "nearby_after"=>array(), "ore_begin"=>NULL, "ore_length"=>NULL);
 			
 			$Mine_Array = array();
@@ -347,6 +681,7 @@ function Add_Player_Mines($playerid)
 	
 			$fullbreaks_item = array();	$fullbreaks_done = false; 
 			$recent_depth = array(); $inside_cluster = false;
+			$postbreak_checking = false; $postbreak_check_count = 0;
 			$blocks_since_ore = 0;
 		
 			// Process each break, moving it from the original array into smaller chunks (mines)
@@ -477,8 +812,9 @@ function Add_Player_Mines($playerid)
 						{
 							//echo "(Ore Length + ".($blocks_since_ore + 1).")";
 							$current_cluster["ore_length"] += $blocks_since_ore + 1; // Add current ore to count, plus additional recent non-ores
-							if($current_cluster["ore_length"] > 1)
+							if($current_cluster["ore_length"] > 1 && $blocks_since_ore <= $GLOBALS['config']['settings']['postbreak_check'])
 							{
+								//echo "(PB: [".$current_mine["stats"]["postbreak_possible"]."][".$current_mine["stats"]["postbreak_total"]."][".$blocks_since_ore."])";
 								$current_mine["stats"]["postbreak_possible"] -= $blocks_since_ore-1;
 								$current_mine["stats"]["postbreak_total"] -= $blocks_since_ore-1;
 								//echo "(PB: [".$current_mine["stats"]["postbreak_possible"]."][".$current_mine["stats"]["postbreak_total"]."][".$blocks_since_ore."])";
@@ -499,6 +835,7 @@ function Add_Player_Mines($playerid)
 						{
 							$current_mine["stats"]["postbreak_possible"]++; $postbreak_check_count++;
 							$ore_distance_ok = false;
+							//echo "PB COUNT: $postbreak_check_count<BR>";
 							foreach(array_slice($current_mine["ores"],-2 ) as $block_index => $block_compare)
 							{
 								$distance = sqrt( max(	pow($fullbreaks_item["x"] - $block_compare["x"] , 2),
@@ -550,7 +887,6 @@ function Add_Player_Mines($playerid)
 				
 				$current_mine["stats"]["depth_total"] += $fullbreaks_item["y"];
 				
-			
 				if($adjacent || count($current_mine["breaks"]) == 0) // New break is part of current mine
 				{
 					//echo "=";
@@ -564,6 +900,7 @@ function Add_Player_Mines($playerid)
 						while($postbreak_check_count < $GLOBALS['config']['settings']['postbreak_check']){ $current_mine["stats"]["postbreak_possible"]++;	$postbreak_check_count++; }
 					}
 					$postbreak_checking = false; $postbreak_check_count = 0;
+					if($current_mine["stats"]["postbreak_total"]<0 || $current_mine["stats"]["postbreak_possible"]<0){ echo "BAD POSTBREAK!! TOTAL [".$current_mine["stats"]["postbreak_total"]."] ~ POSSIBLE [".$current_mine["stats"]["postbreak_possible"]."]<BR>"; }
 					
 					echo "--End Of Mine Detected [".count($Mine_Array)."] ... (Volume: ".$current_mine["stats"]["total_volume"]." , Adjusted: ".$current_mine["stats"]["adjusted_volume"].")<BR>";
 					//echo "(PB Possible: ".$current_mine["stats"]["postbreak_possible"].", PB Actual: ".$current_mine["stats"]["postbreak_total"].")";
@@ -750,19 +1087,16 @@ function Add_Player_Mines($playerid)
 				
 				//echo "...Adding Mine ($mine_index of ".count($Mine_Array).")...";
 				$sql_newmine = "INSERT INTO `x-mines` ";
-				$sql_newmine .= " 	( `playerid`, `worldid`, `volume`, `first_block_ore`, `last_break_date`, `diamond_ratio`, `lapis_ratio`, `iron_ratio`, `gold_ratio`, `mossy_ratio`) ";
+				$sql_newmine .= " 	( `playerid`, `worldid`, `volume`, `first_block_ore`, `last_break_date`, `postbreak_possible`, `postbreak_total`) ";
 				$sql_newmine .= " VALUES ";
-				$sql_newmine .= sprintf(" 	( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ",
+				$sql_newmine .= sprintf(" 	( %s, %s, %s, %s, %s, %s, %s); ",
 										GetSQLValueString($playerid,"int"),
-										GetSQLValueString(1,"int"),
+										GetSQLValueString($world_item['worldid'],"int"),
 										GetSQLValueString($mine_item["stats"]["total_volume"],"int"),
 										GetSQLValueString($mine_item["stats"]["first_block_ore"],"defined",1,0),
 										GetSQLValueString($mine_item["stats"]["last_break_date"],"date"),
-										GetSQLValueString(NULL,"int"),
-										GetSQLValueString(NULL,"int"),
-										GetSQLValueString(NULL,"int"),
-										GetSQLValueString(NULL,"int"),
-										GetSQLValueString(NULL,"int") );
+										GetSQLValueString($mine_item["stats"]["postbreak_possible"],"int"),
+										GetSQLValueString($mine_item["stats"]["postbreak_total"],"int") );
 				$sql_newmine .= "  ";
 				//echo "SQL NEWMINE[$mine_index]: <BR> $sql_newmine <BR><BR>";
 				$res_newbreaks = mysql_query($sql_newmine) or die("SQL_QUERY[newmine - $mine_index]: " . $sql_newmine . "<BR> " . mysql_error() . "<BR>");
@@ -778,7 +1112,7 @@ function Add_Player_Mines($playerid)
 						$sql_newmine .= sprintf(" 	( %s, %s, %s, %s, %s, %s, %s, %s, %s) ",
 							"last_insert_id()",
 							GetSQLValueString($playerid,"int"),
-							GetSQLValueString(1,"int"),
+							GetSQLValueString($world_item['worldid'],"int"),
 							GetSQLValueString($cluster_item["ore_begin"],"int"),
 							GetSQLValueString($cluster_item["ore_length"],"int"),
 							GetSQLValueString($cluster_item["slope_before"],"double"),
@@ -877,7 +1211,7 @@ function Update_Player_MinesStats($playerid)
 		$sql_updatemine .= " ) AS c6 ";
 		$sql_updatemine .= " WHERE `playerid` = $playerid ";
 		$sql_updatemine .= " ON DUPLICATE KEY UPDATE ";
-		$sql_updatemine .= " `volume`=c6.volume, `first_block_ore`=TRUNCATE(c6.first_block_ore,2), `slope_before_neg`=TRUNCATE(c1.slope_before_neg,2), `slope_before_pos`=TRUNCATE(c2.slope_before_pos,2), `slope_after_pos`=TRUNCATE(c3.slope_after_neg,2), `slope_after_pos`=TRUNCATE(c4.slope_after_pos,2), `spread_before`=c5.spread_before, `spread_after`=c5.spread_after, `ore_begin`=c5.ore_begin, `ore_length`=c5.ore_length ";
+		$sql_updatemine .= " `volume`=c6.volume, `first_block_ore`=TRUNCATE(c6.first_block_ore,2), `slope_before_neg`=TRUNCATE(c1.slope_before_neg,2), `slope_before_pos`=TRUNCATE(c2.slope_before_pos,2), `slope_after_neg`=TRUNCATE(c3.slope_after_neg,2), `slope_after_pos`=TRUNCATE(c4.slope_after_pos,2), `spread_before`=c5.spread_before, `spread_after`=c5.spread_after, `ore_begin`=c5.ore_begin, `ore_length`=c5.ore_length ";
 				
 		$res_updatemine = mysql_query($sql_updatemine);
 		if(mysql_errno())
@@ -887,14 +1221,13 @@ function Update_Player_MinesStats($playerid)
 	}
 }
 
-function Get_Mine_Latest($playerid, $worldid)
+function Get_Player_LatestMine($playerid, $worldid)
 {
-	// Get ID of players whose names partially match the search parameter
-	$sql_Get_Mine_Latest  = "SELECT MAX(`last_break_date`) as latest_mine FROM `x-mines`";
-	$sql_Get_Mine_Latest .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
-	//echo "SQL QUERY: <BR>" . $sql_getWorlds . "<BR>";
-	$res_Get_Mine_Latest = mysql_query($sql_Get_Mine_Latest) or die("Get_Mine_Latest: " . mysql_error());
-	while(($LatestMine_result[] = mysql_fetch_assoc($res_Get_Mine_Latest)) || array_pop($LatestMine_result));
+	$sql_Get_Player_LatestMine  = "SELECT MAX(`last_break_date`) as latest_mine FROM `x-mines`";
+	$sql_Get_Player_LatestMine .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
+	//echo "SQL QUERY: <BR>" . $sql_Get_Player_LatestMine . "<BR>";
+	$res_Get_Player_LatestMine = mysql_query($sql_Get_Player_LatestMine) or die("Get_Player_LatestMine: " . mysql_error());
+	while(($LatestMine_result[] = mysql_fetch_assoc($res_Get_Player_LatestMine)) || array_pop($LatestMine_result));
 
 	$latest_mine_date = $LatestMine_result[0]["latest_mine"];
 	
@@ -909,26 +1242,32 @@ function Get_Mine_Latest($playerid, $worldid)
 	return $latest_mine_date;
 }
 
-function Get_Mine_All($playerid, $worldid)
+function Get_Player_Mines_InWorld($playerid, $worldid)
+{
+	$sql_Get_Player_Mines_InWorld  = "SELECT * FROM `x-mines`";
+	$sql_Get_Player_Mines_InWorld .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
+	//echo "SQL QUERY: <BR>" . $sql_Get_Player_Mines_InWorld . "<BR>";
+	$res_Get_Player_Mines_InWorld = mysql_query($sql_Get_Player_Mines_InWorld) or die("Get_Player_Mines_InWorld: " . mysql_error());
+
+	while(($Mine_array[] = mysql_fetch_assoc($res_Get_Player_Mines_InWorld)) || array_pop($Mine_array));
+
+	//echo "MINE ARRAY: "; print_r($Mine_array); echo "<BR>";
+	
+	return $Mine_array;
+}
+
+function Get_Player_Clusters_InWorld($playerid, $worldid)
 {
 	// Get ID of players whose names partially match the search parameter
-	$sql_Get_Mine_Latest  = "SELECT MAX(`last_break_date`) as latest_mine FROM `x-mines`";
-	$sql_Get_Mine_Latest .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
-	//echo "SQL QUERY: <BR>" . $sql_getWorlds . "<BR>";
-	$res_Get_Mine_Latest = mysql_query($sql_Get_Mine_Latest) or die("Get_Mine_Latest: " . mysql_error());
-	while(($LatestMine_result[] = mysql_fetch_assoc($res_Get_Mine_Latest)) || array_pop($LatestMine_result));
+	$sql_Get_Player_Clusters  = "SELECT * FROM `x-clusters`";
+	$sql_Get_Player_Clusters .= " WHERE `playerid` = $playerid AND `worldid` = $worldid";
+	//echo "SQL QUERY: <BR>" . $sql_Get_Player_Clusters . "<BR>";
+	$res_Get_Player_Clusters = mysql_query($sql_Get_Player_Clusters) or die("Get_Player_Clusters: " . mysql_error());
+	while(($Clusters_array[] = mysql_fetch_assoc($res_Get_Player_Clusters)) || array_pop($Clusters_array));
 
-	$latest_mine_date = $LatestMine_result[0]["latest_mine"];
+	//echo "CLUSTERS ARRAY: "; print_r($Clusters_array); echo "<BR>";
 	
-	if($latest_mine_date == NULL)
-	{
-		$latest_mine_date = "2010-01-01 00:00:00";
-	}	
-	
-	//echo "LATESTMINE ARRAY: "; print_r($LatestMine_result); echo "<BR>";
-	//echo "LATEST MINE FOUND: [$latest_mine_date]<BR>";
-	
-	return $latest_mine_date;
+	return $Clusters_array;
 }
 
 function AutoFlagWatching()
@@ -962,6 +1301,313 @@ function Clear_XStats()
 
 }
 
+// Column names must be an associative array, where each key is the column name in the array you want to add the map to, and each value is the name of the colormap template that you want to apply.
+// Example $column_uses_template = array("TableColumnA1"=>"ColorMap_Template_A", "TableColumnA2"=>"ColorMap_Template_A", "TableColumnB"=>"ColorMap_Template_B");
+function Array_Apply_ColorMap(&$input_array, $column_uses_template, $summary_columns)
+{
+	$colorbins["diamond_ratio"] = array_fill(0, 10, 0); $colorbins["lapis_ratio"] = array_fill(0, 10, 0); $colorbins["gold_ratio"] = array_fill(0, 10, 0); $colorbins["mossy_ratio"] = array_fill(0, 10, 0); $colorbins["iron_ratio"] = array_fill(0, 10, 0);
+	
+	$colormap_template["diamond_ratio"]		= array(0 => 0,			3 => "0.5", 	6 => "1.25",	9 => "2");
+	$colormap_template["lapis_ratio"]		= array(0 => 0,			3 => "1",		6 => "2",   	9 => "3");
+	$colormap_template["gold_ratio"]		= array(0 => 0,			3 => "2.5",		6 => "4", 		9 => "6");
+	$colormap_template["mossy_ratio"]		= array(0 => 0,			3 => "5",   	6 => "10",		9 => "15");
+	$colormap_template["iron_ratio"]		= array(0 => 0,			3 => "15",  	6 => "20",		9 => "30");
+	$colormap_template["first_block_ore"] 	= array(0 =>  0,		3 =>  "0.20", 	6 =>  "0.40",	9 =>  "0.60");
+	$colormap_template["slope_before_neg"]	= array(0 => "-0.17",	3 => "-0.20", 	6 => "-0.25",	9 => "-0.30");
+	$colormap_template["slope_before_pos"]	= array(0 =>  "0.17",	3 =>  "0.20", 	6 =>  "0.25",	9 =>  "0.30");
+	$colormap_template["slope_after_neg"]	= array(0 => "-0.17",	3 => "-0.20", 	6 => "-0.25",	9 => "-0.30");
+	$colormap_template["slope_after_pos"]	= array(0 =>  "0.17",	3 =>  "0.20", 	6 =>  "0.25",	9 =>  "0.30");
+	$colormap_template["spread_before"]		= array(0 => 0, 		3 => "1",		6 => "2.1", 	9 => "4");
+	
+	//echo "COLOR TEMPLATES: "; print_r($colormap_template); echo "<BR><BR>";
+	
+	foreach($colormap_template as $column_name => $bins)
+	{
+		$colormap_template[$column_name][1] = $colormap_template[$column_name][3] * 0.33;
+		$colormap_template[$column_name][2] = $colormap_template[$column_name][3] * 0.66;
+		$colormap_template[$column_name][4] = $colormap_template[$column_name][3] + ($colormap_template[$column_name][6] - $colormap_template[$column_name][3]) * 0.33;
+		$colormap_template[$column_name][5] = $colormap_template[$column_name][3] + ($colormap_template[$column_name][6] - $colormap_template[$column_name][3]) * 0.66;
+		$colormap_template[$column_name][7] = $colormap_template[$column_name][6] + ($colormap_template[$column_name][9] - $colormap_template[$column_name][6]) * 0.33;
+		$colormap_template[$column_name][8] = $colormap_template[$column_name][6] + ($colormap_template[$column_name][9] - $colormap_template[$column_name][6]) * 0.66;
+		$colormap_template[$column_name][10] = $colormap_template[$column_name][9] + ($colormap_template[$column_name][9] - $colormap_template[$column_name][6]) * 1.33;
+		asort($colormap_template[$column_name]);
+		//echo "[" . $column_name . "]<br>"; print_r($colormap_template[$column_name]); echo "<br>";
+	}
+	
+	$colormap_list = array();
+	
+	if(count($column_uses_template)<1)
+	{
+		return false;
+	}
+	else
+	{
+		
+		foreach($column_uses_template as $input_column_name => $input_template_name)
+		{
+			if(array_key_exists($input_template_name,$colormap_template))
+			{
+				$colormap_list[$input_column_name] = $colormap_template[$input_template_name];
+				//echo "Mapping color map template [$input_template_name] to column name [$input_column_name].<BR>";
+			}
+		}
+	}
 
+	if(count($input_array)<1 && count($colormap_list))
+	{
+		return false;
+	}
+	foreach($input_array as $dataset_rownum => &$dataset_row)
+	{
+		//echo "INDEX: $dataset_rownum <br>";
+		foreach($colormap_list as $color_column_name => $bins)
+		{
+			//echo "COLOR_SEARCH: $color_column_name <br>";					
+			foreach($dataset_row as $row_column_name => &$row_column_value)
+			{
+				if(array_key_exists($color_column_name, $dataset_row) && $color_column_name == $row_column_name)
+				{
+					$tempcolor = -3;
+					$dataset_row["color_" . $row_column_name] = -3;
+					//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
+					$compare_value = ($colormap_list[$color_column_name][9] < 0) ? abs($row_column_value) : $row_column_value;
+					
+					if(isset($row_column_value) && $row_column_value != "")
+					{
+						if($colormap_list[$color_column_name][9] > 0)
+						{
+							$tempcolor = 10;									
+							while($row_column_value < $colormap_list[$color_column_name][$tempcolor] && $tempcolor > 0)
+							{
+								//echo "$color_column_name >> " . $colormap_list[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+								$tempcolor--;	
+							}
+						}
+						else
+						{
+							$tempcolor = 0;
+							while($row_column_value < $colormap_list[$color_column_name][$tempcolor] && $tempcolor < 10)
+							{
+								//echo "$color_column_name >> " . $colormap_list[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+								$tempcolor++;	
+							}	
+						}
+						$dataset_row["color_" . $row_column_name] = $tempcolor;
+					}
+					else
+					{
+						$dataset_row["color_" . $row_column_name] = -3;
+					}
+				}
+			}
+			//echo "<BR>";
+		}
+	}
+
+	foreach($input_array as $dataset_rownum => &$dataset_row)
+	{
+		$row_color_stats_full = array();
+		$row_color_stats_top2 = array();
+		foreach($summary_columns as $column_name)
+		{
+			if(isset($dataset_row["color_" . $column_name]) && $dataset_row["color_" . $column_name] >= 0)
+			{
+				array_push($row_color_stats_full, $dataset_row["color_" . $column_name]);
+			}
+		}
+		
+		arsort($row_color_stats_full);
+		$row_color_stats_top2 = array_slice($row_color_stats_full,0,2);
+		
+		if(count($row_color_stats_full) > 0)
+		{
+			$dataset_row["color_max"] = max($row_color_stats_full);
+			$dataset_row["color_avg"] = number_format(array_sum($row_color_stats_full) / count($row_color_stats_full),0);
+		}
+		if(count($row_color_stats_top2) > 0)
+		{
+			$dataset_row["color_avg_top2"] = number_format(array_sum($row_color_stats_top2) / count($row_color_stats_top2),0);
+		}
+		else
+		{
+			$dataset_row["color_max"] = -3;
+			$dataset_row["color_avg"] = -3;
+			$dataset_row["color_avg_top2"] = -3;
+		}
+		
+	}
+	
+	//echo "COLOR MAPS: "; print_r($colormap_list); echo "<BR><BR>";
+
+	return true;
+}
+
+function Calc_Playerinfo_SuspicionLevel(&$playerinfo_array)
+{
+	$info_array = array();
+	foreach($playerinfo_array as $dataset_rownum => &$dataset_row)
+	{
+		
+		if($dataset_row["total_stone"]>=1500 && $dataset_row["total_clusters"]>=20)
+		{
+			$info_array["accuracy"] = "3";
+			//array_push($info_array,array("type"=>"disclaimer","trait"=>"TRAITNAME","message"=>"The information about this player is almost certainly accurate."));
+		}
+		elseif($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
+		{
+			$info_array["accuracy"] = "2";
+			//array_push($info_array,array("type"=>"disclaimer","trait"=>"TRAITNAME","message"=>"The information about this player is probably accurate."));
+		}
+		elseif($dataset_row["total_stone"]>=300 && $dataset_row["total_clusters"]>=2)
+		{
+			$info_array["accuracy"] = "1";
+			//array_push($info_array,array("type"=>"disclaimer","trait"=>"TRAITNAME","message"=>"This user does not have enough mining data to come to any accurate conclusions. Any incriminating evidence may be inaccurate."));
+		}
+		else
+		{
+			$info_array["accuracy"] = "0";
+			//array_push($info_array,array("type"=>"disclaimer","trait"=>"TRAITNAME","message"=>"This user does not have enough mining data to come to any conclusions."));
+		}
+
+		$dataset_row["color_method_A"] = min( 10, round( (	
+											( max($dataset_row["color_max_ratio_diamond"], $dataset_row["color_max_ratio_gold"]) * 6)
+										+ 	($dataset_row["color_max_ratio_lapis"] * 2)
+										+ 	($dataset_row["color_max_ratio_mossy"] * 1)
+										+ 	($dataset_row["color_max_ratio_iron"] * 1)
+										+ 	($dataset_row["color_avg_slope_before_neg"] * 2)
+										 ) / 7, 0));
+			
+		/*							 
+		if($dataset_row["total_stone"]>=1500 && $dataset_row["total_clusters"]>=20)
+		{
+			if($dataset_row["color_"
+			$dataset_row["color_method_A"] = ;
+		}
+		elseif($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
+		{
+
+		}
+		elseif($dataset_row["total_stone"]>=300 && $dataset_row["total_clusters"]>=2)
+		{
+
+		}
+		else
+		{
+
+		}
+		*/
+
+		$info_array["traits"]=array();
+		if($dataset_row["total_stone"]>=500 && $dataset_row["total_clusters"]>=5)
+		{
+			// Diamond ratio
+			if($dataset_row["color_max_ratio_diamond"]>=9)
+			{ 
+				array_push($info_array["traits"],array("type"=>"bad","trait"=>"diamond_extreme","message"=>"User's Diamond ratio is extremely high."));
+			}
+			elseif($dataset_row["color_max_ratio_diamond"]>=6)
+			{ 
+				array_push($info_array["traits"],array("type"=>"neutral","trait"=>"diamond_high","message"=>"User's Diamond ratio is unusually high, but this alone does not necessarily prove use of X-Ray."));
+			}
+			else
+			{ 
+				array_push($info_array["traits"],array("type"=>"good","trait"=>"diamond_normal","message"=>"User's Diamond ratio is normal."));
+			}
+				
+			// Lapis ratio
+			if($dataset_row["color_max_ratio_lapis"]>=9)
+			{ 
+				array_push($info_array["traits"],array("type"=>"bad","trait"=>"lapis_extreme","message"=>"User's Lapis ratio is extremely high."));
+			}
+			elseif($dataset_row["color_max_ratio_lapis"]>=6)
+			{ 
+				array_push($info_array["traits"],array("type"=>"neutral","trait"=>"lapis_high","message"=>"User's Lapis ratio is unusually high, but this alone does not necessarily prove use of X-Ray."));
+			}
+			else
+			{ 
+				array_push($info_array["traits"],array("type"=>"good","trait"=>"lapis_normal","message"=>"User's Lapis ratio is normal."));
+			}
+				
+			// Gold Ratio
+			if($dataset_row["color_max_ratio_gold"]>=9)
+			{ 
+				array_push($info_array["traits"],array("type"=>"bad","trait"=>"gold_extreme","message"=>"User's Gold ratio is extremely high"));
+			}
+			elseif($dataset_row["color_max_ratio_gold"]>=6)
+			{ 
+				array_push($info_array["traits"],array("type"=>"neutral","trait"=>"gold_high","message"=>"User's Gold ratio is unusually high, but this alone does not necessarily prove use of X-Ray."));
+			}
+			else
+			{ 
+				array_push($info_array["traits"],array("type"=>"good","trait"=>"gold_normal","message"=>"User's Gold ratio is normal."));
+			}
+			
+			// Mossy ratio
+			if($dataset_row["color_max_ratio_mossy"]>=9)
+			{ 
+				array_push($info_array["traits"],array("type"=>"bad","trait"=>"mossy_extreme","message"=>"User's Mossy ratio is extremely high."));
+			}
+			elseif($dataset_row["color_max_ratio_mossy"]>=6)
+			{ 
+				array_push($info_array["traits"],array("type"=>"neutral","trait"=>"mossy_high","message"=>"User's Mossy ratio is unusually high, but this alone does not necessarily prove use of X-Ray."));
+			}
+			else
+			{ 
+				array_push($info_array["traits"],array("type"=>"good","trait"=>"mossy_normal","message"=>"User's Mossy ratio is normal."));
+			}
+			
+			// Iron ratio
+			if($dataset_row["color_max_ratio_iron"]>=9)
+			{ 
+				array_push($info_array["traits"],array("type"=>"bad","trait"=>"iron_extreme","message"=>"User's Iron ratio is extremely high."));
+			}
+			elseif($dataset_row["color_max_ratio_iron"]>=6)
+			{ 
+				array_push($info_array["traits"],array("type"=>"neutral","trait"=>"iron_high","message"=>"User's Iron ratio is unusually high, but this alone does not necessarily prove use of X-Ray."));
+			}
+			else
+			{ 
+				array_push($info_array["traits"],array("type"=>"good","trait"=>"iron_normal","message"=>"User's Iron ratio is normal."));
+			}
+			
+			// First block ore
+			if( max($dataset_row["max_ratio_diamond"],$dataset_row["max_ratio_gold"]) >= 4) // Ignore high FBO ratio if diamond and gold ratio are normal
+			{
+				if( $dataset_row["color_ratio_first_block_ore"] > 4 )
+				{
+					array_push($info_array["traits"],array("type"=>"bad","trait"=>"fbo_high","message"=>"User frequently mines only ores that are already visible. This could suggest an x-ray texture pack, but could also simply indicate a preference to mine in exposed caverns."));
+				}
+				elseif( $dataset_row["color_ratio_first_block_ore"] > 7 )
+				{
+					array_push($info_array["traits"],array("type"=>"bad","trait"=>"fbo_extreme","message"=>"User almost exclusively mines ores that are already visible. This could suggest an x-ray texture pack, but could also simply indicate a preference to mine in exposed caverns."));
+				}
+				
+				if( $dataset_row["color_avg_slope_before_neg"] > 4 )
+				{
+					array_push($info_array["traits"],array("type"=>"bad","trait"=>"sbn_high","message"=>"User frequently mines at unusually steep angles before finding ores. This could suggest the user knows when to mine up/down to find ores."));
+				}
+				elseif( $dataset_row["color_avg_slope_before_neg"] > 7 )
+				{
+					array_push($info_array["traits"],array("type"=>"bad","trait"=>"sbn_extreme","message"=>"User frequently mines at unusually steep angles before finding ores. This could suggest the user knows when to mine up/down to find ores."));
+				}
+			}
+
+		}
+			
+		if( max($dataset_row["max_ratio_diamond"],$dataset_row["max_ratio_gold"]) >= 6)
+		{
+			
+			
+		}
+		else
+		{
+			$dataset_row["color_method_B"] = max($dataset_row["max_ratio_diamond"],$dataset_row["max_ratio_gold"]);
+		}
+
+		$info_array["suspicion"] = $dataset_row["color_method_A"];
+	}
+	//print_r($info_array);
+	return $info_array;
+}
 
 ?>

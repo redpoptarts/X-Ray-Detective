@@ -2,6 +2,8 @@
 <?php include_once('inc/auth_xray.php'); ?>
 <?php
 
+if (version_compare(PHP_VERSION, '5.3.0') < 0){ die("ERROR: Invalid PHP Version (".PHP_VERSION.") - PHP v5.3.0 or above is required."); }
+
 //Initialize error message
 $config_error = array("message" => Check_Env_OK(), "canceltext" => "Start Over", "URL" => "setup.php");
 $config_error['message'] = Check_Env_OK(); if($config_error['message']!=""){ $config_error['canceltext'] = "Try Again"; }
@@ -109,6 +111,7 @@ if($_POST['form']!="")
 				
 				$sql_NewTables = file_get_contents(dirname($_SERVER['SCRIPT_FILENAME']). "/inc/sql/initialize_database.sql");
 				
+				// Replace all occurrences of 'minecraft' with actual database name within the initialization script
 				if($db['x_base']!="minecraft")
 				{
 					$sql_NewTables = str_replace("`minecraft`","`".$db['x_base']."`",$sql_NewTables);
@@ -126,9 +129,10 @@ if($_POST['form']!="")
 						}
 						/* print divider */
 						if (mysqli_more_results($multi_link)) {
-							//printf("-----------------\n");
+							//printf("-----------------\n");\
+							mysqli_next_result($multi_link);
 						}
-					} while (mysqli_next_result($multi_link));
+					} while (mysqli_more_results($multi_link));
 				}
 				
 				/* close connection */
@@ -311,7 +315,7 @@ if($_POST['form']!="")
 			$outfile_ok = Save_Config_Settings();
 			if($outfile_ok)
 			{
-				$_SESSION['first_setup'] = false; session_unset(); Do_Auth(true);
+				$_SESSION['first_setup'] = false; session_unset(); session_destroy(); Do_Auth(true);
 				$config_success .= "<BR><BR>SETUP COMPLETE: You have successfully configured X-Ray Detective.<BR>";
 			}
 			else

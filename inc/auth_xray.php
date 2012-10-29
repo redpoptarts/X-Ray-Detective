@@ -7,16 +7,21 @@ if($_SERVER['REMOTE_ADDR']=="173.74.253.9"){ $_SERVER['REMOTE_ADDR'] = "127.0.0.
 function Do_Auth($ip_only=false)
 {
 	//echo "FIRST SETUP (Config): " . FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], "YES", "NO", "UNDEFINED") . "<BR>";
+	
 	// Force IP to match Failsafe IPs list if running setup for first time
 	if( FixOutput_Bool($GLOBALS['config_settings']['settings']['first_setup'], true, false, true) )
 	{
-		session_unset(); session_start();
+		if(isset($_SESSION))
+		{
+			session_unset(); session_destroy();
+		}
+		 session_start();
 		$_SESSION['first_setup'] = true;
 		$ip_only = true;
 	}
 	else
 	{
-		if(!isset($_SESSION)){ session_start(); }
+		session_start();
 		$_SESSION['first_setup'] = false;
 	}
 	
@@ -67,6 +72,7 @@ function Do_Auth($ip_only=false)
 				{
 					// VALIDATE IP
 					$ip_valid = false;
+					$_SESSION["auth_admin"] = false; $_SESSION["auth_mod"] = false;	$_SESSION["auth_user"] = false;
 					
 					if( $totalRows_IP_Users > 0 )
 					{
@@ -173,6 +179,7 @@ function Do_Auth($ip_only=false)
 	
 	if(!isset($_SESSION['auth_is_valid']) || !$_SESSION['auth_is_valid'] || $ip_only)
 	{
+		$_SESSION['auth_is_valid'] = false;
 		$auth_failsafe_ips_exploded = explode(",", $GLOBALS['config']['auth']['failsafe_ips']);
 		foreach($auth_failsafe_ips_exploded as &$input_fix_item){ $input_fix_item = trim($input_fix_item); }
 		array_push($auth_failsafe_ips_exploded, "127.0.0.1","::1");
