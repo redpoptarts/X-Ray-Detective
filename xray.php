@@ -3,7 +3,7 @@
 <?php
 
 //echo "Global Init...<BR>";
-echo "[".date("Y-m-t", strtotime('today')) . " 00:00:00]";
+
 Global_Init();
 //echo "Global Init Complete...<BR>";
 $auth = Do_Auth();
@@ -11,7 +11,7 @@ $auth = Do_Auth();
 if(array_key_exists('Submit', $_POST)){ $_GET = $_POST; }
 if(array_key_exists('command', $_POST)){ $_GET = $_POST; }
 $command = array_key_exists('command', $_GET) ? $_GET['command'] : "";
-$command_error = ""; $command_success = "";
+$command_error = ""; $command_success = ""; $general_error = "";
 
 //echo "Begin script...<br>";
 if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
@@ -97,120 +97,131 @@ if($_SESSION["auth_is_valid"] && !$_SESSION['first_setup'])
 
 	if ($command == "xsingle")
 	{
-	
-		
-		$_GET['xr_submit'] = array_key_exists('xr_submit', $_GET) ? $_GET['xr_submit'] : NULL;
-		//echo "XCHECK";
-		if($_GET['xr_submit']=="Check" || $_GET['xr_submit']=="")
+		if(!Check_Player_Exists($player_id))
 		{
-			// Check user's totals from stats table
-			ob_start();
-			Add_Player_Mines($player_id);
-			Update_PlayerInfo($player_id);
-			ob_end_clean();	
-			
-			$player_world_stats = Get_Player_WorldRatios($player_id);
-			$player_mines_all = Get_Player_Mines_InWorld($player_id, $GLOBALS['worlds'][0]['worldid']);
-			$player_info = Get_Playerinfo($player_id);
-
-			$color_template_list = array("max_ratio_diamond" => "diamond_ratio", "max_ratio_gold" => "gold_ratio", "max_ratio_lapis" => "lapis_ratio", "max_ratio_mossy" => "mossy_ratio", "max_ratio_iron" => "iron_ratio",
-				 "avg_slope_before_pos" => "slope_before_pos", "avg_slope_before_neg" => "slope_before_neg", "avg_slope_after_pos" => "slope_after_pos", "avg_slope_after_neg" => "slope_after_neg", "ratio_first_block_ore"=>"first_block_ore");
-			$color_important_columns = array("max_ratio_diamond", "max_ratio_gold", "avg_slope_before_neg", "avg_slope_after_neg");	
-			Array_Apply_ColorMap($player_info, $color_template_list, $color_important_columns);
-			$player_info = Calc_Playerinfo_SuspicionLevel($player_info);
-			
-			foreach($GLOBALS['worlds'] as $world_index => $world_item)
+			$general_error .= "ERROR: The player you specified does not exist.<BR>";
+		}
+		else
+		{
+			$_GET['xr_submit'] = array_key_exists('xr_submit', $_GET) ? $_GET['xr_submit'] : NULL;
+			//echo "XCHECK (".$_GET['xr_submit'].")";
+			if($_GET['xr_submit']=="Go" || $_GET['xr_submit']=="")
 			{
-				$player_clusters_world[$world_index] = Get_Player_Clusters_InWorld($player_id, $world_item['worldid']);
-			}
-
-
-			foreach($player_world_stats as $dataset_rownum => &$dataset_row)
-			{
-				//echo "INDEX: $dataset_rownum <br>";
-				foreach($colorbins as $color_column_name => $bins)
+				// Check user's totals from stats table
+				ob_start();
+				Add_Player_Mines($player_id);
+				Update_PlayerInfo($player_id);
+				ob_end_clean();	
+				
+				$player_world_stats = Get_Player_WorldRatios($player_id);
+				//echo "player_world_stats : "; print_r($player_world_stats); echo "<BR>";
+				$player_mines_all = Get_Player_Mines_InWorld($player_id, $GLOBALS['worlds'][0]['worldid']);
+				//echo "player_mines_all : "; print_r($player_mines_all); echo "<BR>";
+				$player_info = Get_Playerinfo($player_id);
+				//echo "player_info : "; print_r($player_info); echo "<BR>";			
+	
+	
+	
+	
+				$color_template_list = array("max_ratio_diamond" => "diamond_ratio", "max_ratio_gold" => "gold_ratio", "max_ratio_lapis" => "lapis_ratio", "max_ratio_mossy" => "mossy_ratio", "max_ratio_iron" => "iron_ratio",
+					 "avg_slope_before_pos" => "slope_before_pos", "avg_slope_before_neg" => "slope_before_neg", "avg_slope_after_pos" => "slope_after_pos", "avg_slope_after_neg" => "slope_after_neg", "ratio_first_block_ore"=>"first_block_ore");
+				$color_important_columns = array("max_ratio_diamond", "max_ratio_gold", "avg_slope_before_neg", "avg_slope_after_neg");	
+				Array_Apply_ColorMap($player_info, $color_template_list, $color_important_columns);
+				$player_info = Calc_Playerinfo_SuspicionLevel($player_info);
+				
+				foreach($GLOBALS['worlds'] as $world_index => $world_item)
 				{
-					//echo "COLOR_SEARCH: $color_column_name <br>";					
-					foreach($dataset_row as $row_column_name => &$row_column_value)
-					{
-						if(array_key_exists($color_column_name, $dataset_row) && $color_column_name == $row_column_name)
-						{
-							//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
-							$tempcolor = 10;
-							$dataset_row["color_" . $row_column_name] = -3;
-							while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
-							{
-								//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-								$tempcolor--;	
-							}
-							$dataset_row["color_" . $row_column_name] = $tempcolor;
-						}
-					}
+					$player_clusters_world[$world_index] = Get_Player_Clusters_InWorld($player_id, $world_item['worldid']);
 				}
-				$dataset_row["color_max"] = 
-					max(	$dataset_row["color_diamond_ratio"],
-							$dataset_row["color_lapis_ratio"],
-							$dataset_row["color_gold_ratio"],
-							$dataset_row["color_mossy_ratio"],
-							$dataset_row["color_iron_ratio"]);
-			}
-			
-			foreach($GLOBALS['worlds'] as $world_index => $world_item)
-			{
-				foreach($player_clusters_world[$world_index] as $dataset_rownum => &$dataset_row)
+	
+	
+				foreach($player_world_stats as $dataset_rownum => &$dataset_row)
 				{
 					//echo "INDEX: $dataset_rownum <br>";
 					foreach($colorbins as $color_column_name => $bins)
 					{
-						//echo "COLOR_SEARCH: $color_column_name <br>";
-						$column_name_suffix = "";
+						//echo "COLOR_SEARCH: $color_column_name <br>";					
 						foreach($dataset_row as $row_column_name => &$row_column_value)
 						{
-							if($row_column_name == "slope_before" && $row_column_value >= 0){$column_name_suffix = "|+";}
-							elseif($row_column_name == "slope_before" && $row_column_value < 0){$column_name_suffix = "|-";}
-							else {$column_name_suffix = "";}
-							$truncated_column_name = str_replace(mysql_real_escape_string($column_name_suffix), '', $color_column_name);
-							
-							//echo "Match? [". $truncated_column_name . "]<BR>";
-							if(array_key_exists($truncated_column_name, $dataset_row) && $truncated_column_name == $row_column_name)
+							if(array_key_exists($color_column_name, $dataset_row) && $color_column_name == $row_column_name)
 							{
 								//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
+								$tempcolor = 10;
 								$dataset_row["color_" . $row_column_name] = -3;
-								$compare_value = ($colorbins[$color_column_name][9] < 0) ? abs($row_column_value) : $row_column_value;
-								if($colorbins[$color_column_name][9] > 0)
+								while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
 								{
-									$tempcolor = 10;									
-									while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
-									{
-										//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-										$tempcolor--;	
-									}
+									//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+									$tempcolor--;	
 								}
-								else
-								{
-									$tempcolor = 0;
-									while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor < 10)
-									{
-										//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
-										$tempcolor++;	
-									}	
-								}
-								
 								$dataset_row["color_" . $row_column_name] = $tempcolor;
 							}
 						}
-						//echo "<BR>";
 					}
 					$dataset_row["color_max"] = 
-						max(	$dataset_row["color_slope_before"],
-								$dataset_row["color_spread_before"]);
+						max(	$dataset_row["color_diamond_ratio"],
+								$dataset_row["color_lapis_ratio"],
+								$dataset_row["color_gold_ratio"],
+								$dataset_row["color_mossy_ratio"],
+								$dataset_row["color_iron_ratio"]);
+				}
+				
+				foreach($GLOBALS['worlds'] as $world_index => $world_item)
+				{
+					foreach($player_clusters_world[$world_index] as $dataset_rownum => &$dataset_row)
+					{
+						//echo "INDEX: $dataset_rownum <br>";
+						foreach($colorbins as $color_column_name => $bins)
+						{
+							//echo "COLOR_SEARCH: $color_column_name <br>";
+							$column_name_suffix = "";
+							foreach($dataset_row as $row_column_name => &$row_column_value)
+							{
+								if($row_column_name == "slope_before" && $row_column_value >= 0){$column_name_suffix = "|+";}
+								elseif($row_column_name == "slope_before" && $row_column_value < 0){$column_name_suffix = "|-";}
+								else {$column_name_suffix = "";}
+								$truncated_column_name = str_replace(mysql_real_escape_string($column_name_suffix), '', $color_column_name);
+								
+								//echo "Match? [". $truncated_column_name . "]<BR>";
+								if(array_key_exists($truncated_column_name, $dataset_row) && $truncated_column_name == $row_column_name)
+								{
+									//echo "MATCHING_COLUMN: $row_column_name == $color_column_name <br>";
+									$dataset_row["color_" . $row_column_name] = -3;
+									$compare_value = ($colorbins[$color_column_name][9] < 0) ? abs($row_column_value) : $row_column_value;
+									if($colorbins[$color_column_name][9] > 0)
+									{
+										$tempcolor = 10;									
+										while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor > 0)
+										{
+											//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+											$tempcolor--;	
+										}
+									}
+									else
+									{
+										$tempcolor = 0;
+										while($row_column_value < $colorbins[$color_column_name][$tempcolor] && $tempcolor < 10)
+										{
+											//echo "$color_column_name >> " . $colorbins[$color_column_name][$tempcolor] . " [" . ($tempcolor) . "]<br>";
+											$tempcolor++;	
+										}	
+									}
+									
+									$dataset_row["color_" . $row_column_name] = $tempcolor;
+								}
+							}
+							//echo "<BR>";
+						}
+						$dataset_row["color_max"] = 
+							max(	$dataset_row["color_slope_before"],
+									$dataset_row["color_spread_before"]);
+					}
 				}
 			}
-		}
-		if($_GET['xr_submit']=="Analyze")
-		{
-			$command = "xanalyze"; $show_process = true;
-		}
+			if($_GET['xr_submit']=="Analyze")
+			{
+				$command = "xanalyze"; $show_process = true;
+			}
+		} // Check player exists
 	}
 	elseif ($command == 'xglobal')
 	{
@@ -754,8 +765,7 @@ google.setOnLoadCallback(Draw_Gauges);
             <td><?php if($command_error!=""){ ?>
               <table width="100%" border="0" class="ui-widget ui-state-error ui-corner-all border_black_thick">
               <tr>
-                <td align="center" valign="middle"><h1 class="error"><?php echo $command_error; ?></h1>
-                  </h1></td>
+                <td align="center" valign="middle"><h1 class="error"><?php echo $command_error; ?></h1></td>
               </tr>
               <tr>
                 <td align="center" valign="middle">[ <a href="xray.php">Home</a> ]</td>
@@ -850,23 +860,20 @@ google.setOnLoadCallback(Draw_Gauges);
               </tr>
              </table></td>
           </tr>
-          <?php /*
           <tr>
             <td><form action="xray.php" method="post" name="XR_form" target="_self" id="XR_form">
               <table width="100%" border="0" class="borderblack_greybg_light_thin">
                 <tr>
-                  <td width="14%" nowrap="nowrap"><strong>Check Player By Name
+                  <td width="14%" nowrap="nowrap"><strong>Lookup Player By Username
                     <input name="command" type="hidden" id="command" value="xsingle" />
                     <input name="form" type="hidden" id="form" value="XR_form" />
                   </strong></td>
                   <td width="86%" nowrap="nowrap"><input name="player" type="text" id="player" maxlength="20" />
-                    <input type="submit" name="xr_submit" id="xr_submit" value="Check" />
-                    <input type="submit" name="xr_submit" id="xr_submit" value="Analyze" /></td>
+                    <input type="submit" name="xr_submit" id="xr_submit" value="Go" /></td>
                 </tr>
               </table>
             </form></td>
           </tr>
-		  <?php */ ?>
         </table></td>
       </tr>
       <tr>
@@ -948,7 +955,7 @@ google.setOnLoadCallback(Draw_Gauges);
 					?>
                 </table>-->
                   <table width="100%" border="0">
-                    <tr>
+                    <tr style="display: none">
                       <td valign="middle"><strong>Update Stats
                         <input name="refresh_stats_records" type="hidden" id="refresh_stats_records" value="NULL" />
                       </strong></td>
@@ -1138,6 +1145,7 @@ google.setOnLoadCallback(Draw_Gauges);
       </tr>
       <tr>
         <td><?php if($command=="xsingle" || $command=="xglobal"){ ?>
+          <?php } ?>
           <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
             <tr>
             <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
@@ -1146,7 +1154,22 @@ google.setOnLoadCallback(Draw_Gauges);
               </tr>
             </table></td>
           </tr>
-          <tr>
+          <?php if( !empty($general_error) ){ ?>
+            <tr>
+              <td><table width="100%" border="0" class="ui-widget ui-state-error ui-corner-all border_black_thick">
+                <tr>
+                  <td align="center" valign="middle">&nbsp;</td>
+                </tr>
+                <tr>
+                  <td align="center" valign="middle"><strong><?php echo $general_error; ?><br /></strong></td>
+                </tr>
+                <tr>
+                  <td align="center" valign="middle">[ <a href="xray.php?command=xtoplist">Top List</a> ][ <a href="xray.php">Home</a> ]</td>
+                </tr>
+              </table></td>
+            </tr>
+          <?php }else{ ?>
+            <tr>
             <td><form action="xray.php" method="post" name="useraction_form" target="_self" id="useraction_form">
               <table width="100%" border="0" style="display:none">
                 <tr>
@@ -1434,11 +1457,11 @@ google.setOnLoadCallback(Draw_Gauges);
               </table>
             </td>
           </tr>
+          <?php } // No error is present ?>
           <tr>
             <td>&nbsp;</td>
           </tr>
-          </table>
-          <?php } ?></td>
+          </table></td>
       </tr>
       <tr>
         <td>&nbsp;</td>

@@ -45,7 +45,7 @@ $(function(){
 	$( "#worldid_radio" ).change(function(){ $( "#Get_Ratios_ByWorldID_form" ).submit(); });
 	$( "#limit_results_radio" ).change(function(){ $( "#Get_Ratios_ByWorldID_form" ).submit(); });
 
-	$( '#refresh_stats_button' ).button();
+	$( '#refresh_stats_button' ).button({ disabled: true });
 
 	$( '#refresh_stats_button' ).click(function()
 	{
