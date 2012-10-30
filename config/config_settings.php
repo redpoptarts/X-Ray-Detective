@@ -1,7 +1,7 @@
 ;<?php die();
 ;/* DO NOT EDIT ABOVE THIS LINE
 [xray_config]
-version = v0.03.01a
+version = v0.04.01a
 ;=====================================================
 ; X-Ray Detective Config - General Settings
 ;=====================================================
@@ -11,7 +11,7 @@ version = v0.03.01a
 ;
 ; IRC Channel: (irc.esper.net) #xray
 ;
-; Version: v0.03.01a
+; Version: v0.04.01a
 ;
 ;=====================================================
 
@@ -44,7 +44,7 @@ failsafe_ips =
 ; "password" - Anyone may login to the script if they enter the correct password.
 ; "none"     - Everyone is granted USER status. No one may make changes at all. You must modify the config files manually to change settings.
 
-mode = username
+mode = none
 
 ; If AUTH_MODE is set to USERNAME
 ; List the usernames of all users who will be granted access rights. They will not require a password.
@@ -87,6 +87,6 @@ mine_max_distance = 5 ; A block must be within __ blocks of all previous blocks 
 postbreak_check = 3 ; How many breaks to check for after last ore in a cluster
 
 
-first_setup = yes
+first_setup = no
 ; DO NOT EDIT BELOW THIS LINE */
 ;?>
