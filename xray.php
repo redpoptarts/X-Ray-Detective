@@ -1143,9 +1143,9 @@ google.setOnLoadCallback(Draw_Gauges);
           </form>
           <?php } ?></td>
       </tr>
+      <?php if($command=="xsingle" || $command=="xglobal"){ ?>
       <tr>
-        <td><?php if($command=="xsingle" || $command=="xglobal"){ ?>
-          <?php } ?>
+        <td>
           <table width="100%" border="0" class="borderblack_greybg_norm_thick ui-corner-all">
             <tr>
             <td><table width="100%" border="0" class="borderblack_greybg_dark_thick ui-corner-all">
@@ -1544,6 +1544,7 @@ for ($col = 0; $col <= 10 ; $col++)
             </tr>
           </table></td>
         </tr>
+        <?php } ?>
       </table>
     <?php } ?></td>
 </tr>
