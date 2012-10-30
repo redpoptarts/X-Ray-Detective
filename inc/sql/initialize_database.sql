@@ -8,22 +8,18 @@ USE `minecraft` ;
 -- -----------------------------------------------------
 -- Table `minecraft`.`x-mines`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `minecraft`.`x-mines` (
-  `mineid` INT(3) UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `playerid` SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0 ,
-  `worldid` SMALLINT(3) UNSIGNED NOT NULL DEFAULT 0 ,
-  `volume` INT(5) UNSIGNED NOT NULL DEFAULT 0 ,
-  `first_block_ore` TINYINT(1) NOT NULL ,
-  `last_break_date` DATETIME NOT NULL DEFAULT '2012-01-01 00:00:00' ,
-  `diamond_ratio` DECIMAL(6,2) UNSIGNED NULL DEFAULT NULL ,
-  `lapis_ratio` DECIMAL(6,2) UNSIGNED NULL DEFAULT NULL ,
-  `iron_ratio` DECIMAL(6,2) UNSIGNED NULL DEFAULT NULL ,
-  `gold_ratio` DECIMAL(6,2) UNSIGNED NULL DEFAULT NULL ,
-  `mossy_ratio` DECIMAL(6,2) UNSIGNED NULL DEFAULT NULL ,
-  PRIMARY KEY (`mineid`, `playerid`) ,
-  UNIQUE INDEX `mineid_UNIQUE` (`mineid` ASC) )
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+CREATE TABLE IF NOT EXISTS `minecraft`.`x-mines` (
+  `mineid` int(3) unsigned NOT NULL AUTO_INCREMENT,
+  `playerid` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `worldid` smallint(3) unsigned NOT NULL DEFAULT '0',
+  `volume` int(5) unsigned NOT NULL DEFAULT '0',
+  `first_block_ore` tinyint(1) NOT NULL,
+  `last_break_date` datetime NOT NULL DEFAULT '2012-01-01 00:00:00',
+  `postbreak_possible` int(5) unsigned DEFAULT '0',
+  `postbreak_total` int(5) unsigned DEFAULT '0',
+  PRIMARY KEY (`mineid`,`playerid`),
+  UNIQUE KEY `mineid_UNIQUE` (`mineid`)
+) ENGINE=InnoDB AUTO_INCREMENT=342 DEFAULT CHARSET=utf8$$
 
 
 -- -----------------------------------------------------
@@ -50,90 +46,68 @@ DROP TABLE IF EXISTS `minecraft`.`x-settings`;
 -- -----------------------------------------------------
 -- Table `minecraft`.`x-stats`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `minecraft`.`x-stats` (
-  `playerid` SMALLINT(5) NOT NULL ,
-  `worldid` SMALLINT(3) NOT NULL DEFAULT '0' ,
-  `watch` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0' ,
-  `punish` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0' ,
-  `diamond_count` INT(10) UNSIGNED NOT NULL DEFAULT '0' ,
-  `gold_count` INT(10) UNSIGNED NOT NULL DEFAULT '0' ,
-  `lapis_count` INT(10) UNSIGNED NOT NULL DEFAULT '0' ,
-  `mossy_count` INT(10) UNSIGNED NOT NULL DEFAULT '0' ,
-  `iron_count` INT(10) UNSIGNED NOT NULL DEFAULT '0' ,
-  `stone_count` INT(21) UNSIGNED NOT NULL DEFAULT '0' ,
-  `diamond_ratio` DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT '0.00' ,
-  `gold_ratio` DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT '0.00' ,
-  `lapis_ratio` DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT '0.00' ,
-  `mossy_ratio` DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT '0.00' ,
-  `iron_ratio` DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT '0.00' ,
-  `stone_ratio` DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT '0.00' ,
-  `postbreak_ratio` DECIMAL(6,2) UNSIGNED NULL DEFAULT NULL ,
-  `volume` INT(5) UNSIGNED NULL DEFAULT NULL ,
-  `slope_before_neg` DECIMAL(6,2) NULL DEFAULT NULL ,
-  `slope_before_pos` DECIMAL(6,2) NULL DEFAULT NULL ,
-  `slope_after_neg` DECIMAL(6,2) NULL DEFAULT NULL ,
-  `slope_after_pos` DECIMAL(6,2) NULL DEFAULT NULL ,
-  `spread_before` TINYINT(2) UNSIGNED NULL DEFAULT NULL ,
-  `spread_after` TINYINT(2) UNSIGNED NULL DEFAULT NULL ,
-  `ore_begin` TINYINT(2) UNSIGNED NULL DEFAULT NULL ,
-  `ore_length` TINYINT(2) UNSIGNED NULL DEFAULT NULL ,
-  `first_block_ore` DECIMAL(4,2) NULL DEFAULT NULL ,
-  PRIMARY KEY (`playerid`, `worldid`) ,
-  INDEX `fk_x-stats_x-worlds1` (`worldid` ASC) )
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8
-COLLATE = utf8_general_ci;
+CREATE TABLE IF NOT EXISTS `minecraft`.`x-stats` (
+  `playerid` smallint(5) NOT NULL,
+  `worldid` smallint(3) NOT NULL DEFAULT '0',
+  `watch` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `punish` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `diamond_count` int(10) unsigned NOT NULL DEFAULT '0',
+  `gold_count` int(10) unsigned NOT NULL DEFAULT '0',
+  `lapis_count` int(10) unsigned NOT NULL DEFAULT '0',
+  `mossy_count` int(10) unsigned NOT NULL DEFAULT '0',
+  `iron_count` int(10) unsigned NOT NULL DEFAULT '0',
+  `stone_count` int(21) unsigned NOT NULL DEFAULT '0',
+  `diamond_ratio` decimal(6,2) unsigned NOT NULL DEFAULT '0.00',
+  `gold_ratio` decimal(6,2) unsigned NOT NULL DEFAULT '0.00',
+  `lapis_ratio` decimal(6,2) unsigned NOT NULL DEFAULT '0.00',
+  `mossy_ratio` decimal(6,2) unsigned NOT NULL DEFAULT '0.00',
+  `iron_ratio` decimal(6,2) unsigned NOT NULL DEFAULT '0.00',
+  `stone_ratio` decimal(6,2) unsigned NOT NULL DEFAULT '0.00',
+  `postbreak_ratio` decimal(6,2) unsigned DEFAULT NULL,
+  `volume` int(5) unsigned DEFAULT NULL,
+  `slope_before_neg` decimal(6,2) DEFAULT NULL,
+  `slope_before_pos` decimal(6,2) DEFAULT NULL,
+  `slope_after_neg` decimal(6,2) DEFAULT NULL,
+  `slope_after_pos` decimal(6,2) DEFAULT NULL,
+  `spread_before` tinyint(2) unsigned DEFAULT NULL,
+  `spread_after` tinyint(2) unsigned DEFAULT NULL,
+  `ore_begin` tinyint(2) unsigned DEFAULT NULL,
+  `ore_length` tinyint(2) unsigned DEFAULT NULL,
+  `first_block_ore` decimal(4,2) DEFAULT NULL,
+  PRIMARY KEY (`playerid`,`worldid`),
+  KEY `fk_x-stats_x-worlds1` (`worldid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8$$
 
 
 -- -----------------------------------------------------
 -- Table `minecraft`.`x-snapshots`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `minecraft`.`x-snapshots` (
-  `playerid` SMALLINT(5) NOT NULL ,
-  `worldid` SMALLINT(3) NOT NULL ,
-  `diamond_count` INT(10) UNSIGNED NOT NULL DEFAULT '0' ,
-  `gold_count` INT(10) UNSIGNED NOT NULL DEFAULT '0' ,
-  `lapis_count` INT(10) UNSIGNED NOT NULL DEFAULT '0' ,
-  `mossy_count` INT(10) UNSIGNED NOT NULL DEFAULT '0' ,
-  `iron_count` INT(10) UNSIGNED NOT NULL DEFAULT '0' ,
-  `stone_count` INT(21) UNSIGNED NOT NULL DEFAULT '0' ,
-  `diamond_ratio` DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT '0.00' ,
-  `gold_ratio` DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT '0.00' ,
-  `lapis_ratio` DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT '0.00' ,
-  `mossy_ratio` DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT '0.00' ,
-  `iron_ratio` DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT '0.00' ,
-  `stone_ratio` DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT '0.00' ,
-  PRIMARY KEY (`playerid`, `worldid`) ,
-  INDEX `fk_x-stats_x-worlds1` (`worldid` ASC) )
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8
-COLLATE = utf8_general_ci;
+-- Not yet implemented
 
 
 -- -----------------------------------------------------
 -- Table `minecraft`.`x-clusters`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `minecraft`.`x-clusters` (
-  `clusterid` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `mineid` INT(10) UNSIGNED NOT NULL ,
-  `playerid` SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0 ,
-  `worldid` SMALLINT(3) UNSIGNED NOT NULL DEFAULT 0 ,
-  `ore_begin` INT(6) UNSIGNED NOT NULL DEFAULT 0 ,
-  `ore_length` TINYINT(2) UNSIGNED NULL ,
-  `slope_before` DECIMAL(6,2) NULL DEFAULT NULL ,
-  `slope_after` DECIMAL(6,2) NULL DEFAULT NULL ,
-  `spread_before` TINYINT(2) UNSIGNED NULL DEFAULT NULL ,
-  `spread_after` TINYINT(2) UNSIGNED NULL DEFAULT NULL ,
-  PRIMARY KEY (`clusterid`, `mineid`, `playerid`) ,
-  UNIQUE INDEX `mineid_UNIQUE` (`clusterid` ASC) )
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+CREATE TABLE IF NOT EXISTS `minecraft`.`x-clusters` (
+  `clusterid` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `mineid` int(10) unsigned NOT NULL,
+  `playerid` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `worldid` smallint(3) unsigned NOT NULL DEFAULT '0',
+  `ore_begin` int(6) unsigned NOT NULL DEFAULT '0',
+  `ore_length` tinyint(2) unsigned DEFAULT NULL,
+  `slope_before` decimal(6,2) DEFAULT NULL,
+  `slope_after` decimal(6,2) DEFAULT NULL,
+  `spread_before` tinyint(2) unsigned DEFAULT NULL,
+  `spread_after` tinyint(2) unsigned DEFAULT NULL,
+  PRIMARY KEY (`clusterid`,`mineid`,`playerid`),
+  UNIQUE KEY `mineid_UNIQUE` (`clusterid`)
+) ENGINE=InnoDB AUTO_INCREMENT=275 DEFAULT CHARSET=utf8$$
 
 
 -- -----------------------------------------------------
 -- Table `minecraft`.`x-playerinfo`
 -- -----------------------------------------------------
-CREATE TABLE `x-playerinfo` (
+CREATE TABLE IF NOT EXISTS `minecraft`.`x-playerinfo` (
   `playerid` smallint(5) NOT NULL,
   `watch` varchar(45) DEFAULT NULL,
   `punish` varchar(45) DEFAULT NULL,
@@ -181,9 +155,7 @@ CREATE TABLE `x-playerinfo` (
   `total_ores` int(5) unsigned DEFAULT '0',
   `total_clusters` int(5) unsigned DEFAULT '0',
   PRIMARY KEY (`playerid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8$$
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
