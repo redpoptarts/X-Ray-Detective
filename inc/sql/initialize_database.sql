@@ -10,7 +10,7 @@ USE `minecraft` ;
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `minecraft`.`x-mines` (
   `mineid` INT(3) UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `playerid` SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0 ,
+  `playerid` INT(10) UNSIGNED NOT NULL DEFAULT 0 ,
   `worldid` SMALLINT(3) UNSIGNED NOT NULL DEFAULT 0 ,
   `volume` INT(5) UNSIGNED NOT NULL DEFAULT 0 ,
   `first_block_ore` TINYINT(1) NOT NULL ,
@@ -51,7 +51,7 @@ DROP TABLE IF EXISTS `minecraft`.`x-settings`;
 -- Table `minecraft`.`x-stats`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `minecraft`.`x-stats` (
-  `playerid` SMALLINT(5) NOT NULL ,
+  `playerid` INT(10) UNSIGNED NOT NULL ,
   `worldid` SMALLINT(3) NOT NULL DEFAULT '0' ,
   `watch` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0' ,
   `punish` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0' ,
@@ -89,7 +89,7 @@ COLLATE = utf8_general_ci;
 -- Table `minecraft`.`x-snapshots`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `minecraft`.`x-snapshots` (
-  `playerid` SMALLINT(5) NOT NULL ,
+  `playerid` INT(10) UNSIGNED NOT NULL ,
   `worldid` SMALLINT(3) NOT NULL ,
   `diamond_count` INT(10) UNSIGNED NOT NULL DEFAULT '0' ,
   `gold_count` INT(10) UNSIGNED NOT NULL DEFAULT '0' ,
@@ -116,7 +116,7 @@ COLLATE = utf8_general_ci;
 CREATE  TABLE IF NOT EXISTS `minecraft`.`x-clusters` (
   `clusterid` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT ,
   `mineid` INT(10) UNSIGNED NOT NULL ,
-  `playerid` SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0 ,
+  `playerid` INT(10) UNSIGNED NOT NULL DEFAULT 0 ,
   `worldid` SMALLINT(3) UNSIGNED NOT NULL DEFAULT 0 ,
   `ore_begin` INT(6) UNSIGNED NOT NULL DEFAULT 0 ,
   `ore_length` TINYINT(2) UNSIGNED NULL ,
